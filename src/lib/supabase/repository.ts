@@ -14,6 +14,7 @@ import type {
   Customer,
   Vehicle,
   RentalAgreement,
+  Reservation,
   FinancialTransaction,
 } from "../types";
 import { getSupabase } from "./client";
@@ -22,6 +23,7 @@ import {
   SupabaseVehicleRepository,
   SupabaseRentalRepository,
   SupabaseLedgerRepository,
+  SupabaseReservationRepository,
 } from "./repositoryAdapters";
 
 // ---------------------------------------------------------------------------
@@ -57,6 +59,17 @@ export interface RentalRepository {
   ): Promise<RentalAgreement>;
 }
 
+export interface ReservationRepository {
+  list(orgId: string): Promise<Reservation[]>;
+  get(orgId: string, id: string): Promise<Reservation | null>;
+  insert(r: Reservation): Promise<Reservation>;
+  update(
+    orgId: string,
+    id: string,
+    patch: Partial<Reservation>,
+  ): Promise<Reservation>;
+}
+
 export interface LedgerRepository {
   listForRental(
     orgId: string,
@@ -76,6 +89,7 @@ export {
   SupabaseVehicleRepository,
   SupabaseRentalRepository,
   SupabaseLedgerRepository,
+  SupabaseReservationRepository,
 };
 
 // ---------------------------------------------------------------------------
@@ -152,15 +166,23 @@ export function createRepositories(): {
   customers: CustomerRepository | null;
   vehicles: VehicleRepository | null;
   rentals: RentalRepository | null;
+  reservations: ReservationRepository | null;
   ledger: LedgerRepository | null;
 } {
   const db = getSupabase();
   if (!db)
-    return { customers: null, vehicles: null, rentals: null, ledger: null };
+    return {
+      customers: null,
+      vehicles: null,
+      rentals: null,
+      reservations: null,
+      ledger: null,
+    };
   return {
     customers: new SupabaseCustomerRepository(db),
     vehicles: new SupabaseVehicleRepository(db),
     rentals: new SupabaseRentalRepository(db),
+    reservations: new SupabaseReservationRepository(db),
     ledger: new SupabaseLedgerRepository(db),
   };
 }

@@ -1,8 +1,13 @@
-// Connect Pro Fleet — sign-in page (Build #22).
+// Connect Pro Fleet — sign-in / sign-up page (Build #22 + Phase 1).
 //
-// Email/password sign-in via Supabase Auth. In memory mode (no config) it
-// accepts any credentials and establishes the demo session so the app remains
-// usable in dev/test. A config error in supabase mode is surfaced clearly.
+// Email/password sign-in via Cloud Auth. In memory mode (no config) it
+// accepts any credentials and establishes the demo session so the app
+// remains usable in dev/test. A config error in supabase mode is surfaced
+// clearly.
+//
+// Phase 1: adds a sign-up mode that creates the auth user and provisions the
+// organization, owner role, profile, and membership server-side via the
+// provisionAccount server function.
 
 import { useState } from "react";
 import { useNavigate } from "@/lib/router-compat";
@@ -13,10 +18,14 @@ import { Label } from "@/components/ui/label";
 import { AlertTriangle } from "lucide-react";
 
 export default function SignIn() {
-  const { signIn, backendMode, configError } = useAuth();
+  const { signIn, signUp, backendMode, configError } = useAuth();
   const navigate = useNavigate();
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [orgName, setOrgName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -24,10 +33,13 @@ export default function SignIn() {
     e.preventDefault();
     setBusy(true);
     setError(null);
-    const res = await signIn(email, password);
+    const res =
+      mode === "signin"
+        ? await signIn(email, password)
+        : await signUp({ email, password, orgName, firstName, lastName });
     setBusy(false);
     if (res.ok) navigate("/");
-    else setError(res.error ?? "Sign in failed.");
+    else setError(res.error ?? (mode === "signin" ? "Sign in failed." : "Sign up failed."));
   }
 
   return (
@@ -38,7 +50,9 @@ export default function SignIn() {
             Connect Pro Fleet
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Sign in to manage your rental operations.
+            {mode === "signin"
+              ? "Sign in to manage your rental operations."
+              : "Create a new organization account."}
           </p>
         </div>
         {configError && (
@@ -48,6 +62,38 @@ export default function SignIn() {
           </div>
         )}
         <form onSubmit={submit} className="space-y-4">
+          {mode === "signup" && (
+            <>
+              <div className="space-y-1.5">
+                <Label htmlFor="orgName">Organization name</Label>
+                <Input
+                  id="orgName"
+                  value={orgName}
+                  onChange={(e) => setOrgName(e.target.value)}
+                  placeholder="My Fleet Co."
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="firstName">First name</Label>
+                  <Input
+                    id="firstName"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="lastName">Last name</Label>
+                  <Input
+                    id="lastName"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                  />
+                </div>
+              </div>
+            </>
+          )}
           <div className="space-y-1.5">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -66,8 +112,9 @@ export default function SignIn() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
+              autoComplete={mode === "signin" ? "current-password" : "new-password"}
               required
+              minLength={6}
             />
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
@@ -76,9 +123,27 @@ export default function SignIn() {
             disabled={busy}
             className="w-full bg-primary text-primary-foreground hover:bg-primary-press"
           >
-            {busy ? "Signing in…" : "Sign in"}
+            {busy
+              ? mode === "signin"
+                ? "Signing in…"
+                : "Creating account…"
+              : mode === "signin"
+                ? "Sign in"
+                : "Create account"}
           </Button>
         </form>
+        <button
+          type="button"
+          onClick={() => {
+            setMode(mode === "signin" ? "signup" : "signin");
+            setError(null);
+          }}
+          className="block w-full text-center text-sm text-muted-foreground hover:text-foreground"
+        >
+          {mode === "signin"
+            ? "Need an account? Sign up"
+            : "Already have an account? Sign in"}
+        </button>
         {backendMode === "memory" && (
           <p className="text-center text-xs text-muted-foreground">
             Development mode — any credentials sign in as the demo owner.

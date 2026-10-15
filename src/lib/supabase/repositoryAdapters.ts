@@ -8,6 +8,7 @@ import type {
   Customer,
   Vehicle,
   RentalAgreement,
+  Reservation,
   FinancialTransaction,
 } from "../types";
 import type { getSupabase } from "./client";
@@ -15,6 +16,7 @@ import {
   type CustomerRepository,
   type VehicleRepository,
   type RentalRepository,
+  type ReservationRepository,
   type LedgerRepository,
   normalizeError,
 } from "./repository";
@@ -28,6 +30,9 @@ import {
   rowToRental,
   rentalToRow,
   rentalPatchToRow,
+  rowToReservation,
+  reservationToRow,
+  reservationPatchToRow,
   rowToTransaction,
   transactionToRow,
   transactionPatchToRow,
@@ -170,6 +175,53 @@ export class SupabaseRentalRepository implements RentalRepository {
       .single();
     if (error) throw normalizeError(error);
     return rowToRental(data);
+  }
+}
+
+export class SupabaseReservationRepository implements ReservationRepository {
+  constructor(private db: Db) {}
+  async list(orgId: string): Promise<Reservation[]> {
+    const { data, error } = await this.db
+      .from("reservations")
+      .select("*")
+      .eq("organization_id", orgId)
+      .order("created_at", { ascending: false });
+    if (error) throw normalizeError(error);
+    return (data ?? []).map(rowToReservation);
+  }
+  async get(orgId: string, id: string): Promise<Reservation | null> {
+    const { data, error } = await this.db
+      .from("reservations")
+      .select("*")
+      .eq("organization_id", orgId)
+      .eq("id", id)
+      .maybeSingle();
+    if (error) throw normalizeError(error);
+    return data ? rowToReservation(data) : null;
+  }
+  async insert(r: Reservation): Promise<Reservation> {
+    const { data, error } = await this.db
+      .from("reservations")
+      .insert(reservationToRow(r))
+      .select()
+      .single();
+    if (error) throw normalizeError(error);
+    return rowToReservation(data);
+  }
+  async update(
+    orgId: string,
+    id: string,
+    patch: Partial<Reservation>,
+  ): Promise<Reservation> {
+    const { data, error } = await this.db
+      .from("reservations")
+      .update(reservationPatchToRow(patch))
+      .eq("organization_id", orgId)
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw normalizeError(error);
+    return rowToReservation(data);
   }
 }
 

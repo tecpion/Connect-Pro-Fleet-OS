@@ -9,12 +9,14 @@ import type {
   Customer,
   Vehicle,
   RentalAgreement,
+  Reservation,
   FinancialTransaction,
 } from "../types";
 import type {
   CustomerRow,
   VehicleRow,
   RentalRow,
+  ReservationRow,
   RentalLedgerTransactionRow,
 } from "./database.types";
 import { toMoney } from "./repository";
@@ -335,4 +337,67 @@ export function transactionPatchToRow(
   patch: Partial<FinancialTransaction>,
 ): Partial<RentalLedgerTransactionRow> {
   return transactionToRow({ ...({} as FinancialTransaction), ...patch });
+}
+
+// ---------------------------------------------------------------------------
+// Reservation mappers
+// ---------------------------------------------------------------------------
+export function rowToReservation(r: ReservationRow): Reservation {
+  return {
+    id: r.id,
+    tenant_id: r.organization_id,
+    vehicle_id: r.vehicle_id,
+    customer_id: r.customer_id,
+    renter_name: r.renter_name,
+    renter_email: r.renter_email,
+    renter_phone: r.renter_phone,
+    start_date: r.start_date,
+    end_date: r.end_date,
+    status: r.status as Reservation["status"],
+    source: r.source as Reservation["source"],
+    ghl_opportunity_id: r.ghl_opportunity_id,
+    total_price: toMoney(r.total_price),
+    deposit_amount: toMoney(r.deposit_amount),
+    deposit_status: r.deposit_status as Reservation["deposit_status"],
+    amount_paid: toMoney(r.amount_paid),
+    converted_to_rental_id: r.converted_to_rental_id,
+    pricing_snapshot:
+      (r.pricing_snapshot as unknown as Reservation["pricing_snapshot"]) ??
+      null,
+    created_at: r.created_at,
+    created_by: r.created_by,
+    created_by_name: r.created_by_name,
+  };
+}
+
+export function reservationToRow(r: Reservation): Partial<ReservationRow> {
+  return {
+    id: r.id,
+    organization_id: r.tenant_id,
+    vehicle_id: r.vehicle_id,
+    customer_id: r.customer_id ?? null,
+    renter_name: r.renter_name,
+    renter_email: r.renter_email,
+    renter_phone: r.renter_phone,
+    start_date: r.start_date,
+    end_date: r.end_date,
+    status: r.status,
+    source: r.source,
+    ghl_opportunity_id: r.ghl_opportunity_id,
+    total_price: r.total_price,
+    deposit_amount: r.deposit_amount,
+    deposit_status: r.deposit_status,
+    amount_paid: r.amount_paid,
+    converted_to_rental_id: r.converted_to_rental_id ?? null,
+    pricing_snapshot: (r.pricing_snapshot ??
+      null) as unknown as ReservationRow["pricing_snapshot"],
+    created_by: r.created_by,
+    created_by_name: r.created_by_name,
+  };
+}
+
+export function reservationPatchToRow(
+  patch: Partial<Reservation>,
+): Partial<ReservationRow> {
+  return reservationToRow({ ...({} as Reservation), ...patch });
 }

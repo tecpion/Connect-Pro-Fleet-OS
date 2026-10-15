@@ -4284,6 +4284,20 @@ export type Database = {
           payment_id: string
         }[]
       }
+      provision_account: {
+        Args: {
+          p_email: string
+          p_first_name?: string
+          p_last_name?: string
+          p_org_name?: string
+          p_user_id: string
+        }
+        Returns: {
+          created_org: boolean
+          organization_id: string
+          role_id: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

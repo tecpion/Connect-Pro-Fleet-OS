@@ -1,9 +1,13 @@
 // Connect Pro Fleet — AuthProvider + session context (Build #22).
 //
 // Exposes session, user, profile, memberships, activeOrganization, loading,
-// signIn, signOut. Pages consume `useAuth()` rather than querying auth
+// signIn, signUp, signOut. Pages consume `useAuth()` rather than querying auth
 // independently. In memory mode (no Supabase config) it exposes a deterministic
 // demo session so the existing app keeps working in dev/test without auth.
+//
+// Phase 1: signUp creates the auth user, then calls the provisionAccount
+// server function which runs the idempotent provision_account() RPC to create
+// the organization, owner role, profile, and membership server-side.
 
 import {
   createContext,
@@ -16,6 +20,7 @@ import {
 import type { SupabaseClient } from "./supabaseClientShim";
 import type { Database } from "./database.types";
 import { getSupabase, getBackendMode, hasSupabaseConfig } from "./client";
+import { provisionAccount } from "@/lib/auth/account.functions";
 
 export interface AuthProfile {
   id: string;
@@ -47,6 +52,13 @@ export interface AuthContextValue {
     email: string,
     password: string,
   ) => Promise<{ ok: boolean; error?: string }>;
+  signUp: (args: {
+    email: string;
+    password: string;
+    orgName?: string;
+    firstName?: string;
+    lastName?: string;
+  }) => Promise<{ ok: boolean; error?: string }>;
   signOut: () => Promise<void>;
   setActiveOrganization: (orgId: string) => void;
   backendMode: "memory" | "supabase";
@@ -159,6 +171,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       return { ok: true };
     }
+    async function signUp(args: {
+      email: string;
+      password: string;
+      orgName?: string;
+      firstName?: string;
+      lastName?: string;
+    }) {
+      if (!supabase || mode === "memory") {
+        setSession(DEMO_SESSION);
+        return { ok: true };
+      }
+      const { data, error } = await supabase.auth.signUp({
+        email: args.email,
+        password: args.password,
+      });
+      if (error) return { ok: false, error: error.message };
+      const user = data.user;
+      if (!user) {
+        // Email confirmation may be required — no session yet.
+        return {
+          ok: false,
+          error:
+            "Check your email to confirm your account, then sign in.",
+        };
+      }
+      // Provision org/profile/membership server-side (idempotent).
+      try {
+        await provisionAccount({
+          data: {
+            orgName: args.orgName,
+            firstName: args.firstName,
+            lastName: args.lastName,
+          },
+        });
+      } catch (e) {
+        // Provisioning may fail if email confirmation is required and there
+        // is no session yet; surface a recoverable message.
+        return {
+          ok: false,
+          error:
+            e instanceof Error
+              ? `Account created but setup incomplete: ${e.message}. Sign in to retry.`
+              : "Account created but setup incomplete. Sign in to retry.",
+        };
+      }
+      await loadProfile(supabase, user.id, user.email ?? args.email, setSession);
+      return { ok: true };
+    }
     async function signOut() {
       if (!supabase || mode === "memory") {
         setSession({
@@ -193,6 +253,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
       loading,
       signIn,
+      signUp,
       signOut,
       setActiveOrganization,
       backendMode: mode,
