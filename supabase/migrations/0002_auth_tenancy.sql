@@ -94,3 +94,29 @@ stable
 security definer
 set search_path = public
 as $$
+  select exists (
+    select 1
+    from public.organization_memberships m
+    where m.organization_id = is_org_member.org_id
+      and m.user_id = auth.uid()
+      and m.status = 'active'
+  );
+$$;
+
+create or replace function public.has_permission(org_id uuid, perm_code text)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.organization_memberships m
+    join public.role_permissions rp on rp.role_id = m.role_id
+    where m.organization_id = has_permission.org_id
+      and m.user_id = auth.uid()
+      and m.status = 'active'
+      and rp.permission_code = has_permission.perm_code
+  );
+$$;
