@@ -17,7 +17,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { SupabaseClient } from "./supabaseClientShim";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "./database.types";
 import { getSupabase, getBackendMode, hasSupabaseConfig } from "./client";
 import { provisionAccount } from "@/lib/auth/account.functions";

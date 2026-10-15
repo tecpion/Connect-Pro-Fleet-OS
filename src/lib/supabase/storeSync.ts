@@ -123,8 +123,4 @@ export function resolveOrgId(activeOrgId: string | null): string {
   return "tnt_connectpro";
 }
 
-export type {
-  CustomerRepository,
-  VehicleRepository,
-  ReservationRepository,
-};
+export type { CustomerRepository, VehicleRepository, ReservationRepository };

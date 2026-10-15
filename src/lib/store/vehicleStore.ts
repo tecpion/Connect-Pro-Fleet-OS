@@ -16,9 +16,7 @@ export function buildVehicleMethods(s: StoreState) {
     updateVehicle: (id: string, patch: Partial<Vehicle>) => {
       const now = new Date().toISOString();
       s.setVehicles((vs) =>
-        vs.map((v) =>
-          v.id === id ? { ...v, ...patch, updated_at: now } : v,
-        ),
+        vs.map((v) => (v.id === id ? { ...v, ...patch, updated_at: now } : v)),
       );
       const existing = s.vehicles.find((v) => v.id === id);
       if (existing) {

@@ -28,9 +28,8 @@ export const runPhase1E2E = createServerFn({ method: "POST" })
     const { supabase } = context;
 
     // Load the admin client for auth-user creation + cross-tenant assertions.
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
+    const { supabaseAdmin } =
+      await import("@/integrations/supabase/client.server");
 
     const stamp = Date.now();
     const emailA = `e2e-a-${stamp}@phase1.test`;
@@ -49,7 +48,7 @@ export const runPhase1E2E = createServerFn({ method: "POST" })
       steps.push({
         step: "create_auth_user_a",
         ok: !error && !!userAId,
-        detail: error ? error.message : userAId ?? "",
+        detail: error ? error.message : (userAId ?? ""),
       });
     } catch (e) {
       steps.push({ step: "create_auth_user_a", ok: false, detail: String(e) });
@@ -67,7 +66,7 @@ export const runPhase1E2E = createServerFn({ method: "POST" })
       steps.push({
         step: "create_auth_user_b",
         ok: !error && !!userBId,
-        detail: error ? error.message : userBId ?? "",
+        detail: error ? error.message : (userBId ?? ""),
       });
     } catch (e) {
       steps.push({ step: "create_auth_user_b", ok: false, detail: String(e) });
@@ -80,13 +79,16 @@ export const runPhase1E2E = createServerFn({ method: "POST" })
     // Step 3: provision account A (org + owner role + profile + membership).
     let orgA: string | null = null;
     try {
-      const { data: rpc, error } = await supabaseAdmin.rpc("provision_account", {
-        p_user_id: userAId,
-        p_email: emailA,
-        p_org_name: "E2E Org Alpha",
-        p_first_name: "Owner",
-        p_last_name: "Alpha",
-      });
+      const { data: rpc, error } = await supabaseAdmin.rpc(
+        "provision_account",
+        {
+          p_user_id: userAId,
+          p_email: emailA,
+          p_org_name: "E2E Org Alpha",
+          p_first_name: "Owner",
+          p_last_name: "Alpha",
+        },
+      );
       const row = (Array.isArray(rpc) ? rpc[0] : rpc) as {
         organization_id: string;
       } | null;
@@ -94,7 +96,7 @@ export const runPhase1E2E = createServerFn({ method: "POST" })
       steps.push({
         step: "provision_account_a",
         ok: !error && !!orgA,
-        detail: error ? error.message : orgA ?? "",
+        detail: error ? error.message : (orgA ?? ""),
       });
     } catch (e) {
       steps.push({ step: "provision_account_a", ok: false, detail: String(e) });
@@ -103,13 +105,16 @@ export const runPhase1E2E = createServerFn({ method: "POST" })
     // Step 4: provision account B.
     let orgB: string | null = null;
     try {
-      const { data: rpc, error } = await supabaseAdmin.rpc("provision_account", {
-        p_user_id: userBId,
-        p_email: emailB,
-        p_org_name: "E2E Org Beta",
-        p_first_name: "Owner",
-        p_last_name: "Beta",
-      });
+      const { data: rpc, error } = await supabaseAdmin.rpc(
+        "provision_account",
+        {
+          p_user_id: userBId,
+          p_email: emailB,
+          p_org_name: "E2E Org Beta",
+          p_first_name: "Owner",
+          p_last_name: "Beta",
+        },
+      );
       const row = (Array.isArray(rpc) ? rpc[0] : rpc) as {
         organization_id: string;
       } | null;
@@ -117,23 +122,31 @@ export const runPhase1E2E = createServerFn({ method: "POST" })
       steps.push({
         step: "provision_account_b",
         ok: !error && !!orgB,
-        detail: error ? error.message : orgB ?? "",
+        detail: error ? error.message : (orgB ?? ""),
       });
     } catch (e) {
       steps.push({ step: "provision_account_b", ok: false, detail: String(e) });
     }
 
     if (!orgA || !orgB) {
-      return { passed: false, steps, orgA: orgA ?? undefined, orgB: orgB ?? undefined };
+      return {
+        passed: false,
+        steps,
+        orgA: orgA ?? undefined,
+        orgB: orgB ?? undefined,
+      };
     }
 
     // Step 5: idempotency — re-provision A must NOT create a second org.
     try {
-      const { data: rpc, error } = await supabaseAdmin.rpc("provision_account", {
-        p_user_id: userAId,
-        p_email: emailA,
-        p_org_name: "E2E Org Alpha DUPLICATE",
-      });
+      const { data: rpc, error } = await supabaseAdmin.rpc(
+        "provision_account",
+        {
+          p_user_id: userAId,
+          p_email: emailA,
+          p_org_name: "E2E Org Alpha DUPLICATE",
+        },
+      );
       const row = (Array.isArray(rpc) ? rpc[0] : rpc) as {
         organization_id: string;
         created_org: boolean;
@@ -146,7 +159,11 @@ export const runPhase1E2E = createServerFn({ method: "POST" })
         detail: `same_org=${sameOrg} created_org=${row?.created_org}`,
       });
     } catch (e) {
-      steps.push({ step: "provision_idempotent_a", ok: false, detail: String(e) });
+      steps.push({
+        step: "provision_idempotent_a",
+        ok: false,
+        detail: String(e),
+      });
     }
 
     // Step 6: Org A inserts a customer (via admin, simulating authenticated write).
@@ -166,7 +183,11 @@ export const runPhase1E2E = createServerFn({ method: "POST" })
         detail: error ? error.message : custId,
       });
     } catch (e) {
-      steps.push({ step: "orgA_insert_customer", ok: false, detail: String(e) });
+      steps.push({
+        step: "orgA_insert_customer",
+        ok: false,
+        detail: String(e),
+      });
     }
 
     // Step 7: Org A inserts a vehicle.
@@ -223,7 +244,11 @@ export const runPhase1E2E = createServerFn({ method: "POST" })
         detail: error ? error.message : rsvId,
       });
     } catch (e) {
-      steps.push({ step: "orgA_insert_reservation", ok: false, detail: String(e) });
+      steps.push({
+        step: "orgA_insert_reservation",
+        ok: false,
+        detail: String(e),
+      });
     }
 
     // Step 9: persistence — Org A's customer is readable back.
@@ -239,7 +264,11 @@ export const runPhase1E2E = createServerFn({ method: "POST" })
         detail: error ? error.message : data ? "found" : "not found",
       });
     } catch (e) {
-      steps.push({ step: "orgA_read_customer_back", ok: false, detail: String(e) });
+      steps.push({
+        step: "orgA_read_customer_back",
+        ok: false,
+        detail: String(e),
+      });
     }
 
     // Step 10: cross-tenant RLS — verify Org B's membership cannot see Org A's
@@ -258,7 +287,11 @@ export const runPhase1E2E = createServerFn({ method: "POST" })
         detail: `orgB_memberships=${bOrgs.join(",")} includes_orgA=${bCanSeeOrgA}`,
       });
     } catch (e) {
-      steps.push({ step: "orgB_cannot_see_orgA", ok: false, detail: String(e) });
+      steps.push({
+        step: "orgB_cannot_see_orgA",
+        ok: false,
+        detail: String(e),
+      });
     }
 
     // Step 11: private storage — Org A uploads a doc to an org-scoped path.
@@ -276,7 +309,11 @@ export const runPhase1E2E = createServerFn({ method: "POST" })
         detail: error ? error.message : storagePath,
       });
     } catch (e) {
-      steps.push({ step: "orgA_upload_private_doc", ok: false, detail: String(e) });
+      steps.push({
+        step: "orgA_upload_private_doc",
+        ok: false,
+        detail: String(e),
+      });
     }
 
     // Step 12: Org A can create a signed URL for its own doc.
@@ -290,7 +327,11 @@ export const runPhase1E2E = createServerFn({ method: "POST" })
         detail: error ? error.message : "signed url created",
       });
     } catch (e) {
-      steps.push({ step: "orgA_signed_url_own_doc", ok: false, detail: String(e) });
+      steps.push({
+        step: "orgA_signed_url_own_doc",
+        ok: false,
+        detail: String(e),
+      });
     }
 
     // Step 13: Org B cannot list Org A's storage path (different first segment).
@@ -318,7 +359,9 @@ export const runPhase1E2E = createServerFn({ method: "POST" })
     await supabaseAdmin.from("reservations").delete().eq("id", rsvId);
     await supabaseAdmin.from("vehicles").delete().eq("id", vehId);
     await supabaseAdmin.from("customers").delete().eq("id", custId);
-    await supabaseAdmin.storage.from("customer-documents").remove([storagePath]);
+    await supabaseAdmin.storage
+      .from("customer-documents")
+      .remove([storagePath]);
 
     const passed = steps.every((s) => s.ok);
     return { passed, steps, orgA: orgA ?? undefined, orgB: orgB ?? undefined };

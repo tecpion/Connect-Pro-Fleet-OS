@@ -42,7 +42,10 @@ export const Route = createFileRoute("/api/phase1-e2e")({
         try {
           body = await request.json();
         } catch {
-          return Response.json({ error: "Invalid JSON body." }, { status: 400 });
+          return Response.json(
+            { error: "Invalid JSON body." },
+            { status: 400 },
+          );
         }
         const { orgA, orgB, vehicleId } = body;
         if (!orgA || !orgB || !vehicleId) {
@@ -190,10 +193,7 @@ export const Route = createFileRoute("/api/phase1-e2e")({
         }
 
         // Cleanup: remove test rows + storage object.
-        await admin
-          .from("reservations")
-          .delete()
-          .eq("id", rsvId);
+        await admin.from("reservations").delete().eq("id", rsvId);
         await admin.from("customers").delete().eq("id", custId);
         await admin.storage.from("customer-documents").remove([storagePath]);
 

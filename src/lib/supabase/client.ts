@@ -1,22 +1,34 @@
 // Connect Pro Fleet — Supabase client + environment configuration (Build #22).
 //
-// Centralized Supabase access. Components/repositories import `getSupabase()`
+// Centralized Cloud access. Components/repositories import `getSupabase()`
 // rather than instantiating clients. Only the publishable/anon key is used in
 // the browser — the service-role key must NEVER be present in client code.
 //
 // Safe missing-config behavior: when VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY
 // are absent the client returns null and the app runs in memory mode (dev/test
-// only). Production mode (`VITE_BACKEND_MODE=supabase`) with missing config
-// surfaces a configuration error instead of silently falling back.
+// only). When Cloud is configured, the real @supabase/supabase-js client is
+// constructed with the opaque-key fetch handling Cloud requires.
 
-import { createClient, type SupabaseClient } from "./supabaseClientShim";
+import {
+  createClient as createSupabaseClient,
+  type SupabaseClient,
+} from "@supabase/supabase-js";
 import type { Database } from "./database.types";
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+// Use import.meta.env for the browser (Vite build-time replacement) and fall
+// back to process.env for SSR (server-side rendering), matching the generated
+// Cloud client contract.
+const SUPABASE_URL =
+  (import.meta.env.VITE_SUPABASE_URL as string | undefined) ||
+  (typeof process !== "undefined" ? process.env?.SUPABASE_URL : undefined);
 // Cloud publishes the anon/publishable key as VITE_SUPABASE_PUBLISHABLE_KEY.
 // Accept the legacy VITE_SUPABASE_ANON_KEY name too for older configs.
-const SUPABASE_ANON_KEY = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
-  import.meta.env.VITE_SUPABASE_ANON_KEY) as string | undefined;
+const SUPABASE_ANON_KEY =
+  ((import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined) ??
+    (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined)) ||
+  (typeof process !== "undefined"
+    ? process.env?.SUPABASE_PUBLISHABLE_KEY
+    : undefined);
 
 export type BackendMode = "memory" | "supabase";
 
@@ -34,14 +46,46 @@ export function hasSupabaseConfig(): boolean {
   return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 }
 
+// Cloud injects new-format `sb_publishable_*` / `sb_secret_*` keys. They are
+// opaque strings, NOT JWTs: send the key in the `apikey` header and delete the
+// `Authorization: Bearer <key>` header the SDK adds, or PostgREST fails.
+function isNewSupabaseApiKey(value: string): boolean {
+  return value.startsWith("sb_publishable_") || value.startsWith("sb_secret_");
+}
+
+function createSupabaseFetch(supabaseKey: string): typeof fetch {
+  return (input, init) => {
+    const headers = new Headers(
+      typeof Request !== "undefined" && input instanceof Request
+        ? input.headers
+        : undefined,
+    );
+    if (init?.headers) {
+      new Headers(init.headers).forEach((value, key) =>
+        headers.set(key, value),
+      );
+    }
+    if (
+      isNewSupabaseApiKey(supabaseKey) &&
+      headers.get("Authorization") === `Bearer ${supabaseKey}`
+    ) {
+      headers.delete("Authorization");
+    }
+    headers.set("apikey", supabaseKey);
+    return fetch(input, { ...init, headers });
+  };
+}
+
 let client: SupabaseClient<Database> | null = null;
 
-/** The shared typed browser Supabase client, or null when unconfigured. */
+/** The shared typed browser Cloud client, or null when unconfigured. */
 export function getSupabase(): SupabaseClient<Database> | null {
   if (!hasSupabaseConfig()) return null;
   if (!client) {
-    client = createClient<Database>(SUPABASE_URL!, SUPABASE_ANON_KEY!, {
+    client = createSupabaseClient<Database>(SUPABASE_URL!, SUPABASE_ANON_KEY!, {
+      global: { fetch: createSupabaseFetch(SUPABASE_ANON_KEY!) },
       auth: {
+        storage: typeof window !== "undefined" ? localStorage : undefined,
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,

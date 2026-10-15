@@ -89,7 +89,9 @@ describe("customer store — Cloud persistence wired", () => {
     act(() => {
       result.current.addCustomer(c);
     });
-    expect(result.current.customers.some((x) => x.id === "cust_new")).toBe(true);
+    expect(result.current.customers.some((x) => x.id === "cust_new")).toBe(
+      true,
+    );
     expect(persistCustomerInsert).toHaveBeenCalledWith(c);
   });
 
@@ -143,7 +145,7 @@ describe("vehicle store — Cloud persistence wired", () => {
       ownership_effective_date: null,
       created_at: "2026-01-01T00:00:00Z",
       updated_at: "2026-01-01T00:00:00Z",
-    } as Vehicle;
+    } as unknown as Vehicle;
     act(() => {
       result.current.addVehicle(v);
     });
@@ -181,9 +183,9 @@ describe("reservation store — Cloud persistence wired + business rules", () =>
     act(() => {
       result.current.addReservation(r);
     });
-    expect(
-      result.current.reservations.some((x) => x.id === "rsv_new"),
-    ).toBe(true);
+    expect(result.current.reservations.some((x) => x.id === "rsv_new")).toBe(
+      true,
+    );
     expect(persistReservationInsert).toHaveBeenCalledWith(r);
   });
 

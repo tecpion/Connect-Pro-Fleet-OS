@@ -15,11 +15,12 @@ import {
   rowToReservation,
   reservationToRow,
 } from "@/lib/supabase/repositoryMappers";
+import type { Customer, Vehicle, Reservation } from "@/lib/types";
 import type {
-  Customer,
-  Vehicle,
-  Reservation,
-} from "@/lib/types";
+  CustomerRow,
+  VehicleRow,
+  ReservationRow,
+} from "@/lib/supabase/database.types";
 
 describe("customer mappers", () => {
   it("round-trips a customer through row → domain → row preserving all fields", () => {
@@ -49,10 +50,11 @@ describe("customer mappers", () => {
       insurance_policy_number: "POL-1",
       insurance_expiry: "2030-06-01",
       insurance_document_path: "path/ins.pdf",
+      external_id: null,
       created_at: "2026-01-01T00:00:00Z",
       updated_at: "2026-01-02T00:00:00Z",
     };
-    const domain = rowToCustomer(row);
+    const domain = rowToCustomer(row as unknown as CustomerRow);
     expect(domain.id).toBe("cust-1");
     expect(domain.tenant_id).toBe("org-1");
     expect(domain.drivers_license_front_url).toBe("path/front.jpg");
@@ -139,10 +141,11 @@ describe("vehicle mappers", () => {
       owner_display_name: null,
       ownership_notes: null,
       ownership_effective_date: null,
+      external_id: null,
       created_at: "2026-01-01T00:00:00Z",
       updated_at: "2026-01-01T00:00:00Z",
     };
-    const v = rowToVehicle(row);
+    const v = rowToVehicle(row as unknown as VehicleRow);
     expect(v.daily_rate).toBe(75.5);
     expect(v.weekly_rate).toBe(450);
     expect(v.deposit_amount).toBe(500);
@@ -184,7 +187,7 @@ describe("vehicle mappers", () => {
       ownership_effective_date: null,
       created_at: "2026-01-01T00:00:00Z",
       updated_at: "2026-01-01T00:00:00Z",
-    } as Vehicle;
+    } as unknown as Vehicle;
     const row = vehicleToRow(v);
     expect(row.organization_id).toBe("org-55");
     expect(row.daily_rate).toBe(100);
@@ -216,7 +219,7 @@ describe("reservation mappers", () => {
       created_by: null,
       created_by_name: "System",
     };
-    const r = rowToReservation(row);
+    const r = rowToReservation(row as unknown as ReservationRow);
     expect(r.total_price).toBe(400);
     expect(r.deposit_amount).toBe(200);
     expect(r.amount_paid).toBe(0);
