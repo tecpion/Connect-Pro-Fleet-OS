@@ -3037,6 +3037,166 @@ export type Database = {
         }
         Relationships: []
       }
+      poc_customers: {
+        Row: {
+          email: string | null
+          id: string
+          name: string
+          org_id: string
+        }
+        Insert: {
+          email?: string | null
+          id?: string
+          name: string
+          org_id: string
+        }
+        Update: {
+          email?: string | null
+          id?: string
+          name?: string
+          org_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poc_customers_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "poc_orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      poc_memberships: {
+        Row: {
+          id: string
+          org_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poc_memberships_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "poc_orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      poc_orgs: {
+        Row: {
+          id: string
+          name: string
+          slug: string | null
+        }
+        Insert: {
+          id: string
+          name: string
+          slug?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          slug?: string | null
+        }
+        Relationships: []
+      }
+      poc_reservations: {
+        Row: {
+          customer_id: string | null
+          end_date: string
+          id: string
+          org_id: string
+          start_date: string
+          status: string
+          vehicle_id: string | null
+        }
+        Insert: {
+          customer_id?: string | null
+          end_date: string
+          id?: string
+          org_id: string
+          start_date: string
+          status?: string
+          vehicle_id?: string | null
+        }
+        Update: {
+          customer_id?: string | null
+          end_date?: string
+          id?: string
+          org_id?: string
+          start_date?: string
+          status?: string
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poc_reservations_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "poc_customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "poc_reservations_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "poc_orgs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "poc_reservations_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "poc_vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      poc_vehicles: {
+        Row: {
+          id: string
+          license_plate: string
+          make: string
+          model: string
+          org_id: string
+        }
+        Insert: {
+          id?: string
+          license_plate: string
+          make: string
+          model: string
+          org_id: string
+        }
+        Update: {
+          id?: string
+          license_plate?: string
+          make?: string
+          model?: string
+          org_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poc_vehicles_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "poc_orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_path: string | null
@@ -4103,6 +4263,7 @@ export type Database = {
         }
         Returns: string
       }
+      poc_is_member: { Args: { org_id: string }; Returns: boolean }
       post_payment: {
         Args: {
           p_amount: number

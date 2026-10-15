@@ -39,6 +39,7 @@ import { Route as TasksRouteImport } from './routes/tasks'
 import { Route as TelematicsRouteImport } from './routes/telematics'
 import { Route as TollsViolationsRouteImport } from './routes/tolls-violations'
 import { Route as ViolationsRouteImport } from './routes/violations'
+import { Route as ApiCloudAuditPocRouteImport } from './routes/api/cloud-audit-poc'
 import { Route as CheckoutIdRouteImport } from './routes/checkout/$id'
 import { Route as CustomersIndexRouteImport } from './routes/customers/index'
 import { Route as CustomersIdRouteImport } from './routes/customers/$id'
@@ -246,6 +247,11 @@ const TollsViolationsRoute = TollsViolationsRouteImport.update({
 const ViolationsRoute = ViolationsRouteImport.update({
   id: '/violations',
   path: '/violations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCloudAuditPocRoute = ApiCloudAuditPocRouteImport.update({
+  id: '/api/cloud-audit-poc',
+  path: '/api/cloud-audit-poc',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CheckoutIdRoute = CheckoutIdRouteImport.update({
@@ -576,6 +582,7 @@ export interface FileRoutesByFullPath {
   '/telematics': typeof TelematicsRoute
   '/tolls-violations': typeof TollsViolationsRoute
   '/violations': typeof ViolationsRoute
+  '/api/cloud-audit-poc': typeof ApiCloudAuditPocRoute
   '/checkout/$id': typeof CheckoutIdRoute
   '/customers/$id': typeof CustomersIdRoute
   '/inspections/new': typeof InspectionsNewRoute
@@ -665,6 +672,7 @@ export interface FileRoutesByTo {
   '/telematics': typeof TelematicsRoute
   '/tolls-violations': typeof TollsViolationsRoute
   '/violations': typeof ViolationsRoute
+  '/api/cloud-audit-poc': typeof ApiCloudAuditPocRoute
   '/checkout/$id': typeof CheckoutIdRoute
   '/customers/$id': typeof CustomersIdRoute
   '/inspections/new': typeof InspectionsNewRoute
@@ -755,6 +763,7 @@ export interface FileRoutesById {
   '/telematics': typeof TelematicsRoute
   '/tolls-violations': typeof TollsViolationsRoute
   '/violations': typeof ViolationsRoute
+  '/api/cloud-audit-poc': typeof ApiCloudAuditPocRoute
   '/checkout/$id': typeof CheckoutIdRoute
   '/customers/$id': typeof CustomersIdRoute
   '/inspections/new': typeof InspectionsNewRoute
@@ -847,6 +856,7 @@ export interface FileRouteTypes {
     | '/telematics'
     | '/tolls-violations'
     | '/violations'
+    | '/api/cloud-audit-poc'
     | '/checkout/$id'
     | '/customers/$id'
     | '/inspections/new'
@@ -936,6 +946,7 @@ export interface FileRouteTypes {
     | '/telematics'
     | '/tolls-violations'
     | '/violations'
+    | '/api/cloud-audit-poc'
     | '/checkout/$id'
     | '/customers/$id'
     | '/inspections/new'
@@ -1025,6 +1036,7 @@ export interface FileRouteTypes {
     | '/telematics'
     | '/tolls-violations'
     | '/violations'
+    | '/api/cloud-audit-poc'
     | '/checkout/$id'
     | '/customers/$id'
     | '/inspections/new'
@@ -1116,6 +1128,7 @@ export interface RootRouteChildren {
   TelematicsRoute: typeof TelematicsRoute
   TollsViolationsRoute: typeof TollsViolationsRoute
   ViolationsRoute: typeof ViolationsRoute
+  ApiCloudAuditPocRoute: typeof ApiCloudAuditPocRoute
   CheckoutIdRoute: typeof CheckoutIdRoute
   CustomersIdRoute: typeof CustomersIdRoute
   InspectionsNewRoute: typeof InspectionsNewRoute
@@ -1359,6 +1372,13 @@ declare module '@tanstack/react-router' {
       path: '/violations'
       fullPath: '/violations'
       preLoaderRoute: typeof ViolationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/cloud-audit-poc': {
+      id: '/api/cloud-audit-poc'
+      path: '/api/cloud-audit-poc'
+      fullPath: '/api/cloud-audit-poc'
+      preLoaderRoute: typeof ApiCloudAuditPocRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/checkout/$id': {
@@ -1874,6 +1894,7 @@ const rootRouteChildren: RootRouteChildren = {
   TelematicsRoute: TelematicsRoute,
   TollsViolationsRoute: TollsViolationsRoute,
   ViolationsRoute: ViolationsRoute,
+  ApiCloudAuditPocRoute: ApiCloudAuditPocRoute,
   CheckoutIdRoute: CheckoutIdRoute,
   CustomersIdRoute: CustomersIdRoute,
   InspectionsNewRoute: InspectionsNewRoute,
