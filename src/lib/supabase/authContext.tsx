@@ -192,8 +192,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Email confirmation may be required — no session yet.
         return {
           ok: false,
-          error:
-            "Check your email to confirm your account, then sign in.",
+          error: "Check your email to confirm your account, then sign in.",
         };
       }
       // Provision org/profile/membership server-side (idempotent).
@@ -216,7 +215,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               : "Account created but setup incomplete. Sign in to retry.",
         };
       }
-      await loadProfile(supabase, user.id, user.email ?? args.email, setSession);
+      await loadProfile(
+        supabase,
+        user.id,
+        user.email ?? args.email,
+        setSession,
+      );
       return { ok: true };
     }
     async function signOut() {

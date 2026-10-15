@@ -117,12 +117,21 @@ export interface AuthSignOutResponse {
 }
 export interface SupabaseAuthClient {
   getSession(): PromiseLike<AuthSessionResponse>;
+  getUser(): PromiseLike<{
+    data: { user: SupabaseSessionUser | null };
+    error: SupabaseError | null;
+  }>;
   onAuthStateChange(
     cb: (event: string, session: SupabaseSession | null) => void,
   ): AuthSubscription;
   signInWithPassword(creds: {
     email: string;
     password: string;
+  }): PromiseLike<AuthResponse>;
+  signUp(creds: {
+    email: string;
+    password: string;
+    options?: { emailRedirectTo?: string; data?: Record<string, unknown> };
   }): PromiseLike<AuthResponse>;
   signOut(): PromiseLike<AuthSignOutResponse>;
 }

@@ -39,7 +39,11 @@ export default function SignIn() {
         : await signUp({ email, password, orgName, firstName, lastName });
     setBusy(false);
     if (res.ok) navigate("/");
-    else setError(res.error ?? (mode === "signin" ? "Sign in failed." : "Sign up failed."));
+    else
+      setError(
+        res.error ??
+          (mode === "signin" ? "Sign in failed." : "Sign up failed."),
+      );
   }
 
   return (
@@ -112,7 +116,9 @@ export default function SignIn() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              autoComplete={mode === "signin" ? "current-password" : "new-password"}
+              autoComplete={
+                mode === "signin" ? "current-password" : "new-password"
+              }
               required
               minLength={6}
             />

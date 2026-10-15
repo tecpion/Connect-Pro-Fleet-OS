@@ -39,7 +39,7 @@ export const provisionAccount = createServerFn({ method: "POST" })
     const { data: rpc, error } = await supabase.rpc("provision_account", {
       p_user_id: userId,
       p_email: email,
-      p_org_name: data.orgName ?? null,
+      p_org_name: data.orgName ?? undefined,
       p_first_name: data.firstName ?? "",
       p_last_name: data.lastName ?? "",
     });
@@ -52,9 +52,7 @@ export const provisionAccount = createServerFn({ method: "POST" })
         error: error.message,
       };
     }
-    const row = (
-      Array.isArray(rpc) ? rpc[0] : rpc
-    ) as {
+    const row = (Array.isArray(rpc) ? rpc[0] : rpc) as {
       organization_id: string | null;
       role_id: string | null;
       created_org: boolean;
