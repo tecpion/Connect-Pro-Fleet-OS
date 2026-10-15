@@ -1,0 +1,615 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Design system definition.
+ *
+ * The @theme inline block maps CSS custom properties to Tailwind utility
+ * classes (e.g. --color-primary -> bg-primary, text-primary).
+ *
+ * The :root and .dark blocks define the actual color values using oklch.
+ * All colors MUST use oklch format.
+ *
+ * To add a new semantic color:
+ * 1. Add the variable to :root (light value) and .dark (dark value)
+ * 2. Register it in @theme inline as --color-<name>: var(--<name>)
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.129 0.042 264.695);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.129 0.042 264.695);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.129 0.042 264.695);
+  --primary: oklch(0.208 0.042 265.755);
+  --primary-foreground: oklch(0.984 0.003 247.858);
+  --secondary: oklch(0.968 0.007 247.896);
+  --secondary-foreground: oklch(0.208 0.042 265.755);
+  --muted: oklch(0.968 0.007 247.896);
+  --muted-foreground: oklch(0.554 0.046 257.417);
+  --accent: oklch(0.968 0.007 247.896);
+  --accent-foreground: oklch(0.208 0.042 265.755);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.984 0.003 247.858);
+  --border: oklch(0.929 0.013 255.508);
+  --input: oklch(0.929 0.013 255.508);
+  --ring: oklch(0.704 0.04 256.788);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.984 0.003 247.858);
+  --sidebar-foreground: oklch(0.129 0.042 264.695);
+  --sidebar-primary: oklch(0.208 0.042 265.755);
+  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-accent: oklch(0.968 0.007 247.896);
+  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
+  --sidebar-border: oklch(0.929 0.013 255.508);
+  --sidebar-ring: oklch(0.704 0.04 256.788);
+}
+
+.dark {
+  --background: oklch(0.129 0.042 264.695);
+  --foreground: oklch(0.984 0.003 247.858);
+  --card: oklch(0.208 0.042 265.755);
+  --card-foreground: oklch(0.984 0.003 247.858);
+  --popover: oklch(0.208 0.042 265.755);
+  --popover-foreground: oklch(0.984 0.003 247.858);
+  --primary: oklch(0.929 0.013 255.508);
+  --primary-foreground: oklch(0.208 0.042 265.755);
+  --secondary: oklch(0.279 0.041 260.031);
+  --secondary-foreground: oklch(0.984 0.003 247.858);
+  --muted: oklch(0.279 0.041 260.031);
+  --muted-foreground: oklch(0.704 0.04 256.788);
+  --accent: oklch(0.279 0.041 260.031);
+  --accent-foreground: oklch(0.984 0.003 247.858);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.984 0.003 247.858);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.551 0.027 264.364);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.208 0.042 265.755);
+  --sidebar-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-accent: oklch(0.279 0.041 260.031);
+  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.551 0.027 264.364);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+  }
+}
+
+/* Fleet design system ported from the React/Vite stylesheet; tokens normalized to OKLCH for Tailwind v4. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-nav: var(--nav);
+  --color-nav-2: var(--nav-2);
+  --color-nav-foreground: var(--nav-foreground);
+  --color-nav-muted: var(--nav-muted);
+  --color-nav-active: var(--nav-active);
+  --color-nav-active-soft: var(--nav-active-soft);
+  --color-nav-active-foreground: var(--nav-active-foreground);
+  --color-nav-active-glow: var(--nav-active-glow);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-press: var(--primary-press);
+  --color-primary-glow: var(--primary-glow);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-kpi-teal: var(--kpi-teal);
+  --color-kpi-teal-bg: var(--kpi-teal-bg);
+  --color-kpi-indigo: var(--kpi-indigo);
+  --color-kpi-indigo-bg: var(--kpi-indigo-bg);
+  --color-kpi-green: var(--kpi-green);
+  --color-kpi-green-bg: var(--kpi-green-bg);
+  --color-kpi-red: var(--kpi-red);
+  --color-kpi-red-bg: var(--kpi-red-bg);
+  --color-kpi-blue: var(--kpi-blue);
+  --color-kpi-blue-bg: var(--kpi-blue-bg);
+  --color-kpi-orange: var(--kpi-orange);
+  --color-kpi-orange-bg: var(--kpi-orange-bg);
+  --color-tint-teal: var(--tint-teal);
+  --color-tint-blue: var(--tint-blue);
+  --color-tint-amber: var(--tint-amber);
+  --color-tint-red: var(--tint-red);
+  --color-tint-purple: var(--tint-purple);
+  --color-status-available: var(--status-available);
+  --color-status-available-bg: var(--status-available-bg);
+  --color-status-maintenance: var(--status-maintenance);
+  --color-status-out: var(--status-out);
+  --color-status-out-bg: var(--status-out-bg);
+  --color-status-rented: var(--status-rented);
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Connect Pro Fleet — design system.
+   Operations tool: legibility + status signaling over decoration.
+   All colors stored as raw HSL channel values; tailwind.config wraps them in hsl(). */
+
+@layer base {
+  :root {
+    /* Surfaces — stronger cool-neutral contrast so white cards feel intentional.
+       Page #F3F6FA · Card #FFFFFF · Border #E4EAF1 · Text #122033 / #64748B */
+    --background: oklch(0.9745 0.0064 254.99); /* #F3F6FA cool slate-blue backdrop */
+    --foreground: oklch(0.2469 0.0417 255.57); /* #122033 deep premium slate text */
+    --surface: oklch(1.0000 0.0000 89.88); /* #FFFFFF crisp white cards */
+    --surface-2: oklch(0.9588 0.0075 255.00); /* #E9EEF4 soft inset tiles */
+
+    /* Structure / nav / headers — premium deep cobalt/navy tone */
+    --nav: oklch(0.2071 0.0588 266.33); /* #0B1E3F deep modern navy navbar */
+    --nav-2: oklch(0.1668 0.0457 267.71); /* deeper navy base */
+    --nav-foreground: oklch(0.9520 0.0055 254.98);
+    --nav-muted: oklch(0.7127 0.0278 256.77);
+    --nav-active: oklch(0.5393 0.2227 265.90); /* vibrant electric royal blue active */
+    --nav-active-soft: oklch(0.2972 0.0846 266.32); /* soft active item pill */
+    --nav-active-foreground: oklch(1.0000 0.0000 89.88);
+    --nav-active-glow: oklch(0.6169 0.1980 263.14); /* glowing electric blue accent */
+
+    /* Brand accent — vivid modern electric/royal blue (#1D4ED8 / #2563EB vibe matching image) */
+    --primary: oklch(0.5224 0.2321 265.40); /* #2251EA / #1E4DF0 vibrant royal blue */
+    --primary-foreground: oklch(1.0000 0.0000 89.88);
+    --primary-press: oklch(0.4485 0.2292 264.51);
+    --primary-glow: oklch(0.6169 0.1980 263.14); /* vibrant blue highlight */
+
+    --secondary: oklch(0.9588 0.0075 255.00);
+    --secondary-foreground: oklch(0.2469 0.0417 255.57);
+
+    --muted: oklch(0.9271 0.0099 255.01);
+    --muted-foreground: oklch(0.5479 0.0391 256.82); /* #64748B crisp readable slate text */
+
+    --accent: oklch(0.9472 0.0220 269.92);
+    --accent-foreground: oklch(0.4194 0.2085 264.67);
+
+    --destructive: oklch(0.5387 0.1898 26.40);
+    --destructive-foreground: oklch(1.0000 0.0000 89.88);
+
+    --border: oklch(0.9328 0.0150 255.04); /* #E4EAF1 clean crisp borders */
+    --input: oklch(0.9167 0.0166 255.05);
+    --ring: oklch(0.5224 0.2321 265.40);
+
+    --radius: 1rem; /* 16px modern soft rounded corners */
+
+    /* Card elevation — one consistent elegant system. Base lift + hover lift. */
+    --card-shadow: 0 2px 8px oklch(0.2601 0.0284 255.34 / 0.04);
+    --card-shadow-hover: 0 8px 24px oklch(0.2601 0.0284 255.34 / 0.08);
+    /* KPI card elevation — slightly richer lift with border definition */
+    --kpi-shadow: 0 2px 8px oklch(0.2601 0.0284 255.34 / 0.05);
+    --kpi-shadow-hover: 0 10px 28px oklch(0.2601 0.0284 255.34 / 0.1);
+
+    /* KPI accent tints — vivid, fresh category colors (icon tile + accent wash) */
+    --kpi-teal: oklch(0.6732 0.1386 165.04); /* #12B981 vivid emerald */
+    --kpi-teal-bg: 162 82% 38% / 0.12;
+    --kpi-indigo: oklch(0.5475 0.2247 274.61); /* #6366F1 vibrant indigo */
+    --kpi-indigo-bg: 238 84% 63% / 0.12;
+    --kpi-green: oklch(0.6775 0.1602 155.61); /* #16A34A fresh success green */
+    --kpi-green-bg: 152 76% 40% / 0.12;
+    --kpi-red: oklch(0.6437 0.2159 16.81); /* #F43F5E coral/rose alert */
+    --kpi-red-bg: 350 89% 60% / 0.12;
+    --kpi-blue: oklch(0.6319 0.1929 255.49); /* #2563EB electric blue */
+    --kpi-blue-bg: 212 96% 56% / 0.12;
+    --kpi-orange: oklch(0.7697 0.1645 70.61); /* #F59E0B energetic amber */
+    --kpi-orange-bg: 38 92% 50% / 0.12;
+
+    /* Soft section tint washes — used sparingly for emphasis panels */
+    --tint-teal: oklch(0.9479 0.0210 269.93); /* adapted brand tint */
+    --tint-blue: oklch(0.9566 0.0181 272.45);
+    --tint-amber: oklch(0.9779 0.0151 81.50);
+    --tint-red: oklch(0.9600 0.0157 5.87);
+    --tint-purple: oklch(0.9563 0.0164 293.74);
+
+    /* Status colors — semantically separate, modern & vivid */
+    --status-available: oklch(0.6902 0.1481 162.37); /* vivid emerald */
+    --status-available-bg: oklch(0.6902 0.1481 162.37);
+    --status-maintenance: oklch(0.7697 0.1645 70.61); /* vivid amber */
+    --status-out: oklch(0.6437 0.2159 16.81); /* rose/red */
+    --status-out-bg: oklch(0.6437 0.2159 16.81);
+    --status-rented: oklch(0.4009 0.0482 256.86); /* dark slate */
+  }
+
+  .dark {
+    --background: oklch(0.2091 0.0187 255.28);
+    --foreground: oklch(0.9064 0.0074 244.19);
+    --surface: oklch(0.2510 0.0232 255.29);
+    --surface-2: oklch(0.2915 0.0265 255.29);
+
+    --nav: oklch(0.1953 0.0354 267.89);
+    --nav-2: oklch(0.1638 0.0286 270.13);
+    --nav-foreground: oklch(0.9038 0.0100 255.01);
+    --nav-muted: oklch(0.6564 0.0252 255.13);
+    --nav-active: oklch(0.5251 0.2176 265.88);
+    --nav-active-soft: oklch(0.2829 0.0712 266.82);
+    --nav-active-foreground: oklch(1.0000 0.0000 89.88);
+    --nav-active-glow: oklch(0.6440 0.1821 263.45);
+
+    --primary: oklch(0.5598 0.2036 266.75);
+    --primary-foreground: oklch(1.0000 0.0000 89.88);
+    --primary-press: oklch(0.4774 0.2366 264.69);
+    --primary-glow: oklch(0.6440 0.1821 263.45);
+
+    --secondary: oklch(0.3309 0.0288 255.28);
+    --secondary-foreground: oklch(0.9064 0.0074 244.19);
+
+    --muted: oklch(0.3317 0.0262 255.25);
+    --muted-foreground: oklch(0.6963 0.0178 244.41);
+
+    --accent: oklch(0.3099 0.0540 267.99);
+    --accent-foreground: oklch(0.9075 0.0416 255.15);
+
+    --destructive: oklch(0.6292 0.1450 22.12);
+    --destructive-foreground: oklch(1.0000 0.0000 89.88);
+
+    --border: oklch(0.3704 0.0271 255.24);
+    --input: oklch(0.3890 0.0288 255.24);
+    --ring: oklch(0.5598 0.2036 266.75);
+
+    --card-shadow:
+      0 1px 2px oklch(0.0000 0.0000 0.00 / 0.3), 0 6px 16px -4px oklch(0.0000 0.0000 0.00 / 0.4);
+    --card-shadow-hover:
+      0 1px 2px oklch(0.0000 0.0000 0.00 / 0.4), 0 10px 24px -4px oklch(0.0000 0.0000 0.00 / 0.5);
+
+    --kpi-teal: oklch(0.7422 0.1205 184.83);
+    --kpi-indigo: oklch(0.5938 0.1628 284.05);
+    --kpi-green: oklch(0.7581 0.1575 152.67);
+    --kpi-red: oklch(0.6447 0.1468 22.04);
+    --kpi-blue: oklch(0.6689 0.1285 254.38);
+    --kpi-orange: oklch(0.7604 0.1359 66.57);
+
+    --status-available: oklch(0.7360 0.1512 152.77);
+    --status-maintenance: oklch(0.7905 0.1307 74.79);
+    --status-out: oklch(0.6447 0.1468 22.04);
+    --status-rented: oklch(0.7780 0.0178 244.37);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Inter", system-ui, sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Space Grotesk", "Inter", sans-serif;
+    letter-spacing: -0.018em;
+  }
+
+  /* Mono face for every numeric / code value */
+  .font-mono,
+  .tabular {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
+
+  /* Visible keyboard focus */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+@layer components {
+  /* Route-line motif — a traced trip path. Used sparingly as progress + flourish. */
+  .route-line {
+    position: relative;
+    overflow: hidden;
+  }
+  .route-line::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='12' viewBox='0 0 120 12'><path d='M2 6 C 20 6, 20 2, 40 2 S 60 10, 80 6 S 100 2, 118 6' fill='none' stroke='%232251EA' stroke-width='1.5' stroke-linecap='round'/></svg>");
+    background-repeat: repeat-x;
+    background-position: center;
+    opacity: 0.5;
+  }
+
+  /* Status left-border accent on rows/cards — not filled badges everywhere */
+  .status-border {
+    border-left-width: 3px;
+    border-left-style: solid;
+  }
+
+  /* Premium card surface — soft layered shadow, refined radius. Reused across
+     the dashboard and inherited by SectionCard/KpiCard. */
+  .card-surface {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--card-shadow);
+  }
+  .card-surface-hover {
+    transition:
+      box-shadow 0.2s ease,
+      border-color 0.2s ease,
+      transform 0.2s ease;
+  }
+  .card-surface-hover:hover {
+    box-shadow: var(--card-shadow-hover);
+    border-color: oklch(from var(--primary) l c h / 0.3);
+  }
+
+  /* KPI accent icon tile — larger colored icon container with subtle category wash. */
+  .kpi-icon-tile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.7rem;
+    padding: 0.6rem;
+  }
+
+  /* Subtle page-header background tint — fresh crisp royal blue ambient wash */
+  .page-tint {
+    background-image:
+      radial-gradient(
+        1100px 360px at 12% -10%,
+        oklch(from var(--primary) l c h / 0.12),
+        transparent 65%
+      ),
+      radial-gradient(
+        820px 300px at 88% -8%,
+        oklch(from var(--kpi-indigo) l c h / 0.08),
+        transparent 60%
+      );
+  }
+
+  /* Faint dotted grid texture for chart/empty panels — adds depth without noise. */
+  .dot-grid {
+    background-image: radial-gradient(var(--border) 1px, transparent 1px);
+    background-size: 16px 16px;
+  }
+
+  /* Premium segmented control — used by Today's Operations tabs + chart ranges. */
+  .seg-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 0.625rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+  }
+  .seg-control-item {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 0.5rem;
+    padding: 0.34rem 0.72rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--muted-foreground);
+    transition:
+      background 0.15s ease,
+      color 0.15s ease;
+  }
+  .seg-control-item:hover {
+    color: var(--foreground);
+  }
+  .seg-control-item[data-active="true"] {
+    background: var(--primary);
+    color: var(--primary-foreground);
+    box-shadow: 0 1px 3px oklch(from var(--primary) l c h / 0.3);
+  }
+
+  /* Count pill — compact badge for section headers. */
+  .count-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    padding: 0 0.4rem;
+    border-radius: 999px;
+    background: var(--surface-2);
+    color: var(--muted-foreground);
+    font-size: 0.7rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .count-pill[data-tone="out"] {
+    background: oklch(from var(--status-out) l c h / 0.12);
+    color: var(--status-out);
+  }
+  .count-pill[data-tone="maintenance"] {
+    background: oklch(from var(--status-maintenance) l c h / 0.14);
+    color: var(--status-maintenance);
+  }
+  .count-pill[data-tone="available"] {
+    background: oklch(from var(--status-available) l c h / 0.12);
+    color: var(--status-available);
+  }
+
+  /* KPI premium card surface — deeper shadow + subtle accent wash stripe. */
+  .kpi-surface {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--kpi-shadow);
+    transition:
+      box-shadow 0.2s ease,
+      border-color 0.2s ease,
+      transform 0.2s ease;
+  }
+  .kpi-surface:hover {
+    box-shadow: var(--kpi-shadow-hover);
+    border-color: oklch(from var(--primary) l c h / 0.3);
+    transform: translateY(-2px);
+  }
+  /* Subtle accent wash gradient at the top edge of a KPI card. */
+  .kpi-wash::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      var(--kpi-wash-color, transparent) 0%,
+      transparent 38%
+    );
+    opacity: 0.5;
+  }
+
+  /* Premium empty state — soft tinted disc + calm spacing. */
+  .empty-disc {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    padding: 1rem;
+    background: var(--surface-2);
+    color: var(--muted-foreground);
+  }
+  .empty-disc[data-tone="teal"] {
+    background: oklch(from var(--kpi-teal) l c h / 0.12);
+    color: var(--kpi-teal);
+  }
+  .empty-disc[data-tone="blue"] {
+    background: oklch(from var(--kpi-blue) l c h / 0.12);
+    color: var(--kpi-blue);
+  }
+  .empty-disc[data-tone="neutral"] {
+    background: var(--surface-2);
+    color: var(--muted-foreground);
+  }
+
+  /* Soft pulsing waveform used only while the mic is listening. */
+  @keyframes voice-pulse {
+    0%,
+    100% {
+      transform: scaleY(0.4);
+      opacity: 0.6;
+    }
+    50% {
+      transform: scaleY(1);
+      opacity: 1;
+    }
+  }
+
+  /* Respect reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Compact form input used by the Migration Center (Build #19). */
+  .mig-input {
+    @apply w-full rounded-md border border-border bg-surface px-2.5 py-1.5 text-sm text-foreground;
+  }
+  .mig-input:focus {
+    @apply border-primary outline-none;
+  }
+}
+
+/* Route-line animated draw — disabled under reduced motion */
+@keyframes route-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.route-draw path {
+  stroke-dasharray: 400;
+  stroke-dashoffset: 400;
+  animation: route-draw 1.1s ease-out forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .route-draw path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}

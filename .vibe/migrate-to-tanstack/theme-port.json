@@ -1,0 +1,439 @@
+{
+  "customizations": [
+    {
+      "token": "--background",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--foreground",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--surface",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--surface-2",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--nav",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--nav-2",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--nav-foreground",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--nav-muted",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--nav-active",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--nav-active-soft",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--nav-active-foreground",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--nav-active-glow",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--primary",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--primary-foreground",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--primary-press",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--primary-glow",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--secondary",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--secondary-foreground",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--muted",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--muted-foreground",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--accent",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--accent-foreground",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--destructive",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--destructive-foreground",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--border",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--input",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--ring",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--radius",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--card-shadow",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--card-shadow-hover",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--kpi-shadow",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--kpi-shadow-hover",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--kpi-teal",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--kpi-teal-bg",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--kpi-indigo",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--kpi-indigo-bg",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--kpi-green",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--kpi-green-bg",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--kpi-red",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--kpi-red-bg",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--kpi-blue",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--kpi-blue-bg",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--kpi-orange",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--kpi-orange-bg",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--tint-teal",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--tint-blue",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--tint-amber",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--tint-red",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--tint-purple",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--status-available",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--status-available-bg",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--status-maintenance",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--status-out",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--status-out-bg",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "--status-rented",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": ".font-mono",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": ".tabular",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": ".route-line",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": ".route-line",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": ".status-border",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": ".card-surface",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": ".card-surface-hover",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": ".card-surface-hover",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": ".kpi-icon-tile",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": ".page-tint",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": ".dot-grid",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": ".seg-control",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": ".seg-control-item",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": ".seg-control-item",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": ".seg-control-item",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": ".count-pill",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": ".count-pill",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": ".count-pill",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": ".count-pill",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": ".kpi-surface",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": ".kpi-surface",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": ".kpi-wash",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": ".empty-disc",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": ".empty-disc",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": ".empty-disc",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": ".empty-disc",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": ".mig-input",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": ".mig-input",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": ".route-draw",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": ".route-draw",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "@keyframes voice-pulse",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    },
+    {
+      "token": "@keyframes route-draw",
+      "source": "src/index.css",
+      "reappliedIn": "src/styles.css"
+    }
+  ]
+}

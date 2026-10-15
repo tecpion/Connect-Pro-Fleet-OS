@@ -1,0 +1,268 @@
+// Connect Pro Fleet — Role permission presets (Build #24).
+//
+// Sensible starting permission sets for common rental-company roles. These are
+// EDITABLE starting points (not hard-coded business models) and reuse the
+// existing permission catalog — they do NOT invent a second authorization
+// system. Each preset is a list of permission keys; the role builder applies
+// them via the existing Role.permissions Record<string, boolean>.
+
+import { PERMISSION_CATALOG } from "./permissionCatalog";
+
+const ALL_KEYS = PERMISSION_CATALOG.map((p) => p.key);
+
+function fromKeys(keys: string[]): Record<string, boolean> {
+  return Object.fromEntries(ALL_KEYS.map((k) => [k, keys.includes(k)]));
+}
+
+export interface RolePreset {
+  id: string;
+  name: string;
+  description: string;
+  permissions: Record<string, boolean>;
+}
+
+export const ROLE_PRESETS: RolePreset[] = [
+  {
+    id: "preset_csr",
+    name: "CSR",
+    description:
+      "Customer service: customers, reservations, rentals, payments due, tasks.",
+    permissions: fromKeys([
+      "dashboard.view",
+      "planner.view",
+      "planner.create_reservation",
+      "vehicles.view",
+      "reservations.view",
+      "reservations.create",
+      "reservations.edit",
+      "reservations.record_payment",
+      "rentals.view",
+      "rentals.start",
+      "rentals.return",
+      "deposits.view",
+      "deposits.collect",
+      "payments.view",
+      "payments.record",
+      "payment_arrangements.view",
+      "payment_arrangements.create",
+      "customers.view",
+      "customers.add",
+      "customers.edit",
+      "inspections.view",
+      "inspections.create",
+      "maintenance.view",
+      "settings.view",
+      "company_settings.view",
+      "rental_policies.view",
+      "taxes.view",
+      "fees.view",
+      "tasks.view_own",
+      "tasks.view_all",
+      "tasks.create",
+      "tasks.assign",
+      "tasks.edit",
+      "tasks.complete",
+      "notifications.view_own",
+      "damage_claims.view",
+      "damage_claims.create",
+      "damage_claims.manage_evidence",
+      "reports.view_operations",
+      "compliance.view",
+      "documents.view",
+      "documents.upload",
+      "case.view",
+      "case.create",
+      "case.edit",
+      "case.assign",
+      "case.upload_evidence",
+    ]),
+  },
+  {
+    id: "preset_fleet_manager",
+    name: "Fleet Manager",
+    description:
+      "Vehicles, maintenance, exchanges, inspections, damage operational details.",
+    permissions: fromKeys([
+      "dashboard.view",
+      "vehicles.view",
+      "vehicles.add",
+      "vehicles.edit",
+      "vehicles.view_documents",
+      "vehicles.view_ownership",
+      "vehicles.manage_classes",
+      "vehicles.override_pricing",
+      "rentals.view",
+      "rentals.exchange",
+      "rentals.return",
+      "rentals.override_release_gate",
+      "inspections.view",
+      "inspections.create",
+      "inspections.confirm_damage",
+      "maintenance.view",
+      "maintenance.add",
+      "maintenance.edit",
+      "maintenance.complete",
+      "maintenance.assign",
+      "maintenance.change_status",
+      "maintenance.cancel",
+      "maintenance.reopen",
+      "maintenance.manage_vendors",
+      "maintenance.view_costs",
+      "maintenance.edit_costs",
+      "maintenance.upload_receipts",
+      "maintenance.manage_downtime",
+      "settings.view",
+      "company_settings.view",
+      "rental_policies.view",
+      "tasks.view_own",
+      "tasks.view_all",
+      "tasks.create",
+      "tasks.assign",
+      "tasks.edit",
+      "tasks.complete",
+      "notifications.view_own",
+      "damage_claims.view",
+      "damage_claims.create",
+      "damage_claims.edit",
+      "damage_claims.manage_evidence",
+      "damage_claims.link_expenses",
+      "reports.view_operations",
+      "reports.view_fleet_reports",
+      "compliance.view",
+      "compliance.manage",
+      "documents.view",
+      "documents.upload",
+      "documents.review",
+      "documents.archive",
+    ]),
+  },
+  {
+    id: "preset_bookkeeper",
+    name: "Bookkeeper",
+    description: "Payments, expenses, banking, reports.",
+    permissions: fromKeys([
+      "dashboard.view",
+      "dashboard.view_financials",
+      "rentals.view",
+      "deposits.view",
+      "deposits.apply",
+      "deposits.refund",
+      "payments.view",
+      "payments.record",
+      "payments.apply_late_fees",
+      "payments.waive_fees",
+      "payments.issue_credits",
+      "payments.issue_refunds",
+      "payments.view_revenue",
+      "payment_arrangements.view",
+      "payment_arrangements.create",
+      "payment_arrangements.modify",
+      "customers.view",
+      "settings.view",
+      "company_settings.view",
+      "rental_policies.view",
+      "taxes.view",
+      "fees.view",
+      "fees.assess",
+      "tasks.view_own",
+      "tasks.create",
+      "tasks.complete",
+      "notifications.view_own",
+      "expenses.view",
+      "expenses.create",
+      "expenses.edit_metadata",
+      "expenses.view_vehicle_expenses",
+      "expenses.view_payment_details",
+      "expenses.manage_receipts",
+      "expenses.view_reimbursements",
+      "expenses.view_petty_cash",
+      "expenses.view_costs",
+      "banking.view",
+      "banking.import",
+      "banking.review",
+      "banking.match",
+      "banking.unmatch",
+      "banking.create_expense",
+      "banking.mark_transfer",
+      "banking.reconcile_statement",
+      "banking.view_balances",
+      "reports.view_profitability",
+      "reports.view_revenue",
+      "reports.view_expenses",
+      "reports.view_collections",
+      "reports.view_accounting",
+      "reports.export",
+    ]),
+  },
+  {
+    id: "preset_damage_coordinator",
+    name: "Damage Coordinator",
+    description: "Claims, evidence, maintenance linkage, assigned tasks.",
+    permissions: fromKeys([
+      "dashboard.view",
+      "vehicles.view",
+      "vehicles.view_documents",
+      "rentals.view",
+      "deposits.view",
+      "deposits.apply",
+      "payments.view",
+      "customers.view",
+      "inspections.view",
+      "inspections.create",
+      "inspections.confirm_damage",
+      "maintenance.view",
+      "maintenance.add",
+      "maintenance.edit",
+      "maintenance.view_costs",
+      "settings.view",
+      "company_settings.view",
+      "rental_policies.view",
+      "tasks.view_own",
+      "tasks.view_all",
+      "tasks.create",
+      "tasks.assign",
+      "tasks.edit",
+      "tasks.complete",
+      "notifications.view_own",
+      "damage_claims.view",
+      "damage_claims.create",
+      "damage_claims.edit",
+      "damage_claims.assign",
+      "damage_claims.determine_responsibility",
+      "damage_claims.view_financials",
+      "damage_claims.charge_customer",
+      "damage_claims.apply_deposit",
+      "damage_claims.manage_insurance",
+      "damage_claims.link_expenses",
+      "damage_claims.close",
+      "damage_claims.cancel",
+      "damage_claims.manage_evidence",
+      "reports.view_operations",
+      "case.view",
+      "case.create",
+      "case.edit",
+      "case.assign",
+      "case.determine_responsibility",
+      "case.resolve",
+      "case.close",
+      "case.upload_evidence",
+    ]),
+  },
+];
+
+/** Preview text for a role's permission map: areas accessible + restricted. */
+export function rolePreview(perms: Record<string, boolean>): {
+  accessible: string[];
+  restricted: string[];
+} {
+  const modules = Array.from(new Set(PERMISSION_CATALOG.map((p) => p.module)));
+  const accessible: string[] = [];
+  const restricted: string[] = [];
+  for (const m of modules) {
+    const defs = PERMISSION_CATALOG.filter((p) => p.module === m);
+    const anyOn = defs.some((d) => perms[d.key]);
+    if (anyOn) accessible.push(m);
+    else restricted.push(m);
+  }
+  return { accessible, restricted };
+}

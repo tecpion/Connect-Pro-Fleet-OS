@@ -1,0 +1,166 @@
+// Connect Pro Fleet — repository layer (Build #22).
+//
+// Domain repositories abstract persistence so the store can swap between an
+// in-memory adapter (tests/dev) and a Supabase-backed adapter (production)
+// without changing business logic. Pages/components never call `.from(table)`
+// directly. The store continues to own domain semantics; repositories own
+// durable read/write + mapping between DB rows and domain objects.
+//
+// This module holds the repository INTERFACES, error normalization, money
+// normalization, and the factory. The Supabase adapter implementations live in
+// repositoryAdapters.ts; the row/domain mappers live in repositoryMappers.ts.
+
+import type {
+  Customer,
+  Vehicle,
+  RentalAgreement,
+  FinancialTransaction,
+} from "../types";
+import { getSupabase } from "./client";
+import {
+  SupabaseCustomerRepository,
+  SupabaseVehicleRepository,
+  SupabaseRentalRepository,
+  SupabaseLedgerRepository,
+} from "./repositoryAdapters";
+
+// ---------------------------------------------------------------------------
+// Repository interfaces
+// ---------------------------------------------------------------------------
+
+export interface CustomerRepository {
+  list(orgId: string): Promise<Customer[]>;
+  get(orgId: string, id: string): Promise<Customer | null>;
+  insert(c: Customer): Promise<Customer>;
+  update(
+    orgId: string,
+    id: string,
+    patch: Partial<Customer>,
+  ): Promise<Customer>;
+}
+
+export interface VehicleRepository {
+  list(orgId: string): Promise<Vehicle[]>;
+  get(orgId: string, id: string): Promise<Vehicle | null>;
+  insert(v: Vehicle): Promise<Vehicle>;
+  update(orgId: string, id: string, patch: Partial<Vehicle>): Promise<Vehicle>;
+}
+
+export interface RentalRepository {
+  list(orgId: string): Promise<RentalAgreement[]>;
+  get(orgId: string, id: string): Promise<RentalAgreement | null>;
+  insert(r: RentalAgreement): Promise<RentalAgreement>;
+  update(
+    orgId: string,
+    id: string,
+    patch: Partial<RentalAgreement>,
+  ): Promise<RentalAgreement>;
+}
+
+export interface LedgerRepository {
+  listForRental(
+    orgId: string,
+    rentalId: string,
+  ): Promise<FinancialTransaction[]>;
+  insert(t: FinancialTransaction): Promise<FinancialTransaction>;
+  update(
+    orgId: string,
+    id: string,
+    patch: Partial<FinancialTransaction>,
+  ): Promise<FinancialTransaction>;
+}
+
+// Re-export adapter classes + mappers so existing imports keep working.
+export {
+  SupabaseCustomerRepository,
+  SupabaseVehicleRepository,
+  SupabaseRentalRepository,
+  SupabaseLedgerRepository,
+};
+
+// ---------------------------------------------------------------------------
+// Error normalization
+// ---------------------------------------------------------------------------
+
+export class RepositoryError extends Error {
+  constructor(
+    message: string,
+    public kind:
+      | "permission"
+      | "not_found"
+      | "conflict"
+      | "validation"
+      | "connection"
+      | "unknown",
+  ) {
+    super(message);
+  }
+}
+
+export function normalizeError(err: unknown): RepositoryError {
+  const msg = err instanceof Error ? err.message : String(err);
+  const lower = msg.toLowerCase();
+  if (
+    lower.includes("jwt") ||
+    lower.includes("not authorized") ||
+    lower.includes("rls") ||
+    lower.includes("permission")
+  ) {
+    return new RepositoryError(
+      "You don't have access to this data.",
+      "permission",
+    );
+  }
+  if (
+    lower.includes("duplicate") ||
+    lower.includes("unique") ||
+    lower.includes("conflict")
+  ) {
+    return new RepositoryError("This record already exists.", "conflict");
+  }
+  if (lower.includes("not found") || lower.includes("no rows")) {
+    return new RepositoryError("Record not found.", "not_found");
+  }
+  if (
+    lower.includes("network") ||
+    lower.includes("fetch") ||
+    lower.includes("connection")
+  ) {
+    return new RepositoryError(
+      "Could not connect to the server.",
+      "connection",
+    );
+  }
+  return new RepositoryError(msg || "Something went wrong.", "unknown");
+}
+
+// ---------------------------------------------------------------------------
+// Money normalization: Supabase returns numeric as string; app uses number.
+// ---------------------------------------------------------------------------
+
+export function toMoney(v: string | number | null | undefined): number {
+  if (v == null) return 0;
+  const n = typeof v === "string" ? parseFloat(v) : v;
+  return Math.round((n + Number.EPSILON) * 100) / 100;
+}
+
+// ---------------------------------------------------------------------------
+// Factory: returns Supabase-backed repositories when configured, else null.
+// ---------------------------------------------------------------------------
+
+export function createRepositories(): {
+  customers: CustomerRepository | null;
+  vehicles: VehicleRepository | null;
+  rentals: RentalRepository | null;
+  ledger: LedgerRepository | null;
+} {
+  const db = getSupabase();
+  if (!db)
+    return { customers: null, vehicles: null, rentals: null, ledger: null };
+  return {
+    customers: new SupabaseCustomerRepository(db),
+    vehicles: new SupabaseVehicleRepository(db),
+    rentals: new SupabaseRentalRepository(db),
+    ledger: new SupabaseLedgerRepository(db),
+  };
+}
