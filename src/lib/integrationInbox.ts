@@ -353,7 +353,8 @@ export function buildInboxMethods(is: InboxState, deps: InboxDeps) {
       tender,
       {
         processor: input.processor ?? undefined,
-        reference: input.external_transaction_id ?? input.reference ?? null,
+        reference:
+          input.external_transaction_id ?? input.reference ?? undefined,
         notes: input.notes ?? "Synced from Connect Pro",
         paymentSource: input.payment_source ?? "connect_pro",
       },
@@ -379,7 +380,7 @@ export function buildInboxMethods(is: InboxState, deps: InboxDeps) {
         amount: input.amount,
         rentalId,
         customerId,
-        processor: input.processor ?? undefined,
+        processor: input.processor ?? null,
         externalTxnId: input.external_transaction_id ?? null,
         status: "posted",
       });
@@ -404,7 +405,7 @@ export function buildInboxMethods(is: InboxState, deps: InboxDeps) {
         rental_id: rentalId!,
         amount: input.amount,
         tender_method: tender,
-        processor: input.processor ?? undefined,
+        processor: input.processor ?? null,
         external_payment_id: input.external_payment_id ?? null,
         external_transaction_id: input.external_transaction_id ?? null,
         paid_at: input.paid_at ?? now(),

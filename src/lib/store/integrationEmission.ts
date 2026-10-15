@@ -41,12 +41,12 @@ export function emitPaymentPosted(
     payload: {
       kind: "payment_received",
       customer_id: txn.customer_id,
-      rental_id: txn.rental_id,
+      rental_id: txn.rental_id ?? null,
       amount: txn.amount,
       tender_method: tender,
       processor,
       external_payment_id: null,
-      external_transaction_id: txn.external_transaction_id,
+      external_transaction_id: txn.external_transaction_id ?? null,
       paid_at: txn.created_at,
     },
     event_key: `outbound_payment_received:fleet:${txn.id}`,
@@ -138,7 +138,7 @@ export function emitLateFeeApplied(
     payload: {
       kind: "late_fee_applied",
       customer_id: customerId,
-      rental_id: rentalId,
+      rental_id: rentalId ?? null,
       amount,
       billing_period_id: null,
     },

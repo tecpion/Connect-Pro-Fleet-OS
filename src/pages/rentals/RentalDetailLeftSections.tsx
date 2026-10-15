@@ -125,7 +125,7 @@ export function AgreementDetailsSection({
           <div>
             <DataLabel>Mileage out / in</DataLabel>
             <DataValue mono>
-              {fmtNumber(rental.mileage_out)} mi
+              {fmtNumber(rental.mileage_out ?? 0)} mi
               {rental.mileage_in != null
                 ? ` / ${fmtNumber(rental.mileage_in)}`
                 : ""}

@@ -237,6 +237,7 @@ export function createBrowserSpeechRecognition(): CopilotSpeechRecognitionProvid
   }
 
   function buildRecognition() {
+    if (!Ctor) throw new Error("Speech recognition is unavailable");
     const r = new Ctor() as {
       start: () => void;
       stop: () => void;

@@ -176,9 +176,12 @@ export function WebhooksTab({ canManage }: { canManage: boolean }) {
               <Meta label="Signing secret" value={ep.signingSecret} mono />
               <Meta
                 label="Last delivery"
-                value={fmtDateTime(ep.lastDelivery)}
+                value={ep.lastDelivery ? fmtDateTime(ep.lastDelivery) : "—"}
               />
-              <Meta label="Last success" value={fmtDateTime(ep.lastSuccess)} />
+              <Meta
+                label="Last success"
+                value={ep.lastSuccess ? fmtDateTime(ep.lastSuccess) : "—"}
+              />
             </div>
             {ep.lastError && (
               <p className="text-xs text-status-out">

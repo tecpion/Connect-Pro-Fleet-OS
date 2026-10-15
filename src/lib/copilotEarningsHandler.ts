@@ -113,12 +113,12 @@ export function answerEarningsSummary(
   const parts: string[] = [];
   if (canMoney) {
     if (revenue != null)
-      parts.push(`generated ${formatMoney(revenue)} in rental revenue`);
+      parts.push(`generated ${formatMoney(revenue) ?? "—"} in rental revenue`);
     if (collected != null)
-      parts.push(`collected ${formatMoney(collected)} in cash`);
+      parts.push(`collected ${formatMoney(collected) ?? "—"} in cash`);
   }
   if (canProfit && contribution != null) {
-    parts.push(`operating contribution is ${formatMoney(contribution)}`);
+    parts.push(`operating contribution is ${formatMoney(contribution) ?? "—"}`);
   }
   const summaryText =
     parts.length > 0
@@ -134,24 +134,24 @@ export function answerEarningsSummary(
     facts: [
       {
         label: "Rental revenue",
-        value: revenue != null ? formatMoney(revenue) : "—",
+        value: revenue != null ? (formatMoney(revenue) ?? "—") : "—",
         financial: true,
       },
       {
         label: "Cash collected",
-        value: collected != null ? formatMoney(collected) : "—",
+        value: collected != null ? (formatMoney(collected) ?? "—") : "—",
         financial: true,
       },
       {
         label: "Operating contribution",
-        value: contribution != null ? formatMoney(contribution) : "—",
+        value: contribution != null ? (formatMoney(contribution) ?? "—") : "—",
         financial: true,
       },
       {
         label: "Outstanding balance",
         value:
           gateAmount(f.outstanding_balance, perms) != null
-            ? formatMoney(f.outstanding_balance ?? 0)
+            ? (formatMoney(f.outstanding_balance ?? 0) ?? "—")
             : "—",
         financial: true,
       },

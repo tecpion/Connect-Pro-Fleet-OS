@@ -3,5 +3,9 @@ import { StaffLayout } from "@/components/StaffLayout";
 import SupportStatus from "@/pages/support/SupportStatus";
 
 export const Route = createFileRoute("/support/status")({
-  component: () => <StaffLayout><SupportStatus /></StaffLayout>,
+  component: () => (
+    <StaffLayout>
+      <SupportStatus />
+    </StaffLayout>
+  ),
 });

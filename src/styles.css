@@ -206,42 +206,54 @@
   :root {
     /* Surfaces — stronger cool-neutral contrast so white cards feel intentional.
        Page #F3F6FA · Card #FFFFFF · Border #E4EAF1 · Text #122033 / #64748B */
-    --background: oklch(0.9745 0.0064 254.99); /* #F3F6FA cool slate-blue backdrop */
-    --foreground: oklch(0.2469 0.0417 255.57); /* #122033 deep premium slate text */
-    --surface: oklch(1.0000 0.0000 89.88); /* #FFFFFF crisp white cards */
-    --surface-2: oklch(0.9588 0.0075 255.00); /* #E9EEF4 soft inset tiles */
+    --background: oklch(
+      0.9745 0.0064 254.99
+    ); /* #F3F6FA cool slate-blue backdrop */
+    --foreground: oklch(
+      0.2469 0.0417 255.57
+    ); /* #122033 deep premium slate text */
+    --surface: oklch(1 0 89.88); /* #FFFFFF crisp white cards */
+    --surface-2: oklch(0.9588 0.0075 255); /* #E9EEF4 soft inset tiles */
 
     /* Structure / nav / headers — premium deep cobalt/navy tone */
     --nav: oklch(0.2071 0.0588 266.33); /* #0B1E3F deep modern navy navbar */
     --nav-2: oklch(0.1668 0.0457 267.71); /* deeper navy base */
-    --nav-foreground: oklch(0.9520 0.0055 254.98);
+    --nav-foreground: oklch(0.952 0.0055 254.98);
     --nav-muted: oklch(0.7127 0.0278 256.77);
-    --nav-active: oklch(0.5393 0.2227 265.90); /* vibrant electric royal blue active */
+    --nav-active: oklch(
+      0.5393 0.2227 265.9
+    ); /* vibrant electric royal blue active */
     --nav-active-soft: oklch(0.2972 0.0846 266.32); /* soft active item pill */
-    --nav-active-foreground: oklch(1.0000 0.0000 89.88);
-    --nav-active-glow: oklch(0.6169 0.1980 263.14); /* glowing electric blue accent */
+    --nav-active-foreground: oklch(1 0 89.88);
+    --nav-active-glow: oklch(
+      0.6169 0.198 263.14
+    ); /* glowing electric blue accent */
 
     /* Brand accent — vivid modern electric/royal blue (#1D4ED8 / #2563EB vibe matching image) */
-    --primary: oklch(0.5224 0.2321 265.40); /* #2251EA / #1E4DF0 vibrant royal blue */
-    --primary-foreground: oklch(1.0000 0.0000 89.88);
+    --primary: oklch(
+      0.5224 0.2321 265.4
+    ); /* #2251EA / #1E4DF0 vibrant royal blue */
+    --primary-foreground: oklch(1 0 89.88);
     --primary-press: oklch(0.4485 0.2292 264.51);
-    --primary-glow: oklch(0.6169 0.1980 263.14); /* vibrant blue highlight */
+    --primary-glow: oklch(0.6169 0.198 263.14); /* vibrant blue highlight */
 
-    --secondary: oklch(0.9588 0.0075 255.00);
+    --secondary: oklch(0.9588 0.0075 255);
     --secondary-foreground: oklch(0.2469 0.0417 255.57);
 
     --muted: oklch(0.9271 0.0099 255.01);
-    --muted-foreground: oklch(0.5479 0.0391 256.82); /* #64748B crisp readable slate text */
+    --muted-foreground: oklch(
+      0.5479 0.0391 256.82
+    ); /* #64748B crisp readable slate text */
 
-    --accent: oklch(0.9472 0.0220 269.92);
+    --accent: oklch(0.9472 0.022 269.92);
     --accent-foreground: oklch(0.4194 0.2085 264.67);
 
-    --destructive: oklch(0.5387 0.1898 26.40);
-    --destructive-foreground: oklch(1.0000 0.0000 89.88);
+    --destructive: oklch(0.5387 0.1898 26.4);
+    --destructive-foreground: oklch(1 0 89.88);
 
-    --border: oklch(0.9328 0.0150 255.04); /* #E4EAF1 clean crisp borders */
+    --border: oklch(0.9328 0.015 255.04); /* #E4EAF1 clean crisp borders */
     --input: oklch(0.9167 0.0166 255.05);
-    --ring: oklch(0.5224 0.2321 265.40);
+    --ring: oklch(0.5224 0.2321 265.4);
 
     --radius: 1rem; /* 16px modern soft rounded corners */
 
@@ -267,10 +279,10 @@
     --kpi-orange-bg: 38 92% 50% / 0.12;
 
     /* Soft section tint washes — used sparingly for emphasis panels */
-    --tint-teal: oklch(0.9479 0.0210 269.93); /* adapted brand tint */
+    --tint-teal: oklch(0.9479 0.021 269.93); /* adapted brand tint */
     --tint-blue: oklch(0.9566 0.0181 272.45);
-    --tint-amber: oklch(0.9779 0.0151 81.50);
-    --tint-red: oklch(0.9600 0.0157 5.87);
+    --tint-amber: oklch(0.9779 0.0151 81.5);
+    --tint-red: oklch(0.96 0.0157 5.87);
     --tint-purple: oklch(0.9563 0.0164 293.74);
 
     /* Status colors — semantically separate, modern & vivid */
@@ -285,22 +297,22 @@
   .dark {
     --background: oklch(0.2091 0.0187 255.28);
     --foreground: oklch(0.9064 0.0074 244.19);
-    --surface: oklch(0.2510 0.0232 255.29);
+    --surface: oklch(0.251 0.0232 255.29);
     --surface-2: oklch(0.2915 0.0265 255.29);
 
     --nav: oklch(0.1953 0.0354 267.89);
     --nav-2: oklch(0.1638 0.0286 270.13);
-    --nav-foreground: oklch(0.9038 0.0100 255.01);
+    --nav-foreground: oklch(0.9038 0.01 255.01);
     --nav-muted: oklch(0.6564 0.0252 255.13);
     --nav-active: oklch(0.5251 0.2176 265.88);
     --nav-active-soft: oklch(0.2829 0.0712 266.82);
-    --nav-active-foreground: oklch(1.0000 0.0000 89.88);
-    --nav-active-glow: oklch(0.6440 0.1821 263.45);
+    --nav-active-foreground: oklch(1 0 89.88);
+    --nav-active-glow: oklch(0.644 0.1821 263.45);
 
     --primary: oklch(0.5598 0.2036 266.75);
-    --primary-foreground: oklch(1.0000 0.0000 89.88);
+    --primary-foreground: oklch(1 0 89.88);
     --primary-press: oklch(0.4774 0.2366 264.69);
-    --primary-glow: oklch(0.6440 0.1821 263.45);
+    --primary-glow: oklch(0.644 0.1821 263.45);
 
     --secondary: oklch(0.3309 0.0288 255.28);
     --secondary-foreground: oklch(0.9064 0.0074 244.19);
@@ -308,20 +320,20 @@
     --muted: oklch(0.3317 0.0262 255.25);
     --muted-foreground: oklch(0.6963 0.0178 244.41);
 
-    --accent: oklch(0.3099 0.0540 267.99);
+    --accent: oklch(0.3099 0.054 267.99);
     --accent-foreground: oklch(0.9075 0.0416 255.15);
 
-    --destructive: oklch(0.6292 0.1450 22.12);
-    --destructive-foreground: oklch(1.0000 0.0000 89.88);
+    --destructive: oklch(0.6292 0.145 22.12);
+    --destructive-foreground: oklch(1 0 89.88);
 
     --border: oklch(0.3704 0.0271 255.24);
-    --input: oklch(0.3890 0.0288 255.24);
+    --input: oklch(0.389 0.0288 255.24);
     --ring: oklch(0.5598 0.2036 266.75);
 
     --card-shadow:
-      0 1px 2px oklch(0.0000 0.0000 0.00 / 0.3), 0 6px 16px -4px oklch(0.0000 0.0000 0.00 / 0.4);
+      0 1px 2px oklch(0 0 0 / 0.3), 0 6px 16px -4px oklch(0 0 0 / 0.4);
     --card-shadow-hover:
-      0 1px 2px oklch(0.0000 0.0000 0.00 / 0.4), 0 10px 24px -4px oklch(0.0000 0.0000 0.00 / 0.5);
+      0 1px 2px oklch(0 0 0 / 0.4), 0 10px 24px -4px oklch(0 0 0 / 0.5);
 
     --kpi-teal: oklch(0.7422 0.1205 184.83);
     --kpi-indigo: oklch(0.5938 0.1628 284.05);
@@ -330,10 +342,10 @@
     --kpi-blue: oklch(0.6689 0.1285 254.38);
     --kpi-orange: oklch(0.7604 0.1359 66.57);
 
-    --status-available: oklch(0.7360 0.1512 152.77);
+    --status-available: oklch(0.736 0.1512 152.77);
     --status-maintenance: oklch(0.7905 0.1307 74.79);
     --status-out: oklch(0.6447 0.1468 22.04);
-    --status-rented: oklch(0.7780 0.0178 244.37);
+    --status-rented: oklch(0.778 0.0178 244.37);
   }
 }
 

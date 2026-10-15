@@ -316,7 +316,7 @@ export function buildFilteredAnswer(
       entity_type: "rental",
       entity_id: i.id,
       label: i.title,
-      deep_link: i.deep_link ?? undefined,
+      deep_link: i.deep_link ?? null,
     })),
     suggested_actions: priorAnswer.suggested_actions,
     caveats: [

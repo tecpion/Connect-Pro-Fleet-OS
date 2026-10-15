@@ -123,7 +123,7 @@ export function buildExpenseLifecycle(s: StoreState, h: ExpenseShared) {
         {
           id: uid("ce"),
           tenant_id: TENANT_ID,
-          cash_account_id: input.cash_account_id,
+          cash_account_id: input.cash_account_id!,
           entry_type: "cash_out",
           amount: input.amount,
           expense_id: id,

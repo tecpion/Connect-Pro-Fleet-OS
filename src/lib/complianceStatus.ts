@@ -138,8 +138,7 @@ export function evaluateRequirement(
   const blocking =
     !overridden &&
     ((reason === "missing_required" && req.blocks_operation_if_missing) ||
-      ((reason === "expired" || reason === "failed_inspection") &&
-        req.blocks_operation_if_expired));
+      (reason === "expired" && req.blocks_operation_if_expired));
 
   return {
     requirement: req,

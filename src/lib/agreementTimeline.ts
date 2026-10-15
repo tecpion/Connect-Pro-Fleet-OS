@@ -101,7 +101,8 @@ export function buildAgreementTimeline(input: {
     const vehicleLabel = vehicle
       ? `${vehicle.year} ${vehicle.make} ${vehicle.model} (${vehicle.license_plate})`
       : "Unknown vehicle";
-    const priorId: string | null = r.prior_agreement_id ?? r.renewed_from_agreement_id ?? null;
+    const priorId: string | null =
+      r.prior_agreement_id ?? r.renewed_from_agreement_id ?? null;
     const nextId =
       deduped
         .slice(idx + 1)

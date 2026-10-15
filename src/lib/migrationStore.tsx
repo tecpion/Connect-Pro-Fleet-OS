@@ -217,7 +217,7 @@ export function MigrationProvider({ children }: { children: ReactNode }) {
         };
         setHistorical((hs) => [...hs, period]);
         logEvent(
-          input.batch_id,
+          input.batch_id ?? null,
           "historical_summary_added",
           `Historical ${input.granularity} summary added — revenue $${input.revenue}`,
         );

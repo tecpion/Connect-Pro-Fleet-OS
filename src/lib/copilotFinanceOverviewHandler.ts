@@ -103,16 +103,16 @@ export function answerFinanceOverview(
   const parts: string[] = [];
   if (canMoney) {
     if (revenue != null)
-      parts.push(`generated ${formatMoney(revenue)} in rental revenue`);
+      parts.push(`generated ${formatMoney(revenue) ?? "—"} in rental revenue`);
     if (collected != null)
-      parts.push(`collected ${formatMoney(collected)} in cash`);
+      parts.push(`collected ${formatMoney(collected) ?? "—"} in cash`);
   }
   if (canProfit) {
     if (expenses != null)
       parts.push(`spent ${formatMoney(expenses)} on operating expenses`);
     if (contribution != null)
       parts.push(
-        `for an operating contribution of ${formatMoney(contribution)}`,
+        `for an operating contribution of ${formatMoney(contribution) ?? "—"}`,
       );
   }
   const summaryText =
@@ -129,29 +129,29 @@ export function answerFinanceOverview(
     facts: [
       {
         label: "Gross revenue generated",
-        value: revenue != null ? formatMoney(revenue) : "—",
+        value: revenue != null ? (formatMoney(revenue) ?? "—") : "—",
         financial: true,
       },
       {
         label: "Cash collected",
-        value: collected != null ? formatMoney(collected) : "—",
+        value: collected != null ? (formatMoney(collected) ?? "—") : "—",
         financial: true,
       },
       {
         label: "Operating expenses",
-        value: expenses != null ? formatMoney(expenses) : "—",
+        value: expenses != null ? (formatMoney(expenses) ?? "—") : "—",
         financial: true,
       },
       {
         label: "Operating contribution",
-        value: contribution != null ? formatMoney(contribution) : "—",
+        value: contribution != null ? (formatMoney(contribution) ?? "—") : "—",
         financial: true,
       },
       {
         label: "Outstanding balance",
         value:
           gateAmount(f.outstanding_balance, perms) != null
-            ? formatMoney(f.outstanding_balance ?? 0)
+            ? (formatMoney(f.outstanding_balance ?? 0) ?? "—")
             : "—",
         financial: true,
       },

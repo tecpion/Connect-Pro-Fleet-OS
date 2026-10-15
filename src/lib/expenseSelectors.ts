@@ -277,7 +277,9 @@ export function getVehicleMaintenanceExpenseTotal(
     expenses.filter((e) => {
       if (e.status !== "posted" || e.source !== "maintenance_work_order")
         return false;
-      return workOrderVehicleId(e.maintenance_work_order_id ?? "") === vehicleId;
+      return (
+        workOrderVehicleId(e.maintenance_work_order_id ?? "") === vehicleId
+      );
     }),
   );
 }

@@ -223,7 +223,7 @@ export function KpiCard({
           {spark && accent ? (
             <Sparkline values={spark} accent={accent} />
           ) : utilPct > 0 && a ? (
-            <MicroArc value={utilPct / 100} accent={accent} />
+            <MicroArc value={utilPct / 100} accent={accent ?? "blue"} />
           ) : null}
         </div>
         {secondary && (

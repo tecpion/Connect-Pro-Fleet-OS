@@ -6,4 +6,10 @@ import {
   DamageClaimsReport,
 } from "@/pages/reports/FleetReports";
 
-export const Route = createFileRoute("/reports/maintenance")({ component: () => <StaffLayout><MaintenanceReport /></StaffLayout> });
+export const Route = createFileRoute("/reports/maintenance")({
+  component: () => (
+    <StaffLayout>
+      <MaintenanceReport />
+    </StaffLayout>
+  ),
+});

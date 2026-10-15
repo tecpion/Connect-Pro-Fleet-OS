@@ -3,5 +3,9 @@ import { StaffLayout } from "@/components/StaffLayout";
 import Investors from "@/pages/Investors";
 
 export const Route = createFileRoute("/investors/")({
-  component: () => <StaffLayout><Investors /></StaffLayout>,
+  component: () => (
+    <StaffLayout>
+      <Investors />
+    </StaffLayout>
+  ),
 });

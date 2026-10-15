@@ -126,7 +126,7 @@ export default function ReturnWorkflow() {
   const finalBalance = settlement.customerBalanceDue + totalCharges;
   const inspectionReady = !!checkinInspection;
   const aiFlaggedDamage =
-    checkinInspection?.damage_ai_flagged_regions?.length > 0;
+    (checkinInspection?.damage_ai_flagged_regions?.length ?? 0) > 0;
   // Completion guard conditions. The Complete step must NOT silently close a
   // rental with an outstanding balance or an early (pre-scheduled) return.
   const hasOutstandingBalance = finalBalance > 0;

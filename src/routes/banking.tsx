@@ -6,5 +6,9 @@ import {
 } from "@/components/FinanceRedirects";
 
 export const Route = createFileRoute("/banking")({
-  component: () => <StaffLayout><BankingRedirect /></StaffLayout>,
+  component: () => (
+    <StaffLayout>
+      <BankingRedirect />
+    </StaffLayout>
+  ),
 });

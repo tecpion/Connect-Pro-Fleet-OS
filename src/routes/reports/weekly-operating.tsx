@@ -5,4 +5,10 @@ import {
   WeeklyOperatingReport,
 } from "@/pages/reports/OperatingReports";
 
-export const Route = createFileRoute("/reports/weekly-operating")({ component: () => <StaffLayout><WeeklyOperatingReport /></StaffLayout> });
+export const Route = createFileRoute("/reports/weekly-operating")({
+  component: () => (
+    <StaffLayout>
+      <WeeklyOperatingReport />
+    </StaffLayout>
+  ),
+});

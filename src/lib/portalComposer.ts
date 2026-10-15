@@ -94,7 +94,18 @@ export function buildCustomerPortal(
     now,
   );
   const timeline = portalTimeline(session, store);
-  const policies = portalPolicyView(rentalRecord);
+  const policies = portalPolicyView(rentalRecord) ?? {
+    source: "none" as const,
+    payment_cutoff_time: null,
+    grace_period_minutes: null,
+    late_fee_summary: null,
+    deposit_summary: null,
+    mileage_summary: null,
+    fuel_summary: null,
+    return_summary: null,
+    extension_summary: null,
+    billing_cadence: null,
+  };
   const companyContact = portalCompanyContact(store);
 
   return {

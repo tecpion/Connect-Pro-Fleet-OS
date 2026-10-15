@@ -450,7 +450,7 @@ export function rentalLateStatus(
     const severity: "late" | "overdue" =
       daysLate > Math.max(1, graceDays) ? "overdue" : "late";
     if (severity === "overdue") return "overdue";
-    if (worst !== "overdue") worst = severity;
+    worst = severity;
   }
   return worst;
 }

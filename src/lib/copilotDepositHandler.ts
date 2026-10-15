@@ -73,7 +73,7 @@ export function answerDepositSummary(
   const headline = canMoney
     ? deposits.length === 0
       ? "You don't have any security deposits on file yet."
-      : `You currently hold ${formatMoney(held)} in security deposits across ${deposits.length} ${plural(deposits.length, "rental")}.`
+      : `You currently hold ${formatMoney(held) ?? "—"} in security deposits across ${deposits.length} ${plural(deposits.length, "rental")}.`
     : `You have ${deposits.length} ${plural(deposits.length, "deposit")} on file. (Amounts are visible to authorized users only.)`;
 
   return {
@@ -83,32 +83,32 @@ export function answerDepositSummary(
     facts: [
       {
         label: "Held now",
-        value: heldVal != null ? formatMoney(held) : "—",
+        value: heldVal != null ? (formatMoney(held) ?? "—") : "—",
         financial: true,
       },
       {
         label: collectedLabel,
-        value: canMoney ? formatMoney(collectedTotal ?? 0) : "—",
+        value: canMoney ? (formatMoney(collectedTotal ?? 0) ?? "—") : "—",
         financial: true,
       },
       {
         label: "Applied to charges",
-        value: canMoney ? formatMoney(applied ?? 0) : "—",
+        value: canMoney ? (formatMoney(applied ?? 0) ?? "—") : "—",
         financial: true,
       },
       {
         label: "Refunded",
-        value: canMoney ? formatMoney(refunded ?? 0) : "—",
+        value: canMoney ? (formatMoney(refunded ?? 0) ?? "—") : "—",
         financial: true,
       },
       {
         label: "Forfeited",
-        value: canMoney ? formatMoney(forfeited ?? 0) : "—",
+        value: canMoney ? (formatMoney(forfeited ?? 0) ?? "—") : "—",
         financial: true,
       },
       {
         label: "Refund due",
-        value: canMoney ? formatMoney(refundDue ?? 0) : "—",
+        value: canMoney ? (formatMoney(refundDue ?? 0) ?? "—") : "—",
         financial: true,
       },
       { label: "Deposit records", value: deposits.length },

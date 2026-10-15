@@ -7,4 +7,10 @@ import {
   InvestorJVReport,
 } from "@/pages/reports/OperationsPartnerReports";
 
-export const Route = createFileRoute("/reports/investor-jv")({ component: () => <StaffLayout><InvestorJVReport /></StaffLayout> });
+export const Route = createFileRoute("/reports/investor-jv")({
+  component: () => (
+    <StaffLayout>
+      <InvestorJVReport />
+    </StaffLayout>
+  ),
+});

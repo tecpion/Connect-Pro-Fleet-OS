@@ -6,5 +6,9 @@ import {
 } from "@/components/RentalRouteRedirects";
 
 export const Route = createFileRoute("/reservations/")({
-  component: () => <StaffLayout><ReservationsRedirect /></StaffLayout>,
+  component: () => (
+    <StaffLayout>
+      <ReservationsRedirect />
+    </StaffLayout>
+  ),
 });

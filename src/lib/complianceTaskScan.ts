@@ -341,12 +341,16 @@ export function generateComplianceTasksPass(
     const occ = t.dedupe_key
       ? (t.dedupe_key.split(":").slice(-1)[0] ?? "1")
       : "1";
-    const k = key(t.entity_id ?? "", t.source_event, occ);
+    const entityId = t.entity_id;
+    const sourceEvent = t.source_event;
+    const entityType = t.entity_type;
+    if (!entityId || !sourceEvent || !entityType) continue;
+    const k = key(entityId, sourceEvent, occ);
     if (!openKeys.has(k)) {
       resolved += deps.resolveSystemTasksForEntity(
-        t.source_event,
-        t.entity_type,
-        t.entity_id,
+        sourceEvent,
+        entityType,
+        entityId,
         "Compliance issue resolved",
       );
     }

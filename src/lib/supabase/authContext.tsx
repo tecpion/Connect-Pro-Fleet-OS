@@ -96,13 +96,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       const { data } = await supabase.auth.getSession();
       if (!active) return;
-      if (data.session) {
-        await loadProfile(
-          supabase,
-          data.session.user.id,
-          data.session.user.email ?? "",
-          setSession,
-        );
+      const user = data.session?.user;
+      if (user) {
+        await loadProfile(supabase, user.id, user.email ?? "", setSession);
       } else {
         setSession({
           user: null,
@@ -125,13 +121,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!supabase || mode === "memory") return;
     const { data: sub } = supabase.auth.onAuthStateChange(
       async (_event, sbSession) => {
-        if (sbSession) {
-          await loadProfile(
-            supabase,
-            sbSession.user.id,
-            sbSession.user.email ?? "",
-            setSession,
-          );
+        const user = sbSession?.user;
+        if (user) {
+          await loadProfile(supabase, user.id, user.email ?? "", setSession);
         } else {
           setSession({
             user: null,
@@ -234,14 +226,24 @@ async function loadProfile(
     .select("organization_id, role_id, status")
     .eq("user_id", userId)
     .eq("status", "active");
-  const orgIds = (memberships ?? []).map((m) => m.organization_id);
+  const typedMemberships = (memberships ?? []) as Array<{
+    organization_id: string;
+    role_id: string | null;
+    status: string;
+  }>;
+  const orgIds = typedMemberships.map((m) => m.organization_id);
   let orgNames: Record<string, string> = {};
   if (orgIds.length) {
     const { data: orgs } = await supabase
       .from("organizations")
       .select("id, name")
       .in("id", orgIds);
-    orgNames = Object.fromEntries((orgs ?? []).map((o) => [o.id, o.name]));
+    orgNames = Object.fromEntries(
+      ((orgs ?? []) as Array<{ id: string; name: string }>).map((o) => [
+        o.id,
+        o.name,
+      ]),
+    );
   }
   let roles: { id: string; code: string }[] = [];
   if (orgIds.length) {
@@ -253,7 +255,7 @@ async function loadProfile(
   }
   const roleCode = (rid: string | null) =>
     roles.find((r) => r.id === rid)?.code ?? "user";
-  const memList: AuthMembership[] = (memberships ?? []).map((m) => ({
+  const memList: AuthMembership[] = typedMemberships.map((m) => ({
     organization_id: m.organization_id,
     organization_name: orgNames[m.organization_id] ?? "Organization",
     role_code: roleCode(m.role_id),

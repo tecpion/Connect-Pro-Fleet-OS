@@ -8,4 +8,10 @@ import {
   DepositsReport,
 } from "@/pages/reports/AccountingReports";
 
-export const Route = createFileRoute("/reports/deposits")({ component: () => <StaffLayout><DepositsReport /></StaffLayout> });
+export const Route = createFileRoute("/reports/deposits")({
+  component: () => (
+    <StaffLayout>
+      <DepositsReport />
+    </StaffLayout>
+  ),
+});

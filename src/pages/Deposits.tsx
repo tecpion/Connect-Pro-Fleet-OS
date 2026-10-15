@@ -51,9 +51,9 @@ interface DepositRow {
   id: string;
   customerId: string;
   customerName: string;
-  rentalId?: string;
-  rentalNumber?: string;
-  reservationId: string;
+  rentalId?: string | null;
+  rentalNumber?: string | null;
+  reservationId: string | null;
   vehicleName: string;
   required: number;
   held: number;

@@ -3,5 +3,9 @@ import { StaffLayout } from "@/components/StaffLayout";
 import Notifications from "@/pages/Notifications";
 
 export const Route = createFileRoute("/notifications")({
-  component: () => <StaffLayout><Notifications /></StaffLayout>,
+  component: () => (
+    <StaffLayout>
+      <Notifications />
+    </StaffLayout>
+  ),
 });

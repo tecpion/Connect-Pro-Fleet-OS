@@ -60,7 +60,7 @@ export default function SupportArticle() {
   const related = article.related_article_ids
     .map((id) => articleBySlug(id))
     .filter(
-      (a): a is NonNullable<typeof a> => Boolean(a) && a.id !== article.id,
+      (a): a is NonNullable<typeof a> => a !== undefined && a.id !== article.id,
     );
 
   return (

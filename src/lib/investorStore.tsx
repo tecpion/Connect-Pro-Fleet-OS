@@ -269,7 +269,7 @@ export function InvestorProvider({ children }: { children: ReactNode }) {
             vehicle_id: existing.vehicle_id,
             investor_id: existing.investor_id,
             old_ownership_type: null,
-            new_ownership_type: null,
+            new_ownership_type: "external_owner",
             old_owner_entity_id: null,
             new_owner_entity_id: null,
             effective_date: compensation.effective_date,

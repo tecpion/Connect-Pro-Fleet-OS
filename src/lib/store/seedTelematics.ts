@@ -224,7 +224,7 @@ export const mockTelematicsState: {
     //   spare; vehicle_id null since it is no longer installed).
     {
       device_id: "tel_dev_6",
-      vehicle_id: null,
+      vehicle_id: "",
       latitude: 25.76,
       longitude: -80.16,
       recorded_at: "2026-09-20T14:00:00Z",

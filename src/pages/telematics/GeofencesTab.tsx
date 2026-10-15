@@ -173,7 +173,7 @@ function NewGeofenceDialog({
       active: true,
       center_latitude: parseFloat(lat) || 0,
       center_longitude: parseFloat(lng) || 0,
-      radius_meters: parseInt(radius, 10) || undefined,
+      radius_meters: parseInt(radius, 10) || null,
       applies_to_all: allVehicles,
       applies_to_class_id: null,
       applies_to_vehicle_ids: null,

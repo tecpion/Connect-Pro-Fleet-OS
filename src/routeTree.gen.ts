@@ -95,6 +95,7 @@ import { Route as PortalHelpIndexRouteImport } from './routes/portal/help/index'
 import { Route as PortalHelpSlugRouteImport } from './routes/portal/help/$slug'
 import { Route as SupportArticlesSlugRouteImport } from './routes/support/articles/$slug'
 import { Route as SupportTicketsIdRouteImport } from './routes/support/tickets/$id'
+import { Route as VehiclesIdIndexRouteImport } from './routes/vehicles/$id/index'
 import { Route as VehiclesIdPerformanceRouteImport } from './routes/vehicles/$id/performance'
 
 const IndexRoute = IndexRouteImport.update({
@@ -533,6 +534,11 @@ const SupportTicketsIdRoute = SupportTicketsIdRouteImport.update({
   path: '/support/tickets/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VehiclesIdIndexRoute = VehiclesIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => VehiclesIdRoute,
+} as any)
 const VehiclesIdPerformanceRoute = VehiclesIdPerformanceRouteImport.update({
   id: '/performance',
   path: '/performance',
@@ -627,6 +633,7 @@ export interface FileRoutesByFullPath {
   '/support/tickets/$id': typeof SupportTicketsIdRoute
   '/vehicles/$id/performance': typeof VehiclesIdPerformanceRoute
   '/portal/help/': typeof PortalHelpIndexRoute
+  '/vehicles/$id/': typeof VehiclesIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -699,7 +706,6 @@ export interface FileRoutesByTo {
   '/settings/webhooks': typeof SettingsWebhooksRoute
   '/support/status': typeof SupportStatusRoute
   '/support/updates': typeof SupportUpdatesRoute
-  '/vehicles/$id': typeof VehiclesIdRouteWithChildren
   '/customers': typeof CustomersIndexRoute
   '/inspections': typeof InspectionsIndexRoute
   '/investors': typeof InvestorsIndexRoute
@@ -715,6 +721,7 @@ export interface FileRoutesByTo {
   '/support/tickets/$id': typeof SupportTicketsIdRoute
   '/vehicles/$id/performance': typeof VehiclesIdPerformanceRoute
   '/portal/help': typeof PortalHelpIndexRoute
+  '/vehicles/$id': typeof VehiclesIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -805,6 +812,7 @@ export interface FileRoutesById {
   '/support/tickets/$id': typeof SupportTicketsIdRoute
   '/vehicles/$id/performance': typeof VehiclesIdPerformanceRoute
   '/portal/help/': typeof PortalHelpIndexRoute
+  '/vehicles/$id/': typeof VehiclesIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -896,6 +904,7 @@ export interface FileRouteTypes {
     | '/support/tickets/$id'
     | '/vehicles/$id/performance'
     | '/portal/help/'
+    | '/vehicles/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -968,7 +977,6 @@ export interface FileRouteTypes {
     | '/settings/webhooks'
     | '/support/status'
     | '/support/updates'
-    | '/vehicles/$id'
     | '/customers'
     | '/inspections'
     | '/investors'
@@ -984,6 +992,7 @@ export interface FileRouteTypes {
     | '/support/tickets/$id'
     | '/vehicles/$id/performance'
     | '/portal/help'
+    | '/vehicles/$id'
   id:
     | '__root__'
     | '/'
@@ -1073,6 +1082,7 @@ export interface FileRouteTypes {
     | '/support/tickets/$id'
     | '/vehicles/$id/performance'
     | '/portal/help/'
+    | '/vehicles/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1743,6 +1753,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SupportTicketsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vehicles/$id/': {
+      id: '/vehicles/$id/'
+      path: '/'
+      fullPath: '/vehicles/$id/'
+      preLoaderRoute: typeof VehiclesIdIndexRouteImport
+      parentRoute: typeof VehiclesIdRoute
+    }
     '/vehicles/$id/performance': {
       id: '/vehicles/$id/performance'
       path: '/performance'
@@ -1814,10 +1831,12 @@ const ReportsRouteWithChildren =
 
 interface VehiclesIdRouteChildren {
   VehiclesIdPerformanceRoute: typeof VehiclesIdPerformanceRoute
+  VehiclesIdIndexRoute: typeof VehiclesIdIndexRoute
 }
 
 const VehiclesIdRouteChildren: VehiclesIdRouteChildren = {
   VehiclesIdPerformanceRoute: VehiclesIdPerformanceRoute,
+  VehiclesIdIndexRoute: VehiclesIdIndexRoute,
 }
 
 const VehiclesIdRouteWithChildren = VehiclesIdRoute._addFileChildren(

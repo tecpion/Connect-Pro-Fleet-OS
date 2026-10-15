@@ -111,7 +111,7 @@ export function buildReviewMethods(rs: ReviewState, deps: ReviewDeps) {
         tender,
         {
           processor: normalizeProcessor(p.processor) ?? undefined,
-          reference: p.external_transaction_id ?? p.reference ?? null,
+          reference: p.external_transaction_id ?? p.reference ?? undefined,
           notes: "Resolved from sync review",
           paymentSource: p.payment_source ?? "connect_pro",
         },
