@@ -5,7 +5,7 @@
 // remains ONE coherent data layer — domain modules operate on shared state,
 // they don't duplicate it.
 
-import { useMemo, type ReactNode } from "react";
+import { useEffect, useMemo, type ReactNode } from "react";
 import { FleetStore, StoreContext } from "./storeContext";
 import { useStoreState } from "./storeState";
 import { buildVehicleMethods } from "./vehicleStore";
@@ -30,9 +30,13 @@ import { buildNotificationMethods } from "./notificationStore";
 import { buildMaintenanceMethods } from "./maintenanceStore";
 import { buildExpenseMethods } from "./expenseStore";
 import { buildBankingMethods } from "./bankingStore";
+import { useAuth } from "../supabase/authContext";
+import { hydratePhase1Slices } from "../supabase/storeSync";
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const s = useStoreState();
+  const { session } = useAuth();
+  const activeOrgId = session.activeOrganizationId;
 
   // Depend on the individual state slices (stable references from useState)
   // rather than `s` itself, which is a fresh object every render. Without this
@@ -263,6 +267,25 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     s.accountTransfers,
     s.reconciliationEvents,
   ]);
+
+  // Phase 1: hydrate customers/vehicles/reservations from Cloud when an
+  // authenticated org is active. In memory mode hydratePhase1Slices is a
+  // no-op and the seeded demo data stays. Runs on org/login change.
+  useEffect(() => {
+    if (!activeOrgId) return;
+    let active = true;
+    void hydratePhase1Slices(activeOrgId, {
+      setCustomers: s.setCustomers,
+      setVehicles: s.setVehicles,
+      setReservations: s.setReservations,
+    }).then((ran) => {
+      if (!ran || !active) return;
+    });
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeOrgId]);
 
   return (
     <StoreContext.Provider value={store}>{children}</StoreContext.Provider>

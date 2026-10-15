@@ -13,22 +13,23 @@ import { createClient, type SupabaseClient } from "./supabaseClientShim";
 import type { Database } from "./database.types";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as
-  string | undefined;
+// Cloud publishes the anon/publishable key as VITE_SUPABASE_PUBLISHABLE_KEY.
+// Accept the legacy VITE_SUPABASE_ANON_KEY name too for older configs.
+const SUPABASE_ANON_KEY = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
+  import.meta.env.VITE_SUPABASE_ANON_KEY) as string | undefined;
 
 export type BackendMode = "memory" | "supabase";
 
-/** Resolved backend mode. `supabase` only when explicitly requested AND config
- *  is present. Defaults to `memory` for tests/dev. */
+/** Resolved backend mode. `supabase` whenever Cloud config is present (URL +
+ *  publishable key). Tests/dev without config stay in `memory` mode. */
 export function getBackendMode(): BackendMode {
-  const requested = import.meta.env.VITE_BACKEND_MODE as string | undefined;
-  if (requested === "supabase" && SUPABASE_URL && SUPABASE_ANON_KEY) {
+  if (SUPABASE_URL && SUPABASE_ANON_KEY) {
     return "supabase";
   }
   return "memory";
 }
 
-/** True when a usable Supabase config is present. */
+/** True when a usable Cloud config is present. */
 export function hasSupabaseConfig(): boolean {
   return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 }
@@ -61,7 +62,7 @@ export function _resetSupabaseClient(): void {
 export function requireSupabaseConfig(): string | null {
   if (getBackendMode() !== "supabase") return null;
   if (!hasSupabaseConfig()) {
-    return "Supabase backend mode is enabled but VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY are missing. Configure the environment or set VITE_BACKEND_MODE=memory for development.";
+    return "Cloud backend mode is enabled but VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY are missing. Configure the environment for development.";
   }
   return null;
 }

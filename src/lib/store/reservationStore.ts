@@ -1,6 +1,12 @@
 // Connect Pro Fleet — reservation domain methods (Build #5).
 // A reservation owns rental intent, requested vehicle/class, quote, source,
 // and verification state — NOT active possession.
+//
+// Phase 1: addReservation/updateReservation persist through the Cloud
+// repository (optimistic local write + async Cloud persist). In memory mode
+// the persist calls are no-ops, preserving the seeded demo behavior.
+// recordPayment and other lifecycle helpers remain in-memory only (deposits/
+// ledger are not migrated in Phase 1).
 
 import type {
   Reservation,
@@ -10,14 +16,26 @@ import type {
   Inspection,
 } from "../types";
 import type { StoreState } from "./storeState";
+import {
+  persistReservationInsert,
+  persistReservationUpdate,
+} from "../supabase/storeSync";
 
 export function buildReservationMethods(s: StoreState) {
   return {
-    updateReservation: (id: string, patch: Partial<Reservation>) =>
+    updateReservation: (id: string, patch: Partial<Reservation>) => {
       s.setReservations((rs) =>
         rs.map((r) => (r.id === id ? { ...r, ...patch } : r)),
-      ),
-    addReservation: (r: Reservation) => s.setReservations((rs) => [r, ...rs]),
+      );
+      const existing = s.reservations.find((r) => r.id === id);
+      if (existing) {
+        persistReservationUpdate(existing.tenant_id, id, patch);
+      }
+    },
+    addReservation: (r: Reservation) => {
+      s.setReservations((rs) => [r, ...rs]);
+      persistReservationInsert(r);
+    },
     recordPayment: (id: string, amount: number) =>
       s.setReservations((rs) =>
         rs.map((r) =>

@@ -9,17 +9,26 @@
 // Build #24 finalization: updateStaff now enforces the last-active-Owner guard
 // at the authoritative mutation layer (not just the UI). A direct call that
 // would deactivate/suspend the last active Owner is refused (silent no-op).
+//
+// Phase 1: addCustomer/updateCustomer persist through the Cloud repository
+// (optimistic local write + async Cloud persist). In memory mode the persist
+// calls are no-ops, preserving the seeded demo behavior.
 
 import type { Customer, Staff } from "../types";
 import type { StoreState } from "./storeState";
 import { emitCustomerUpserted } from "./customerIntegrationEmission";
 import { guardStaffStatus, guardStaffRoleChange } from "./staffGuard";
+import {
+  persistCustomerInsert,
+  persistCustomerUpdate,
+} from "../supabase/storeSync";
 
 export function buildCustomerMethods(s: StoreState) {
   return {
     addCustomer: (c: Customer) => {
       s.setCustomers((cs) => [c, ...cs]);
       emitCustomerUpserted(c);
+      persistCustomerInsert(c);
     },
     updateCustomer: (id: string, patch: Partial<Customer>) => {
       const existing = s.customers.find((c) => c.id === id);
@@ -29,8 +38,11 @@ export function buildCustomerMethods(s: StoreState) {
       );
       // Emit from the constructed updated record (s.customers is stale until
       // React flushes, so we build the post-update shape synchronously).
-      if (existing)
-        emitCustomerUpserted({ ...existing, ...patch, updated_at: now });
+      if (existing) {
+        const updated = { ...existing, ...patch, updated_at: now };
+        emitCustomerUpserted(updated);
+        persistCustomerUpdate(updated.tenant_id, id, patch);
+      }
     },
     // Staff lives in the customer module grouping (people) for now.
     addStaff: (st: Staff) => s.setStaff((ss) => [...ss, st]),
