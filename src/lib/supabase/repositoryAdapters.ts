@@ -14,6 +14,19 @@ import type {
 import type { BookingRequest } from "../bookingRequestTypes";
 import type { Inspection } from "../inspectionTypes";
 import type { RentalDeposit, DepositHistoryEvent } from "../depositTypes";
+import type {
+  DocumentRecord,
+  ComplianceRequirement,
+  ComplianceOverride,
+  ComplianceEvent,
+} from "../complianceTypes";
+import type {
+  VerificationRequest,
+  VerificationRequirement,
+  VerificationOverride,
+  VerificationAuditEvent,
+  VerificationUsageCharge,
+} from "../verificationTypes";
 import type { getSupabase } from "./client";
 import {
   type CustomerRepository,
@@ -24,6 +37,8 @@ import {
   type BookingRequestRepository,
   type InspectionRepository,
   type DepositRepository,
+  type ComplianceRepository,
+  type VerificationRepository,
   normalizeError,
 } from "./repository";
 import {
@@ -53,6 +68,27 @@ import {
   rowToDepositHistory,
   depositHistoryToRow,
 } from "./repositoryMappers";
+import {
+  rowToDocumentRecord,
+  documentRecordToRow,
+  documentRecordPatchToRow,
+  rowToComplianceRequirement,
+  complianceRequirementToRow,
+  rowToComplianceOverride,
+  complianceOverrideToRow,
+  rowToComplianceEvent,
+  complianceEventToRow,
+  rowToVerificationRequest,
+  verificationRequestToRow,
+  rowToVerificationRequirement,
+  verificationRequirementToRow,
+  rowToVerificationOverride,
+  verificationOverrideToRow,
+  rowToVerificationAuditEvent,
+  verificationAuditEventToRow,
+  rowToVerificationUsageCharge,
+  verificationUsageChargeToRow,
+} from "./complianceVerificationMappers";
 
 type Db = NonNullable<ReturnType<typeof getSupabase>>;
 
@@ -399,3 +435,10 @@ export class SupabaseDepositRepository implements DepositRepository {
     return rowToDepositHistory(data);
   }
 }
+
+// Phase 3 compliance + verification adapters live in their own module to keep
+// this file focused; re-export so the factory import in repository.ts resolves.
+export {
+  SupabaseComplianceRepository,
+  SupabaseVerificationRepository,
+} from "./complianceVerificationAdapters";

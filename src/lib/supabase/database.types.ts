@@ -11,6 +11,7 @@ export * from "./dbTypesFinancial";
 export * from "./dbTypesMaintenance";
 export * from "./dbTypesTasks";
 export * from "./dbTypesIntegrations";
+export * from "./dbTypesComplianceVerification";
 
 import type {
   OrganizationRow,
@@ -35,6 +36,17 @@ import type {
   MasterAgreementRow,
   AgreementInstanceRow,
 } from "./dbTypesCore";
+import type {
+  ComplianceDocumentRow,
+  ComplianceRequirementRow,
+  ComplianceOverrideRow,
+  ComplianceEventRow,
+  VerificationRequestRow,
+  VerificationRequirementRow,
+  VerificationOverrideRow,
+  VerificationAuditEventRow,
+  VerificationUsageChargeRow,
+} from "./dbTypesComplianceVerification";
 import type {
   RentalLedgerTransactionRow,
   PaymentAllocationRow,
@@ -186,6 +198,15 @@ export interface Database {
       document_sequences: Entity<DocumentSequenceRow>;
       activity_log: Entity<ActivityLogRow>;
       file_objects: Entity<FileObjectRow>;
+      compliance_documents: Entity<ComplianceDocumentRow>;
+      compliance_requirements: Entity<ComplianceRequirementRow>;
+      compliance_overrides: Entity<ComplianceOverrideRow>;
+      compliance_events: Entity<ComplianceEventRow>;
+      verification_requests: Entity<VerificationRequestRow>;
+      verification_requirements: Entity<VerificationRequirementRow>;
+      verification_overrides: Entity<VerificationOverrideRow>;
+      verification_audit_events: Entity<VerificationAuditEventRow>;
+      verification_usage_charges: Entity<VerificationUsageChargeRow>;
     };
     Views: Record<string, never>;
     Functions: {

@@ -13,6 +13,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -63,6 +64,14 @@ import {
 } from "./store/seedCompliance";
 import { TENANT_ID } from "./store/ids";
 import { useComplianceScan } from "./complianceScanWiring";
+import {
+  hydrateCompliance,
+  persistComplianceDocumentInsert,
+  persistComplianceDocumentUpdate,
+  persistComplianceOverrideInsert,
+  persistComplianceEventInsert,
+} from "./supabase/storeSync";
+import { useAuth } from "./supabase/authContext";
 
 const ComplianceContext = createContext<ComplianceStore | null>(null);
 
@@ -77,6 +86,19 @@ export function ComplianceProvider({ children }: { children: ReactNode }) {
     seedComplianceOverrides,
   );
   const [events, setEvents] = useState<ComplianceEvent[]>(seedComplianceEvents);
+
+  const { activeOrgId } = useAuth();
+
+  // Phase 3: hydrate compliance state from Cloud on auth/org change. In memory
+  // mode (no Cloud config) this is a no-op and the seeded demo data stays.
+  useEffect(() => {
+    const orgId = activeOrgId ?? TENANT_ID;
+    void hydrateCompliance(orgId, {
+      setDocuments,
+      setOverrides,
+      setEvents,
+    });
+  }, [activeOrgId]);
 
   const policyReqs = useMemo(
     () =>
@@ -116,10 +138,9 @@ export function ComplianceProvider({ children }: { children: ReactNode }) {
       label: string,
       meta: Record<string, unknown> | null = null,
     ) => {
-      setEvents((prev) => [
-        makeEvent(documentId, type, label, actor, TENANT_ID, meta),
-        ...prev,
-      ]);
+      const ev = makeEvent(documentId, type, label, actor, TENANT_ID, meta);
+      setEvents((prev) => [ev, ...prev]);
+      persistComplianceEventInsert(ev);
     },
     [actor],
   );
@@ -136,6 +157,7 @@ export function ComplianceProvider({ children }: { children: ReactNode }) {
         document_type: input.document_type,
         entity_id: input.entity_id,
       });
+      persistComplianceDocumentInsert(rec);
       return rec.id;
     },
     [actor, addEvent],
@@ -148,6 +170,7 @@ export function ComplianceProvider({ children }: { children: ReactNode }) {
           d.id === id ? { ...d, ...patch, updated_at: nowIso() } : d,
         ),
       );
+      persistComplianceDocumentUpdate(TENANT_ID, id, { ...patch, updated_at: nowIso() });
     },
     [],
   );

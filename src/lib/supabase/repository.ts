@@ -23,6 +23,19 @@ import type {
 } from "../bookingRequestTypes";
 import type { Inspection } from "../inspectionTypes";
 import type { RentalDeposit, DepositHistoryEvent } from "../depositTypes";
+import type {
+  DocumentRecord,
+  ComplianceRequirement,
+  ComplianceOverride,
+  ComplianceEvent,
+} from "../complianceTypes";
+import type {
+  VerificationRequest,
+  VerificationRequirement,
+  VerificationOverride,
+  VerificationAuditEvent,
+  VerificationUsageCharge,
+} from "../verificationTypes";
 import { getSupabase } from "./client";
 import {
   SupabaseCustomerRepository,
@@ -33,6 +46,8 @@ import {
   SupabaseBookingRequestRepository,
   SupabaseInspectionRepository,
   SupabaseDepositRepository,
+  SupabaseComplianceRepository,
+  SupabaseVerificationRepository,
 } from "./repositoryAdapters";
 
 // ---------------------------------------------------------------------------
@@ -119,6 +134,60 @@ export interface DepositRepository {
   insertHistory(e: DepositHistoryEvent): Promise<DepositHistoryEvent>;
 }
 
+export interface ComplianceRepository {
+  listDocuments(orgId: string): Promise<DocumentRecord[]>;
+  listDocumentsForEntity(
+    orgId: string,
+    entityType: string,
+    entityId: string,
+  ): Promise<DocumentRecord[]>;
+  insertDocument(d: DocumentRecord): Promise<DocumentRecord>;
+  updateDocument(
+    orgId: string,
+    id: string,
+    patch: Partial<DocumentRecord>,
+  ): Promise<DocumentRecord>;
+  listRequirements(orgId: string): Promise<ComplianceRequirement[]>;
+  upsertRequirement(r: ComplianceRequirement): Promise<ComplianceRequirement>;
+  listOverrides(orgId: string): Promise<ComplianceOverride[]>;
+  insertOverride(o: ComplianceOverride): Promise<ComplianceOverride>;
+  updateOverride(
+    orgId: string,
+    id: string,
+    patch: Partial<ComplianceOverride>,
+  ): Promise<ComplianceOverride>;
+  listEvents(orgId: string): Promise<ComplianceEvent[]>;
+  insertEvent(e: ComplianceEvent): Promise<ComplianceEvent>;
+}
+
+export interface VerificationRepository {
+  listRequests(orgId: string): Promise<VerificationRequest[]>;
+  insertRequest(v: VerificationRequest): Promise<VerificationRequest>;
+  updateRequest(
+    orgId: string,
+    id: string,
+    patch: Partial<VerificationRequest>,
+  ): Promise<VerificationRequest>;
+  listRequirements(orgId: string): Promise<VerificationRequirement[]>;
+  insertRequirement(r: VerificationRequirement): Promise<VerificationRequirement>;
+  updateRequirement(
+    orgId: string,
+    id: string,
+    patch: Partial<VerificationRequirement>,
+  ): Promise<VerificationRequirement>;
+  listOverrides(orgId: string): Promise<VerificationOverride[]>;
+  insertOverride(o: VerificationOverride): Promise<VerificationOverride>;
+  listAudit(orgId: string): Promise<VerificationAuditEvent[]>;
+  insertAudit(e: VerificationAuditEvent): Promise<VerificationAuditEvent>;
+  listUsageCharges(orgId: string): Promise<VerificationUsageCharge[]>;
+  insertUsageCharge(c: VerificationUsageCharge): Promise<VerificationUsageCharge>;
+  updateUsageCharge(
+    orgId: string,
+    id: string,
+    patch: Partial<VerificationUsageCharge>,
+  ): Promise<VerificationUsageCharge>;
+}
+
 // Re-export adapter classes + mappers so existing imports keep working.
 export {
   SupabaseCustomerRepository,
@@ -129,6 +198,8 @@ export {
   SupabaseBookingRequestRepository,
   SupabaseInspectionRepository,
   SupabaseDepositRepository,
+  SupabaseComplianceRepository,
+  SupabaseVerificationRepository,
 };
 
 // ---------------------------------------------------------------------------
@@ -210,6 +281,8 @@ export function createRepositories(): {
   bookingRequests: BookingRequestRepository | null;
   inspections: InspectionRepository | null;
   deposits: DepositRepository | null;
+  compliance: ComplianceRepository | null;
+  verification: VerificationRepository | null;
 } {
   const db = getSupabase();
   if (!db)
@@ -222,6 +295,8 @@ export function createRepositories(): {
       bookingRequests: null,
       inspections: null,
       deposits: null,
+      compliance: null,
+      verification: null,
     };
   return {
     customers: new SupabaseCustomerRepository(db),
@@ -232,5 +307,7 @@ export function createRepositories(): {
     bookingRequests: new SupabaseBookingRequestRepository(db),
     inspections: new SupabaseInspectionRepository(db),
     deposits: new SupabaseDepositRepository(db),
+    compliance: new SupabaseComplianceRepository(db),
+    verification: new SupabaseVerificationRepository(db),
   };
 }
