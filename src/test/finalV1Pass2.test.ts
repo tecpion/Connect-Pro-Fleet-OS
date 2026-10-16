@@ -336,14 +336,25 @@ describe("Final V1 Pass 2 — cleanup + consistency", () => {
 
   // ── 10. Legacy route redirects ────────────────────────────────────────────
   describe("legacy /reservations & /rentals redirects", () => {
-    it("App routes /reservations and /rentals to Rental Management redirects", async () => {
+    it("legacy /reservations and /rentals routes use the Rental Management redirects", async () => {
+      // TanStack Start uses file-based routing (no single App.tsx switcher).
+      // The legacy routes now live in src/routes/{reservations,rentals}/index.tsx
+      // and delegate to RentalRouteRedirects. Verify the redirect components
+      // are wired and the standalone page imports are gone.
       const fs = await import("node:fs");
-      const src = fs.readFileSync("src/App.tsx", "utf8");
-      expect(src).toContain("ReservationsRedirect");
-      expect(src).toContain("RentalsRedirect");
+      const reservationsRoute = fs.readFileSync(
+        "src/routes/reservations/index.tsx",
+        "utf8",
+      );
+      const rentalsRoute = fs.readFileSync(
+        "src/routes/rentals/index.tsx",
+        "utf8",
+      );
+      expect(reservationsRoute).toContain("ReservationsRedirect");
+      expect(rentalsRoute).toContain("RentalsRedirect");
       // The standalone page imports are gone.
-      expect(src).not.toContain('from "@/pages/Reservations"');
-      expect(src).not.toContain('from "@/pages/Rentals"');
+      expect(reservationsRoute).not.toContain('from "@/pages/Reservations"');
+      expect(rentalsRoute).not.toContain('from "@/pages/Rentals"');
     });
 
     it("RentalRouteRedirects maps to the Rental Management tabs preserving query", async () => {

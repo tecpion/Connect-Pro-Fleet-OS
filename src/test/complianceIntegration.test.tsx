@@ -12,6 +12,7 @@ import { describe, it, expect } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
+import { MemoryRouter } from "react-router-dom";
 import { StoreProvider } from "@/lib/store/StoreProvider";
 import { CompanyPolicyProvider } from "@/lib/store/companyPolicyStore";
 import {
@@ -26,13 +27,18 @@ import { VehicleComplianceSection } from "@/pages/compliance/ComplianceSections"
 import { REPORT_CATALOG, visibleReports } from "@/lib/reportCatalog";
 import { toCsv } from "@/lib/reportCsv";
 
+// The Compliance page renders router-aware links (via the router-compat shim).
+// Provide a MemoryRouter so those links resolve without a TanStack router
+// context, matching the pattern used by other migrated render tests.
 function wrapper({ children }: { children: ReactNode }) {
   return (
-    <StoreProvider>
-      <CompanyPolicyProvider>
-        <ComplianceProvider>{children}</ComplianceProvider>
-      </CompanyPolicyProvider>
-    </StoreProvider>
+    <MemoryRouter>
+      <StoreProvider>
+        <CompanyPolicyProvider>
+          <ComplianceProvider>{children}</ComplianceProvider>
+        </CompanyPolicyProvider>
+      </StoreProvider>
+    </MemoryRouter>
   );
 }
 function useHooks() {

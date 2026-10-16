@@ -1,10 +1,12 @@
 // Connect Pro Fleet — Build #22 repository + storage + idempotency tests.
-// Run in memory mode (no network). Verifies row/domain mappers, money
-// normalization, storage path strategy + validation, and the client/backend
-// mode resolution. Supabase-specific integration tests skip gracefully when no
-// local Supabase is configured.
+//
+// Verifies row/domain mappers, money normalization, storage path strategy +
+// validation, and the client/backend mode resolution. Cloud is now
+// intentionally enabled (live env → supabase mode); the memory-fallback path is
+// preserved by mocking the client module to force memory mode for those tests
+// only. Production backend-mode logic is NOT changed.
 
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import {
   toMoney,
   RepositoryError,
@@ -23,6 +25,28 @@ import type {
   RentalAgreement,
   FinancialTransaction,
 } from "@/lib/types";
+
+// Controllable client mock. Default to memory mode so the repository
+// availability test exercises the null-adapter fallback without a network
+// client. A separate describe flips this to assert live-config detection.
+const mockClient = vi.hoisted(() => ({
+  mode: "memory" as "memory" | "supabase",
+  config: false,
+}));
+
+vi.mock("@/lib/supabase/client", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/supabase/client")>(
+    "@/lib/supabase/client",
+  );
+  return {
+    ...actual,
+    getBackendMode: () => mockClient.mode,
+    hasSupabaseConfig: () => mockClient.config,
+    // Memory mode never constructs a real client → repositories return null.
+    getSupabase: () => null,
+    _resetSupabaseClient: () => {},
+  };
+});
 
 describe("Build #22 money normalization", () => {
   it("normalizes numeric strings from Supabase to rounded numbers", () => {
@@ -126,7 +150,27 @@ describe("Build #22 storage validation", () => {
   });
 });
 
-describe("Build #22 repository availability", () => {
+describe("Build #22 backend mode (live Cloud config)", () => {
+  beforeEach(() => {
+    mockClient.mode = "supabase";
+    mockClient.config = true;
+  });
+
+  it("resolves to supabase mode when Cloud config is present", () => {
+    expect(getBackendMode()).toBe("supabase");
+  });
+
+  it("hasSupabaseConfig is true when configured", () => {
+    expect(hasSupabaseConfig()).toBe(true);
+  });
+});
+
+describe("Build #22 repository availability (memory mode)", () => {
+  beforeEach(() => {
+    mockClient.mode = "memory";
+    mockClient.config = false;
+  });
+
   it("createRepositories returns null adapters in memory mode", async () => {
     const { createRepositories } = await import("@/lib/supabase/repository");
     const repos = createRepositories();

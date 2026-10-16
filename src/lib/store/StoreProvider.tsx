@@ -278,9 +278,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setCustomers: s.setCustomers,
       setVehicles: s.setVehicles,
       setReservations: s.setReservations,
-    }).then((ran) => {
-      if (!ran || !active) return;
-    });
+    })
+      .then((ran) => {
+        if (!ran || !active) return;
+      })
+      // Hydration must never crash the app — if the Cloud read fails (e.g. no
+      // session/network in a test env) the seeded in-memory data stays as the
+      // UI cache. Swallow the rejection so it does not leak as unhandled.
+      .catch(() => {});
     return () => {
       active = false;
     };
