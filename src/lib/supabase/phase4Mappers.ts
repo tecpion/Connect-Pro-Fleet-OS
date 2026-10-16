@@ -278,7 +278,8 @@ export function rowToGeofence(r: TelematicsGeofenceRow): TelematicsGeofence {
     radius_meters: r.radius_meters,
     applies_to_all: r.applies_to_all,
     applies_to_class_id: r.applies_to_class_id,
-    applies_to_vehicle_ids: (r.applies_to_vehicle_ids as string[] | null) ?? null,
+    applies_to_vehicle_ids:
+      (r.applies_to_vehicle_ids as string[] | null) ?? null,
     alert_on_enter: r.alert_on_enter,
     alert_on_exit: r.alert_on_exit,
     created_at: r.created_at,
@@ -330,7 +331,8 @@ export function rowToViolation(r: ViolationRow): Violation {
     admin_fee_amount: toMoney(r.admin_fee_amount),
     total_amount: toMoney(r.total_amount),
     responsibility: r.responsibility as ViolationResponsibility,
-    responsibility_reason: (r.responsibility_reason as ResponsibilityReason) ?? null,
+    responsibility_reason:
+      (r.responsibility_reason as ResponsibilityReason) ?? null,
     responsibility_notes: r.responsibility_notes,
     responsibility_decided_by: r.responsibility_decided_by,
     responsibility_decided_at: r.responsibility_decided_at,
@@ -525,25 +527,23 @@ export function rowToCase(r: CaseRow): CaseRecord {
       (r.roadside_detail as unknown as RoadsideDetail | null) ?? null,
     dispute_detail:
       (r.dispute_detail as unknown as DisputeDetail | null) ?? null,
-    financial_links:
-      (r.financial_links as unknown as CaseFinancialLinks) ?? {
-        customer_charge_ids: [],
-        payment_ids: [],
-        deposit_application_ids: [],
-        refund_ids: [],
-        expense_ids: [],
-        insurance_claim_refs: [],
-      },
-    evidence_links:
-      (r.evidence_links as unknown as CaseEvidenceLinks) ?? {
-        rental_id: null,
-        incident_id: null,
-        violation_id: null,
-        damage_claim_id: null,
-        inspection_ids: [],
-        vault_doc_refs: [],
-        uploaded_file_refs: [],
-      },
+    financial_links: (r.financial_links as unknown as CaseFinancialLinks) ?? {
+      customer_charge_ids: [],
+      payment_ids: [],
+      deposit_application_ids: [],
+      refund_ids: [],
+      expense_ids: [],
+      insurance_claim_refs: [],
+    },
+    evidence_links: (r.evidence_links as unknown as CaseEvidenceLinks) ?? {
+      rental_id: null,
+      incident_id: null,
+      violation_id: null,
+      damage_claim_id: null,
+      inspection_ids: [],
+      vault_doc_refs: [],
+      uploaded_file_refs: [],
+    },
     outcome: (r.outcome as unknown as CaseOutcome | null) ?? null,
     notes: r.notes,
     created_by: r.created_by,

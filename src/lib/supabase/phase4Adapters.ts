@@ -147,9 +147,7 @@ export class SupabaseTelematicsRepository implements TelematicsRepository {
     if (error) throw normalizeError(error);
     return rowToDevice(data);
   }
-  async listAssignments(
-    orgId: string,
-  ): Promise<TelematicsDeviceAssignment[]> {
+  async listAssignments(orgId: string): Promise<TelematicsDeviceAssignment[]> {
     const { data, error } = await this.q
       .from("telematics_device_assignments")
       .select("*")
