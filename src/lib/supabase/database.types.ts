@@ -220,6 +220,20 @@ export interface Database {
         };
         Returns: { payment_id: string; duplicate: boolean };
       };
+      provision_account: {
+        Args: {
+          p_user_id: string;
+          p_email: string;
+          p_org_name: string | null;
+          p_first_name: string;
+          p_last_name: string;
+        };
+        Returns: {
+          organization_id: string;
+          role_id: string;
+          created_org: boolean;
+        };
+      };
     };
     Enums: Record<string, string>;
     CompositeTypes: Record<string, never>;

@@ -40,6 +40,7 @@ import { Route as TelematicsRouteImport } from './routes/telematics'
 import { Route as TollsViolationsRouteImport } from './routes/tolls-violations'
 import { Route as ViolationsRouteImport } from './routes/violations'
 import { Route as ApiPhase1E2eRouteImport } from './routes/api/phase1-e2e'
+import { Route as ApiPhase2E2eRouteImport } from './routes/api/phase2-e2e'
 import { Route as CheckoutIdRouteImport } from './routes/checkout/$id'
 import { Route as CustomersIndexRouteImport } from './routes/customers/index'
 import { Route as CustomersIdRouteImport } from './routes/customers/$id'
@@ -252,6 +253,11 @@ const ViolationsRoute = ViolationsRouteImport.update({
 const ApiPhase1E2eRoute = ApiPhase1E2eRouteImport.update({
   id: '/api/phase1-e2e',
   path: '/api/phase1-e2e',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPhase2E2eRoute = ApiPhase2E2eRouteImport.update({
+  id: '/api/phase2-e2e',
+  path: '/api/phase2-e2e',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CheckoutIdRoute = CheckoutIdRouteImport.update({
@@ -583,6 +589,7 @@ export interface FileRoutesByFullPath {
   '/tolls-violations': typeof TollsViolationsRoute
   '/violations': typeof ViolationsRoute
   '/api/phase1-e2e': typeof ApiPhase1E2eRoute
+  '/api/phase2-e2e': typeof ApiPhase2E2eRoute
   '/checkout/$id': typeof CheckoutIdRoute
   '/customers/$id': typeof CustomersIdRoute
   '/inspections/new': typeof InspectionsNewRoute
@@ -673,6 +680,7 @@ export interface FileRoutesByTo {
   '/tolls-violations': typeof TollsViolationsRoute
   '/violations': typeof ViolationsRoute
   '/api/phase1-e2e': typeof ApiPhase1E2eRoute
+  '/api/phase2-e2e': typeof ApiPhase2E2eRoute
   '/checkout/$id': typeof CheckoutIdRoute
   '/customers/$id': typeof CustomersIdRoute
   '/inspections/new': typeof InspectionsNewRoute
@@ -764,6 +772,7 @@ export interface FileRoutesById {
   '/tolls-violations': typeof TollsViolationsRoute
   '/violations': typeof ViolationsRoute
   '/api/phase1-e2e': typeof ApiPhase1E2eRoute
+  '/api/phase2-e2e': typeof ApiPhase2E2eRoute
   '/checkout/$id': typeof CheckoutIdRoute
   '/customers/$id': typeof CustomersIdRoute
   '/inspections/new': typeof InspectionsNewRoute
@@ -857,6 +866,7 @@ export interface FileRouteTypes {
     | '/tolls-violations'
     | '/violations'
     | '/api/phase1-e2e'
+    | '/api/phase2-e2e'
     | '/checkout/$id'
     | '/customers/$id'
     | '/inspections/new'
@@ -947,6 +957,7 @@ export interface FileRouteTypes {
     | '/tolls-violations'
     | '/violations'
     | '/api/phase1-e2e'
+    | '/api/phase2-e2e'
     | '/checkout/$id'
     | '/customers/$id'
     | '/inspections/new'
@@ -1037,6 +1048,7 @@ export interface FileRouteTypes {
     | '/tolls-violations'
     | '/violations'
     | '/api/phase1-e2e'
+    | '/api/phase2-e2e'
     | '/checkout/$id'
     | '/customers/$id'
     | '/inspections/new'
@@ -1129,6 +1141,7 @@ export interface RootRouteChildren {
   TollsViolationsRoute: typeof TollsViolationsRoute
   ViolationsRoute: typeof ViolationsRoute
   ApiPhase1E2eRoute: typeof ApiPhase1E2eRoute
+  ApiPhase2E2eRoute: typeof ApiPhase2E2eRoute
   CheckoutIdRoute: typeof CheckoutIdRoute
   CustomersIdRoute: typeof CustomersIdRoute
   InspectionsNewRoute: typeof InspectionsNewRoute
@@ -1379,6 +1392,13 @@ declare module '@tanstack/react-router' {
       path: '/api/phase1-e2e'
       fullPath: '/api/phase1-e2e'
       preLoaderRoute: typeof ApiPhase1E2eRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/phase2-e2e': {
+      id: '/api/phase2-e2e'
+      path: '/api/phase2-e2e'
+      fullPath: '/api/phase2-e2e'
+      preLoaderRoute: typeof ApiPhase2E2eRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/checkout/$id': {
@@ -1895,6 +1915,7 @@ const rootRouteChildren: RootRouteChildren = {
   TollsViolationsRoute: TollsViolationsRoute,
   ViolationsRoute: ViolationsRoute,
   ApiPhase1E2eRoute: ApiPhase1E2eRoute,
+  ApiPhase2E2eRoute: ApiPhase2E2eRoute,
   CheckoutIdRoute: CheckoutIdRoute,
   CustomersIdRoute: CustomersIdRoute,
   InspectionsNewRoute: InspectionsNewRoute,

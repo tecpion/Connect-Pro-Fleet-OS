@@ -1,0 +1,16 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { runPhase2E2E } from "@/lib/auth/phase2-e2e.server";
+
+export const Route = createFileRoute("/api/phase2-e2e")({
+  server: {
+    handlers: {
+      POST: async () => {
+        const result = await runPhase2E2E();
+        return new Response(JSON.stringify(result), {
+          status: result.passed ? 200 : 500,
+          headers: { "Content-Type": "application/json" },
+        });
+      },
+    },
+  },
+});
