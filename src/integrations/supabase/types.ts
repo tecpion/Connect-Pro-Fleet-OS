@@ -451,6 +451,164 @@ export type Database = {
           },
         ]
       }
+      case_events: {
+        Row: {
+          actor_id: string | null
+          at: string
+          case_id: string
+          created_at: string
+          id: string
+          label: string
+          meta: Json | null
+          organization_id: string
+          type: string
+        }
+        Insert: {
+          actor_id?: string | null
+          at?: string
+          case_id: string
+          created_at?: string
+          id?: string
+          label: string
+          meta?: Json | null
+          organization_id: string
+          type: string
+        }
+        Update: {
+          actor_id?: string | null
+          at?: string
+          case_id?: string
+          created_at?: string
+          id?: string
+          label?: string
+          meta?: Json | null
+          organization_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_events_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cases: {
+        Row: {
+          amount_at_issue: number
+          assigned_staff_id: string | null
+          case_number: string
+          category: string
+          closed_at: string | null
+          created_at: string
+          created_by: string | null
+          customer_id: string | null
+          description: string | null
+          dispute_detail: Json | null
+          due_date: string | null
+          event_date: string | null
+          evidence_links: Json
+          financial_links: Json
+          id: string
+          last_activity_at: string
+          location_id: string | null
+          notes: string | null
+          organization_id: string
+          outcome: Json | null
+          priority: string
+          rental_id: string | null
+          resolved_at: string | null
+          responsibility: Json
+          roadside_detail: Json | null
+          status: string
+          title: string
+          toll_detail: Json | null
+          updated_at: string
+          vehicle_id: string | null
+        }
+        Insert: {
+          amount_at_issue?: number
+          assigned_staff_id?: string | null
+          case_number: string
+          category?: string
+          closed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          description?: string | null
+          dispute_detail?: Json | null
+          due_date?: string | null
+          event_date?: string | null
+          evidence_links?: Json
+          financial_links?: Json
+          id?: string
+          last_activity_at?: string
+          location_id?: string | null
+          notes?: string | null
+          organization_id: string
+          outcome?: Json | null
+          priority?: string
+          rental_id?: string | null
+          resolved_at?: string | null
+          responsibility?: Json
+          roadside_detail?: Json | null
+          status?: string
+          title: string
+          toll_detail?: Json | null
+          updated_at?: string
+          vehicle_id?: string | null
+        }
+        Update: {
+          amount_at_issue?: number
+          assigned_staff_id?: string | null
+          case_number?: string
+          category?: string
+          closed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          description?: string | null
+          dispute_detail?: Json | null
+          due_date?: string | null
+          event_date?: string | null
+          evidence_links?: Json
+          financial_links?: Json
+          id?: string
+          last_activity_at?: string
+          location_id?: string | null
+          notes?: string | null
+          organization_id?: string
+          outcome?: Json | null
+          priority?: string
+          rental_id?: string | null
+          resolved_at?: string | null
+          responsibility?: Json
+          roadside_detail?: Json | null
+          status?: string
+          title?: string
+          toll_detail?: Json | null
+          updated_at?: string
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cases_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cash_accounts: {
         Row: {
           active: boolean
@@ -4583,6 +4741,402 @@ export type Database = {
           },
         ]
       }
+      telematics_alerts: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          assigned_to: string | null
+          created_at: string
+          event_id: string | null
+          id: string
+          location: string | null
+          occurred_at: string
+          organization_id: string
+          rental_id: string | null
+          resolution_notes: string | null
+          severity: string
+          status: string
+          type: string
+          updated_at: string
+          vehicle_id: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          assigned_to?: string | null
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          location?: string | null
+          occurred_at: string
+          organization_id: string
+          rental_id?: string | null
+          resolution_notes?: string | null
+          severity?: string
+          status?: string
+          type: string
+          updated_at?: string
+          vehicle_id: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          assigned_to?: string | null
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          location?: string | null
+          occurred_at?: string
+          organization_id?: string
+          rental_id?: string | null
+          resolution_notes?: string | null
+          severity?: string
+          status?: string
+          type?: string
+          updated_at?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "telematics_alerts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      telematics_device_assignments: {
+        Row: {
+          created_at: string
+          device_id: string
+          ended_at: string | null
+          id: string
+          organization_id: string
+          reason: string | null
+          started_at: string
+          vehicle_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_id: string
+          ended_at?: string | null
+          id?: string
+          organization_id: string
+          reason?: string | null
+          started_at?: string
+          vehicle_id: string
+        }
+        Update: {
+          created_at?: string
+          device_id?: string
+          ended_at?: string | null
+          id?: string
+          organization_id?: string
+          reason?: string | null
+          started_at?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "telematics_device_assignments_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "telematics_devices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "telematics_device_assignments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      telematics_devices: {
+        Row: {
+          battery_voltage: number | null
+          created_at: string
+          external_device_id: string
+          id: string
+          imei_or_serial: string | null
+          installed_at: string
+          last_connected_at: string | null
+          metadata: Json | null
+          organization_id: string
+          provider: string
+          status: string
+          updated_at: string
+          vehicle_id: string | null
+        }
+        Insert: {
+          battery_voltage?: number | null
+          created_at?: string
+          external_device_id: string
+          id?: string
+          imei_or_serial?: string | null
+          installed_at?: string
+          last_connected_at?: string | null
+          metadata?: Json | null
+          organization_id: string
+          provider?: string
+          status?: string
+          updated_at?: string
+          vehicle_id?: string | null
+        }
+        Update: {
+          battery_voltage?: number | null
+          created_at?: string
+          external_device_id?: string
+          id?: string
+          imei_or_serial?: string | null
+          installed_at?: string
+          last_connected_at?: string | null
+          metadata?: Json | null
+          organization_id?: string
+          provider?: string
+          status?: string
+          updated_at?: string
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "telematics_devices_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      telematics_events: {
+        Row: {
+          created_at: string
+          device_id: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          metadata: Json | null
+          occurred_at: string
+          organization_id: string
+          type: string
+          vehicle_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_id: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          metadata?: Json | null
+          occurred_at: string
+          organization_id: string
+          type: string
+          vehicle_id: string
+        }
+        Update: {
+          created_at?: string
+          device_id?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          metadata?: Json | null
+          occurred_at?: string
+          organization_id?: string
+          type?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "telematics_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      telematics_geofences: {
+        Row: {
+          active: boolean
+          alert_on_enter: boolean
+          alert_on_exit: boolean
+          applies_to_all: boolean
+          applies_to_class_id: string | null
+          applies_to_vehicle_ids: Json | null
+          center_latitude: number
+          center_longitude: number
+          created_at: string
+          id: string
+          name: string
+          organization_id: string
+          radius_meters: number | null
+          type: string
+        }
+        Insert: {
+          active?: boolean
+          alert_on_enter?: boolean
+          alert_on_exit?: boolean
+          applies_to_all?: boolean
+          applies_to_class_id?: string | null
+          applies_to_vehicle_ids?: Json | null
+          center_latitude: number
+          center_longitude: number
+          created_at?: string
+          id?: string
+          name: string
+          organization_id: string
+          radius_meters?: number | null
+          type?: string
+        }
+        Update: {
+          active?: boolean
+          alert_on_enter?: boolean
+          alert_on_exit?: boolean
+          applies_to_all?: boolean
+          applies_to_class_id?: string | null
+          applies_to_vehicle_ids?: Json | null
+          center_latitude?: number
+          center_longitude?: number
+          created_at?: string
+          id?: string
+          name?: string
+          organization_id?: string
+          radius_meters?: number | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "telematics_geofences_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      telematics_positions: {
+        Row: {
+          battery_voltage: number | null
+          created_at: string
+          device_id: string
+          gps_signal_status: string | null
+          heading: number | null
+          id: string
+          ignition_status: string | null
+          latitude: number
+          longitude: number
+          odometer: number | null
+          organization_id: string
+          provider_timestamp: string | null
+          recorded_at: string
+          speed: number | null
+          vehicle_id: string
+        }
+        Insert: {
+          battery_voltage?: number | null
+          created_at?: string
+          device_id: string
+          gps_signal_status?: string | null
+          heading?: number | null
+          id?: string
+          ignition_status?: string | null
+          latitude: number
+          longitude: number
+          odometer?: number | null
+          organization_id: string
+          provider_timestamp?: string | null
+          recorded_at: string
+          speed?: number | null
+          vehicle_id: string
+        }
+        Update: {
+          battery_voltage?: number | null
+          created_at?: string
+          device_id?: string
+          gps_signal_status?: string | null
+          heading?: number | null
+          id?: string
+          ignition_status?: string | null
+          latitude?: number
+          longitude?: number
+          odometer?: number | null
+          organization_id?: string
+          provider_timestamp?: string | null
+          recorded_at?: string
+          speed?: number | null
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "telematics_positions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      telematics_trips: {
+        Row: {
+          average_speed: number | null
+          created_at: string
+          device_id: string
+          distance: number | null
+          duration_minutes: number | null
+          end_location: string
+          ended_at: string
+          id: string
+          max_speed: number | null
+          organization_id: string
+          rental_id: string | null
+          start_location: string
+          started_at: string
+          vehicle_id: string
+        }
+        Insert: {
+          average_speed?: number | null
+          created_at?: string
+          device_id: string
+          distance?: number | null
+          duration_minutes?: number | null
+          end_location?: string
+          ended_at: string
+          id?: string
+          max_speed?: number | null
+          organization_id: string
+          rental_id?: string | null
+          start_location?: string
+          started_at: string
+          vehicle_id: string
+        }
+        Update: {
+          average_speed?: number | null
+          created_at?: string
+          device_id?: string
+          distance?: number | null
+          duration_minutes?: number | null
+          end_location?: string
+          ended_at?: string
+          id?: string
+          max_speed?: number | null
+          organization_id?: string
+          rental_id?: string | null
+          start_location?: string
+          started_at?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "telematics_trips_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vehicle_classes: {
         Row: {
           active: boolean
@@ -4998,6 +5552,275 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "verification_usage_charges_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      violation_events: {
+        Row: {
+          actor_id: string | null
+          at: string
+          created_at: string
+          id: string
+          label: string
+          meta: Json | null
+          organization_id: string
+          type: string
+          violation_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          at?: string
+          created_at?: string
+          id?: string
+          label: string
+          meta?: Json | null
+          organization_id: string
+          type: string
+          violation_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          at?: string
+          created_at?: string
+          id?: string
+          label?: string
+          meta?: Json | null
+          organization_id?: string
+          type?: string
+          violation_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "violation_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "violation_events_violation_id_fkey"
+            columns: ["violation_id"]
+            isOneToOne: false
+            referencedRelation: "violations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      violation_evidence: {
+        Row: {
+          description: string | null
+          file_ref: string | null
+          id: string
+          organization_id: string
+          source: string | null
+          type: string
+          uploaded_at: string
+          uploaded_by: string | null
+          violation_id: string
+        }
+        Insert: {
+          description?: string | null
+          file_ref?: string | null
+          id?: string
+          organization_id: string
+          source?: string | null
+          type: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+          violation_id: string
+        }
+        Update: {
+          description?: string | null
+          file_ref?: string | null
+          id?: string
+          organization_id?: string
+          source?: string | null
+          type?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+          violation_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "violation_evidence_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "violation_evidence_violation_id_fkey"
+            columns: ["violation_id"]
+            isOneToOne: false
+            referencedRelation: "violations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      violations: {
+        Row: {
+          admin_fee_amount: number
+          assigned_staff_id: string | null
+          base_amount: number
+          charge_idempotency_key: string | null
+          citation_number: string | null
+          company_payment_status: string
+          created_at: string
+          created_by: string | null
+          customer_charge_status: string
+          customer_charge_transaction_id: string | null
+          customer_id: string | null
+          description: string | null
+          dispute_decision_note: string | null
+          dispute_opened_at: string | null
+          dispute_reason: string | null
+          dispute_resolved_at: string | null
+          dispute_status: string
+          due_at: string | null
+          external_event_id: string | null
+          id: string
+          issuing_authority: string | null
+          linked_expense_id: string | null
+          location_description: string | null
+          matching_confidence: string | null
+          notes: string | null
+          occurred_at: string
+          organization_id: string
+          penalties_amount: number
+          plate_number_snapshot: string | null
+          provider: string | null
+          received_at: string | null
+          reduced_amount: number | null
+          reimbursement_status: string
+          rental_id: string | null
+          resolved_at: string | null
+          responsibility: string
+          responsibility_decided_at: string | null
+          responsibility_decided_by: string | null
+          responsibility_notes: string | null
+          responsibility_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source: string
+          state_jurisdiction: string | null
+          status: string
+          total_amount: number
+          updated_at: string
+          vehicle_id: string
+          violation_number: string
+          violation_type: string
+        }
+        Insert: {
+          admin_fee_amount?: number
+          assigned_staff_id?: string | null
+          base_amount?: number
+          charge_idempotency_key?: string | null
+          citation_number?: string | null
+          company_payment_status?: string
+          created_at?: string
+          created_by?: string | null
+          customer_charge_status?: string
+          customer_charge_transaction_id?: string | null
+          customer_id?: string | null
+          description?: string | null
+          dispute_decision_note?: string | null
+          dispute_opened_at?: string | null
+          dispute_reason?: string | null
+          dispute_resolved_at?: string | null
+          dispute_status?: string
+          due_at?: string | null
+          external_event_id?: string | null
+          id?: string
+          issuing_authority?: string | null
+          linked_expense_id?: string | null
+          location_description?: string | null
+          matching_confidence?: string | null
+          notes?: string | null
+          occurred_at: string
+          organization_id: string
+          penalties_amount?: number
+          plate_number_snapshot?: string | null
+          provider?: string | null
+          received_at?: string | null
+          reduced_amount?: number | null
+          reimbursement_status?: string
+          rental_id?: string | null
+          resolved_at?: string | null
+          responsibility?: string
+          responsibility_decided_at?: string | null
+          responsibility_decided_by?: string | null
+          responsibility_notes?: string | null
+          responsibility_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source?: string
+          state_jurisdiction?: string | null
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          vehicle_id: string
+          violation_number: string
+          violation_type?: string
+        }
+        Update: {
+          admin_fee_amount?: number
+          assigned_staff_id?: string | null
+          base_amount?: number
+          charge_idempotency_key?: string | null
+          citation_number?: string | null
+          company_payment_status?: string
+          created_at?: string
+          created_by?: string | null
+          customer_charge_status?: string
+          customer_charge_transaction_id?: string | null
+          customer_id?: string | null
+          description?: string | null
+          dispute_decision_note?: string | null
+          dispute_opened_at?: string | null
+          dispute_reason?: string | null
+          dispute_resolved_at?: string | null
+          dispute_status?: string
+          due_at?: string | null
+          external_event_id?: string | null
+          id?: string
+          issuing_authority?: string | null
+          linked_expense_id?: string | null
+          location_description?: string | null
+          matching_confidence?: string | null
+          notes?: string | null
+          occurred_at?: string
+          organization_id?: string
+          penalties_amount?: number
+          plate_number_snapshot?: string | null
+          provider?: string | null
+          received_at?: string | null
+          reduced_amount?: number | null
+          reimbursement_status?: string
+          rental_id?: string | null
+          resolved_at?: string | null
+          responsibility?: string
+          responsibility_decided_at?: string | null
+          responsibility_decided_by?: string | null
+          responsibility_notes?: string | null
+          responsibility_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source?: string
+          state_jurisdiction?: string | null
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          vehicle_id?: string
+          violation_number?: string
+          violation_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "violations_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"

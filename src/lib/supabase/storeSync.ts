@@ -1,4 +1,4 @@
-// Connect Pro Fleet — Cloud store hydration + persistence sync (Phase 1 + 3).
+// Connect Pro Fleet — Cloud store hydration + persistence sync (Phase 1 + 3 + 4).
 //
 // Bridges the frozen in-memory StoreProvider to the Cloud repository layer
 // WITHOUT changing the synchronous `useStore()` API that every component
