@@ -93,12 +93,23 @@ export function ComplianceProvider({ children }: { children: ReactNode }) {
   // Phase 3: hydrate compliance state from Cloud on auth/org change. In memory
   // mode (no Cloud config) this is a no-op and the seeded demo data stays.
   useEffect(() => {
-    const orgId = activeOrgId ?? TENANT_ID;
-    void hydrateCompliance(orgId, {
+    if (!activeOrgId) return;
+    let active = true;
+    void hydrateCompliance(activeOrgId, {
       setDocuments,
       setOverrides,
       setEvents,
-    });
+    })
+      .then((ran) => {
+        if (!ran || !active) return;
+      })
+      // Hydration must never crash the app — if the Cloud read fails (e.g. no
+      // session/network in a test env) the seeded in-memory data stays as the
+      // UI cache. Swallow the rejection so it does not leak as unhandled.
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
   }, [activeOrgId]);
 
   const policyReqs = useMemo(
