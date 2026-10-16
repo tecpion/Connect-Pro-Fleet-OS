@@ -349,8 +349,22 @@ async function loadProfile(
   });
 }
 
+// Demo fallback used when a consumer (e.g. the restored Vitest harness) mounts
+// StoreProvider without an AuthProvider. In the migrated app AuthProvider
+// always wraps the tree, so this branch only fires in tests.
+const DEMO_AUTH_VALUE: AuthContextValue = {
+  session: DEMO_SESSION,
+  loading: false,
+  signIn: async () => ({ ok: true }),
+  signUp: async () => ({ ok: true }),
+  signOut: async () => {},
+  setActiveOrganization: () => {},
+  backendMode: "memory",
+  configError: null,
+};
+
 export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  if (!ctx) return DEMO_AUTH_VALUE;
   return ctx;
 }

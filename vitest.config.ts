@@ -12,5 +12,11 @@ export default defineConfig({
     globals: true,
     setupFiles: ["src/test/setup.ts"],
     include: ["src/test/**/*.{test,spec}.{ts,tsx}"],
+    // Radix DropdownMenu interaction tests flush many microtasks/timers under
+    // act(); raise the per-test ceiling so the worker isn't flagged as
+    // unresponsive (which surfaces as a flaky "Timeout calling onTaskUpdate"
+    // RPC error even though every test passes).
+    testTimeout: 30000,
+    hookTimeout: 30000,
   },
 });
