@@ -14,6 +14,7 @@ import { TENANT_ID } from "@/lib/store/ids";
 import {
   PORTAL_REQUEST_STATUS_LABELS,
   PORTAL_REQUEST_TYPE_LABELS,
+  type PortalRequestStatus,
 } from "@/lib/portalTypes";
 
 describe("Build #32 — Request workflow: submission does not mutate rental", () => {
@@ -99,7 +100,9 @@ describe("Build #32 — Request status transitions + labels", () => {
       });
     });
     expect(req.status).toBe("submitted");
-    expect(PORTAL_REQUEST_STATUS_LABELS[req.status]).toBe("Submitted");
+    expect(
+      PORTAL_REQUEST_STATUS_LABELS[req.status as PortalRequestStatus],
+    ).toBe("Submitted");
   });
 
   it("staff can move a request to Under Review", () => {

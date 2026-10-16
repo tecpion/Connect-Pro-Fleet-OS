@@ -102,7 +102,7 @@ function useSwitchStaff() {
   return {
     Probe,
     switchTo: (id: string) => {
-      if (setter) act(() => setter(id));
+      if (setter) act(() => setter!(id));
     },
   };
 }

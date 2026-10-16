@@ -57,9 +57,13 @@ function parseTo(to: string): {
 // frozen V1 tests render unchanged.
 
 function hasTanStackRouter(): boolean {
+  // useRouter() returns null (rather than throwing) when no TanStack router
+  // context is present — e.g. the restored Vitest suite mounts components in
+  // react-router-dom's MemoryRouter. Treat a null router as "no TanStack
+  // context" and fall back to react-router-dom equivalents.
   try {
-    useRouter();
-    return true;
+    const router = useRouter();
+    return router != null;
   } catch {
     return false;
   }
@@ -119,7 +123,9 @@ function useRrNavigate(): NavigateFn {
         nav(to);
         return;
       }
-      nav({ pathname: to, replace: options?.replace });
+      // react-router v7 splits the destination (To) from options; `replace`
+      // belongs in the second argument, not on the path object.
+      nav({ pathname: to }, { replace: options?.replace });
     },
     [nav],
   ) as NavigateFn;
@@ -130,7 +136,8 @@ function useRrNavigate(): NavigateFn {
 export function useLocation() {
   if (!hasTanStackRouter()) {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const mod = require("react-router-dom") as typeof import("react-router-dom");
+    const mod =
+      require("react-router-dom") as typeof import("react-router-dom");
     const loc = mod.useLocation();
     return useMemo(
       () => ({
@@ -166,7 +173,8 @@ export function useParams<
 >(): T {
   if (!hasTanStackRouter()) {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const mod = require("react-router-dom") as typeof import("react-router-dom");
+    const mod =
+      require("react-router-dom") as typeof import("react-router-dom");
     return mod.useParams() as T;
   }
   return tsParams({ strict: false } as never) as T;
@@ -186,7 +194,8 @@ export function useSearchParams(): [
 ] {
   if (!hasTanStackRouter()) {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const mod = require("react-router-dom") as typeof import("react-router-dom");
+    const mod =
+      require("react-router-dom") as typeof import("react-router-dom");
     const [params, setParams] = mod.useSearchParams();
     return [params, setParams as never];
   }
@@ -246,10 +255,17 @@ export const Link = forwardRef<HTMLAnchorElement, LinkProps>(function Link(
 ) {
   if (!hasTanStackRouter()) {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const mod = require("react-router-dom") as typeof import("react-router-dom");
+    const mod =
+      require("react-router-dom") as typeof import("react-router-dom");
     const RrLink = mod.Link;
     return (
-      <RrLink ref={ref as never} to={to} replace={replace} state={state as never}>
+      <RrLink
+        ref={ref as never}
+        to={to}
+        replace={replace}
+        state={state as never}
+        {...((rest ?? {}) as Record<string, unknown>)}
+      >
         {children}
       </RrLink>
     );
@@ -283,7 +299,8 @@ export function Navigate({
 }) {
   if (!hasTanStackRouter()) {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const mod = require("react-router-dom") as typeof import("react-router-dom");
+    const mod =
+      require("react-router-dom") as typeof import("react-router-dom");
     const RrNavigate = mod.Navigate;
     return <RrNavigate to={to} replace={replace} state={state as never} />;
   }
@@ -314,8 +331,7 @@ export type NavLinkProps = Omit<
   state?: unknown;
   end?: boolean;
   className?:
-    | string
-    | ((state: { isActive: boolean; isPending: boolean }) => string);
+    string | ((state: { isActive: boolean; isPending: boolean }) => string);
   style?:
     | CSSProperties
     | ((state: {
@@ -345,6 +361,10 @@ export const NavLink = forwardRef<HTMLAnchorElement, NavLinkProps>(
         to={to}
         replace={replace}
         state={state as never}
+        // react-router-dom v7's plain <Link> does not set aria-current; only its
+        // own <NavLink> does. The frozen V1 sidebar asserts aria-current="page"
+        // on the active link, so mirror that attribute here.
+        aria-current={isActive ? "page" : undefined}
         className={
           typeof className === "function" ? className(navState) : className
         }

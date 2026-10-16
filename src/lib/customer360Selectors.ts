@@ -87,10 +87,13 @@ const ACTIVE_RENTAL_STATUSES = new Set([
  *  actual_return_date when available, else scheduled_return_date, else now
  *  (open rental). Missing checkout → 0 for that rental. */
 export function getLifetimeRentalDays(
-  rentals: Pick<
-    RentalAgreement,
-    "checkout_date" | "actual_return_date" | "scheduled_return_date"
-  >[],
+  rentals: Array<
+    Pick<RentalAgreement, "checkout_date" | "actual_return_date"> & {
+      // Runtime treats scheduled_return_date as nullable (see endRaw below);
+      // the RentalAgreement type is stricter, so widen it here to match.
+      scheduled_return_date: string | null;
+    }
+  >,
   now: Date = new Date(),
 ): number {
   let total = 0;

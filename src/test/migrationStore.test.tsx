@@ -336,14 +336,14 @@ describe("migration: rollback safety", () => {
       r.current.store.recordRentalPayment(rentalId, 100, "cash");
     });
     // Create a batch referencing this rental, then attempt rollback.
-    let batch;
+    let batch: { id: string } | undefined;
     act(() => {
       batch = r.current.mig.createBatch({
         import_type: "active_rentals",
         source_name: "test",
         row_count: 1,
       });
-      r.current.mig.finalizeBatch(batch.id, {
+      r.current.mig.finalizeBatch(batch!.id, {
         success_count: 1,
         skipped_count: 0,
         warning_count: 0,
@@ -353,7 +353,7 @@ describe("migration: rollback safety", () => {
     });
     let res: { ok: boolean; error?: string } | undefined;
     act(() => {
-      res = r.current.mig.rollbackBatch(batch.id);
+      res = r.current.mig.rollbackBatch(batch!.id);
     });
     expect(res?.ok).toBe(false);
     expect(res?.error).toContain("native payments");
