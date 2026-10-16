@@ -544,6 +544,272 @@ export type Database = {
           },
         ]
       }
+      compliance_documents: {
+        Row: {
+          archived_at: string | null
+          assigned_staff_id: string | null
+          created_at: string
+          created_by: string | null
+          document_number: string | null
+          document_type: string
+          effective_date: string | null
+          entity_id: string
+          entity_label: string
+          entity_type: string
+          expiration_date: string | null
+          file_reference: string | null
+          id: string
+          issuer: string | null
+          location_id: string | null
+          mime_type: string | null
+          notes: string | null
+          organization_id: string
+          original_filename: string | null
+          rejected_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source: string
+          state_jurisdiction: string | null
+          status: string
+          superseded_by_document_id: string | null
+          supersedes_document_id: string | null
+          updated_at: string
+          uploaded_at: string | null
+          uploaded_by: string | null
+          verification_status: string
+        }
+        Insert: {
+          archived_at?: string | null
+          assigned_staff_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_number?: string | null
+          document_type: string
+          effective_date?: string | null
+          entity_id: string
+          entity_label?: string
+          entity_type: string
+          expiration_date?: string | null
+          file_reference?: string | null
+          id?: string
+          issuer?: string | null
+          location_id?: string | null
+          mime_type?: string | null
+          notes?: string | null
+          organization_id: string
+          original_filename?: string | null
+          rejected_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source?: string
+          state_jurisdiction?: string | null
+          status?: string
+          superseded_by_document_id?: string | null
+          supersedes_document_id?: string | null
+          updated_at?: string
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+          verification_status?: string
+        }
+        Update: {
+          archived_at?: string | null
+          assigned_staff_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_number?: string | null
+          document_type?: string
+          effective_date?: string | null
+          entity_id?: string
+          entity_label?: string
+          entity_type?: string
+          expiration_date?: string | null
+          file_reference?: string | null
+          id?: string
+          issuer?: string | null
+          location_id?: string | null
+          mime_type?: string | null
+          notes?: string | null
+          organization_id?: string
+          original_filename?: string | null
+          rejected_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source?: string
+          state_jurisdiction?: string | null
+          status?: string
+          superseded_by_document_id?: string | null
+          supersedes_document_id?: string | null
+          updated_at?: string
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+          verification_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_documents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      compliance_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          document_id: string | null
+          event_type: string
+          id: string
+          label: string
+          meta: Json | null
+          organization_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          document_id?: string | null
+          event_type: string
+          id?: string
+          label?: string
+          meta?: Json | null
+          organization_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          document_id?: string | null
+          event_type?: string
+          id?: string
+          label?: string
+          meta?: Json | null
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      compliance_overrides: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by: string | null
+          document_type: string
+          entity_id: string
+          entity_type: string
+          expires_at: string | null
+          id: string
+          organization_id: string
+          reason: string
+          requirement_id: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          document_type: string
+          entity_id: string
+          entity_type: string
+          expires_at?: string | null
+          id?: string
+          organization_id: string
+          reason?: string
+          requirement_id?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          document_type?: string
+          entity_id?: string
+          entity_type?: string
+          expires_at?: string | null
+          id?: string
+          organization_id?: string
+          reason?: string
+          requirement_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_overrides_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      compliance_requirements: {
+        Row: {
+          active: boolean
+          applies_to: string | null
+          block_behavior: string | null
+          blocks_operation_if_expired: boolean
+          blocks_operation_if_missing: boolean
+          created_at: string
+          document_type: string
+          entity_type: string
+          id: string
+          manager_override_allowed: boolean
+          organization_id: string
+          required: boolean
+          requires_verification: boolean
+          source: string
+          updated_at: string
+          warning_days: number
+        }
+        Insert: {
+          active?: boolean
+          applies_to?: string | null
+          block_behavior?: string | null
+          blocks_operation_if_expired?: boolean
+          blocks_operation_if_missing?: boolean
+          created_at?: string
+          document_type: string
+          entity_type: string
+          id?: string
+          manager_override_allowed?: boolean
+          organization_id: string
+          required?: boolean
+          requires_verification?: boolean
+          source?: string
+          updated_at?: string
+          warning_days?: number
+        }
+        Update: {
+          active?: boolean
+          applies_to?: string | null
+          block_behavior?: string | null
+          blocks_operation_if_expired?: boolean
+          blocks_operation_if_missing?: boolean
+          created_at?: string
+          document_type?: string
+          entity_type?: string
+          id?: string
+          manager_override_allowed?: boolean
+          organization_id?: string
+          required?: boolean
+          requires_verification?: boolean
+          source?: string
+          updated_at?: string
+          warning_days?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_requirements_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       connect_pro_integration_configs: {
         Row: {
           billing_event_sync_enabled: boolean
@@ -4470,6 +4736,268 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "vehicles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      verification_audit_events: {
+        Row: {
+          actor_id: string | null
+          booking_request_id: string | null
+          created_at: string
+          customer_id: string | null
+          detail: string | null
+          event_type: string
+          id: string
+          organization_id: string
+          rental_id: string | null
+          reservation_id: string | null
+          verification_type: string
+        }
+        Insert: {
+          actor_id?: string | null
+          booking_request_id?: string | null
+          created_at?: string
+          customer_id?: string | null
+          detail?: string | null
+          event_type: string
+          id?: string
+          organization_id: string
+          rental_id?: string | null
+          reservation_id?: string | null
+          verification_type: string
+        }
+        Update: {
+          actor_id?: string | null
+          booking_request_id?: string | null
+          created_at?: string
+          customer_id?: string | null
+          detail?: string | null
+          event_type?: string
+          id?: string
+          organization_id?: string
+          rental_id?: string | null
+          reservation_id?: string | null
+          verification_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verification_audit_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      verification_overrides: {
+        Row: {
+          created_at: string
+          decision: string
+          id: string
+          organization_id: string
+          reason: string
+          staff_id: string | null
+          verification_request_id: string
+        }
+        Insert: {
+          created_at?: string
+          decision: string
+          id?: string
+          organization_id: string
+          reason?: string
+          staff_id?: string | null
+          verification_request_id: string
+        }
+        Update: {
+          created_at?: string
+          decision?: string
+          id?: string
+          organization_id?: string
+          reason?: string
+          staff_id?: string | null
+          verification_request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verification_overrides_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      verification_requests: {
+        Row: {
+          booking_request_id: string | null
+          completed_at: string | null
+          created_at: string
+          customer_id: string | null
+          expires_at: string | null
+          external_reference: string | null
+          id: string
+          organization_id: string
+          provider: string
+          rental_id: string | null
+          requested_at: string
+          requested_by: string | null
+          reservation_id: string | null
+          result: Json | null
+          status: string
+          updated_at: string
+          usage_charge_id: string | null
+          verification_type: string
+        }
+        Insert: {
+          booking_request_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          customer_id?: string | null
+          expires_at?: string | null
+          external_reference?: string | null
+          id?: string
+          organization_id: string
+          provider?: string
+          rental_id?: string | null
+          requested_at?: string
+          requested_by?: string | null
+          reservation_id?: string | null
+          result?: Json | null
+          status?: string
+          updated_at?: string
+          usage_charge_id?: string | null
+          verification_type: string
+        }
+        Update: {
+          booking_request_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          customer_id?: string | null
+          expires_at?: string | null
+          external_reference?: string | null
+          id?: string
+          organization_id?: string
+          provider?: string
+          rental_id?: string | null
+          requested_at?: string
+          requested_by?: string | null
+          reservation_id?: string | null
+          result?: Json | null
+          status?: string
+          updated_at?: string
+          usage_charge_id?: string | null
+          verification_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verification_requests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      verification_requirements: {
+        Row: {
+          booking_request_id: string | null
+          customer_id: string | null
+          id: string
+          organization_id: string
+          reason: string | null
+          removed: boolean
+          removed_at: string | null
+          removed_by_staff_id: string | null
+          rental_id: string | null
+          required_at: string
+          required_by_staff_id: string | null
+          reservation_id: string | null
+          verification_type: string
+        }
+        Insert: {
+          booking_request_id?: string | null
+          customer_id?: string | null
+          id?: string
+          organization_id: string
+          reason?: string | null
+          removed?: boolean
+          removed_at?: string | null
+          removed_by_staff_id?: string | null
+          rental_id?: string | null
+          required_at?: string
+          required_by_staff_id?: string | null
+          reservation_id?: string | null
+          verification_type: string
+        }
+        Update: {
+          booking_request_id?: string | null
+          customer_id?: string | null
+          id?: string
+          organization_id?: string
+          reason?: string | null
+          removed?: boolean
+          removed_at?: string | null
+          removed_by_staff_id?: string | null
+          rental_id?: string | null
+          required_at?: string
+          required_by_staff_id?: string | null
+          reservation_id?: string | null
+          verification_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verification_requirements_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      verification_usage_charges: {
+        Row: {
+          created_at: string
+          currency: string
+          id: string
+          organization_id: string
+          platform_price_mock: number
+          provider: string
+          provider_cost_mock: number | null
+          service_type: string
+          status: string
+          verification_request_id: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          id?: string
+          organization_id: string
+          platform_price_mock?: number
+          provider: string
+          provider_cost_mock?: number | null
+          service_type: string
+          status?: string
+          verification_request_id: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          id?: string
+          organization_id?: string
+          platform_price_mock?: number
+          provider?: string
+          provider_cost_mock?: number | null
+          service_type?: string
+          status?: string
+          verification_request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verification_usage_charges_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
