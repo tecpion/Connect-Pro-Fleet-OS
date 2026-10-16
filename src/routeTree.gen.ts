@@ -39,7 +39,6 @@ import { Route as TasksRouteImport } from './routes/tasks'
 import { Route as TelematicsRouteImport } from './routes/telematics'
 import { Route as TollsViolationsRouteImport } from './routes/tolls-violations'
 import { Route as ViolationsRouteImport } from './routes/violations'
-import { Route as ApiCloudAuditPocRouteImport } from './routes/api/cloud-audit-poc'
 import { Route as ApiPhase1E2eRouteImport } from './routes/api/phase1-e2e'
 import { Route as CheckoutIdRouteImport } from './routes/checkout/$id'
 import { Route as CustomersIndexRouteImport } from './routes/customers/index'
@@ -248,11 +247,6 @@ const TollsViolationsRoute = TollsViolationsRouteImport.update({
 const ViolationsRoute = ViolationsRouteImport.update({
   id: '/violations',
   path: '/violations',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiCloudAuditPocRoute = ApiCloudAuditPocRouteImport.update({
-  id: '/api/cloud-audit-poc',
-  path: '/api/cloud-audit-poc',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPhase1E2eRoute = ApiPhase1E2eRouteImport.update({
@@ -588,7 +582,6 @@ export interface FileRoutesByFullPath {
   '/telematics': typeof TelematicsRoute
   '/tolls-violations': typeof TollsViolationsRoute
   '/violations': typeof ViolationsRoute
-  '/api/cloud-audit-poc': typeof ApiCloudAuditPocRoute
   '/api/phase1-e2e': typeof ApiPhase1E2eRoute
   '/checkout/$id': typeof CheckoutIdRoute
   '/customers/$id': typeof CustomersIdRoute
@@ -679,7 +672,6 @@ export interface FileRoutesByTo {
   '/telematics': typeof TelematicsRoute
   '/tolls-violations': typeof TollsViolationsRoute
   '/violations': typeof ViolationsRoute
-  '/api/cloud-audit-poc': typeof ApiCloudAuditPocRoute
   '/api/phase1-e2e': typeof ApiPhase1E2eRoute
   '/checkout/$id': typeof CheckoutIdRoute
   '/customers/$id': typeof CustomersIdRoute
@@ -771,7 +763,6 @@ export interface FileRoutesById {
   '/telematics': typeof TelematicsRoute
   '/tolls-violations': typeof TollsViolationsRoute
   '/violations': typeof ViolationsRoute
-  '/api/cloud-audit-poc': typeof ApiCloudAuditPocRoute
   '/api/phase1-e2e': typeof ApiPhase1E2eRoute
   '/checkout/$id': typeof CheckoutIdRoute
   '/customers/$id': typeof CustomersIdRoute
@@ -865,7 +856,6 @@ export interface FileRouteTypes {
     | '/telematics'
     | '/tolls-violations'
     | '/violations'
-    | '/api/cloud-audit-poc'
     | '/api/phase1-e2e'
     | '/checkout/$id'
     | '/customers/$id'
@@ -956,7 +946,6 @@ export interface FileRouteTypes {
     | '/telematics'
     | '/tolls-violations'
     | '/violations'
-    | '/api/cloud-audit-poc'
     | '/api/phase1-e2e'
     | '/checkout/$id'
     | '/customers/$id'
@@ -1047,7 +1036,6 @@ export interface FileRouteTypes {
     | '/telematics'
     | '/tolls-violations'
     | '/violations'
-    | '/api/cloud-audit-poc'
     | '/api/phase1-e2e'
     | '/checkout/$id'
     | '/customers/$id'
@@ -1140,7 +1128,6 @@ export interface RootRouteChildren {
   TelematicsRoute: typeof TelematicsRoute
   TollsViolationsRoute: typeof TollsViolationsRoute
   ViolationsRoute: typeof ViolationsRoute
-  ApiCloudAuditPocRoute: typeof ApiCloudAuditPocRoute
   ApiPhase1E2eRoute: typeof ApiPhase1E2eRoute
   CheckoutIdRoute: typeof CheckoutIdRoute
   CustomersIdRoute: typeof CustomersIdRoute
@@ -1385,13 +1372,6 @@ declare module '@tanstack/react-router' {
       path: '/violations'
       fullPath: '/violations'
       preLoaderRoute: typeof ViolationsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/cloud-audit-poc': {
-      id: '/api/cloud-audit-poc'
-      path: '/api/cloud-audit-poc'
-      fullPath: '/api/cloud-audit-poc'
-      preLoaderRoute: typeof ApiCloudAuditPocRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/phase1-e2e': {
@@ -1914,7 +1894,6 @@ const rootRouteChildren: RootRouteChildren = {
   TelematicsRoute: TelematicsRoute,
   TollsViolationsRoute: TollsViolationsRoute,
   ViolationsRoute: ViolationsRoute,
-  ApiCloudAuditPocRoute: ApiCloudAuditPocRoute,
   ApiPhase1E2eRoute: ApiPhase1E2eRoute,
   CheckoutIdRoute: CheckoutIdRoute,
   CustomersIdRoute: CustomersIdRoute,
