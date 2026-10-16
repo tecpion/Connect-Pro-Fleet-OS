@@ -93,6 +93,8 @@ export async function checkIdempotency(
       p_user_id: userId,
       p_email: email,
       p_org_name: "E2E Org Alpha DUPLICATE",
+      p_first_name: "Owner",
+      p_last_name: "Alpha",
     });
     const rows = (rpc ?? []) as ProvisionRow[];
     const row = rows[0] ?? null;
@@ -102,19 +104,35 @@ export async function checkIdempotency(
       detail: `same_org=${row?.organization_id === orgA} created=${row?.created_org}`,
     });
   } catch (e) {
-    ctx.steps.push({ step: "5_provision_idempotent_a", ok: false, detail: String(e) });
+    ctx.steps.push({
+      step: "5_provision_idempotent_a",
+      ok: false,
+      detail: String(e),
+    });
   }
 }
 
 export async function cleanup(ctx: TestCtx): Promise<void> {
   for (const row of ctx.createdRows) {
-    try { await ctx.admin.from(row.table).delete().eq("id", row.id); } catch { /* ignore */ }
+    try {
+      await ctx.admin.from(row.table).delete().eq("id", row.id);
+    } catch {
+      /* ignore */
+    }
   }
   for (const up of ctx.uploadedPaths) {
-    try { await ctx.admin.storage.from(up.bucket).remove([up.path]); } catch { /* ignore */ }
+    try {
+      await ctx.admin.storage.from(up.bucket).remove([up.path]);
+    } catch {
+      /* ignore */
+    }
   }
   for (const uid of ctx.createdUserIds) {
-    try { await ctx.admin.auth.admin.deleteUser(uid); } catch { /* ignore */ }
+    try {
+      await ctx.admin.auth.admin.deleteUser(uid);
+    } catch {
+      /* ignore */
+    }
   }
 }
 

@@ -23,11 +23,13 @@ import {
 import { insertRental, insertLedgerTxn } from "./phase2-e2e-inserts";
 import {
   type TestCtx,
+  type DbClient,
   makeCtx,
   provisionOrg,
   checkIdempotency,
   cleanup,
 } from "./phase2-e2e-helpers";
+import type { Database } from "@/lib/supabase/database.types";
 
 export interface E2EResult {
   passed: boolean;
