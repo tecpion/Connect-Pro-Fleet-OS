@@ -415,11 +415,17 @@ import type {
   BookingRequestSource,
 } from "../bookingRequestTypes";
 import type { Inspection } from "../inspectionTypes";
-import type { RentalDeposit, DepositHistoryEvent, DepositStatus } from "../depositTypes";
+import type {
+  RentalDeposit,
+  DepositHistoryEvent,
+  DepositStatus,
+} from "../depositTypes";
 import type {
   BookingRequestRow,
   BookingOutboundEventRow,
   InspectionRow,
+  SecurityDepositRow,
+  DepositHistoryEventRow,
 } from "./database.types";
 
 export function rowToBookingRequest(r: BookingRequestRow): BookingRequest {
@@ -435,10 +441,12 @@ export function rowToBookingRequest(r: BookingRequestRow): BookingRequest {
     requested_vehicle_class_id: r.requested_vehicle_class_id,
     requested_start_date: r.requested_start_date,
     requested_end_date: r.requested_end_date,
-    rental_duration_type: (r.rental_duration_type as RentalDurationType) ?? "unknown",
+    rental_duration_type:
+      (r.rental_duration_type as RentalDurationType) ?? "unknown",
     notes: r.notes,
     driver_license_document_reference: r.driver_license_document_reference,
-    driver_license_status: r.driver_license_status as BookingDriverLicenseStatus,
+    driver_license_status:
+      r.driver_license_status as BookingDriverLicenseStatus,
     verification_status: r.verification_status as BookingVerificationStatus,
     source: r.source as BookingRequestSource,
     crm_contact_id: r.crm_contact_id,
@@ -450,9 +458,10 @@ export function rowToBookingRequest(r: BookingRequestRow): BookingRequest {
     form_answers: (r.form_answers as Record<string, string> | null) ?? null,
     status: r.status as BookingRequestStatus,
     assigned_to: r.assigned_to,
-    customer_match: (r.customer_match as unknown as CustomerMatchResolution) ?? {
-      kind: "none",
-    },
+    customer_match:
+      (r.customer_match as unknown as CustomerMatchResolution) ?? {
+        kind: "none",
+      },
     converted_reservation_id: r.converted_reservation_id,
     declined: (r.declined as unknown as BookingRequest["declined"]) ?? null,
     waitlist: (r.waitlist as unknown as BookingRequest["waitlist"]) ?? null,
@@ -489,10 +498,13 @@ export function bookingRequestToRow(
     external_request_id: b.external_request_id,
     lead_source: b.lead_source,
     submitted_at: b.submitted_at,
-    form_answers: (b.form_answers as unknown as BookingRequestRow["form_answers"]) ?? null,
+    form_answers:
+      (b.form_answers as unknown as BookingRequestRow["form_answers"]) ?? null,
     status: b.status,
     assigned_to: b.assigned_to,
-    customer_match: (b.customer_match as unknown as BookingRequestRow["customer_match"]) ?? null,
+    customer_match:
+      (b.customer_match as unknown as BookingRequestRow["customer_match"]) ??
+      null,
     converted_reservation_id: b.converted_reservation_id,
     declined: (b.declined as unknown as BookingRequestRow["declined"]) ?? null,
     waitlist: (b.waitlist as unknown as BookingRequestRow["waitlist"]) ?? null,
@@ -520,7 +532,9 @@ export function rowToInspection(r: InspectionRow): Inspection {
     damage_notes: r.damage_notes,
     damage_detected: r.damage_detected,
     damage_ai_confidence: toMoney(r.damage_ai_confidence),
-    damage_ai_flagged_regions: (r.damage_ai_flagged_regions as unknown as Inspection["damage_ai_flagged_regions"]) ?? [],
+    damage_ai_flagged_regions:
+      (r.damage_ai_flagged_regions as unknown as Inspection["damage_ai_flagged_regions"]) ??
+      [],
     inspector_signature_url: r.inspector_signature_path,
     timestamp: r.timestamp,
     tenant_id: r.organization_id,
@@ -540,15 +554,15 @@ export function inspectionToRow(i: Inspection): Partial<InspectionRow> {
     damage_notes: i.damage_notes,
     damage_detected: i.damage_detected,
     damage_ai_confidence: i.damage_ai_confidence,
-    damage_ai_flagged_regions: (i.damage_ai_flagged_regions as unknown as InspectionRow["damage_ai_flagged_regions"]) ?? [],
+    damage_ai_flagged_regions:
+      (i.damage_ai_flagged_regions as unknown as InspectionRow["damage_ai_flagged_regions"]) ??
+      [],
     inspector_signature_path: i.inspector_signature_url,
     timestamp: i.timestamp,
   };
 }
 
-export function rowToDeposit(
-  r: SecurityDepositRow,
-): RentalDeposit {
+export function rowToDeposit(r: SecurityDepositRow): RentalDeposit {
   return {
     id: r.id,
     tenant_id: r.organization_id,
@@ -564,9 +578,10 @@ export function rowToDeposit(
     forfeited_amount: toMoney(r.forfeited_amount),
     status: r.status as DepositStatus,
     currency: r.currency,
-    source_snapshot: (r.source_snapshot as unknown as RentalDeposit["source_snapshot"]) ?? {
-      source: "company_default",
-    },
+    source_snapshot:
+      (r.source_snapshot as unknown as RentalDeposit["source_snapshot"]) ?? {
+        source: "company_default",
+      },
     collected_at: r.collected_at,
     refund_due_at: r.refund_due_at,
     completed_at: r.completed_at,
@@ -593,7 +608,9 @@ export function depositToRow(d: RentalDeposit): Partial<SecurityDepositRow> {
     forfeited_amount: d.forfeited_amount,
     status: d.status,
     currency: d.currency,
-    source_snapshot: (d.source_snapshot as unknown as SecurityDepositRow["source_snapshot"]) ?? null,
+    source_snapshot:
+      (d.source_snapshot as unknown as SecurityDepositRow["source_snapshot"]) ??
+      null,
     collected_at: d.collected_at,
     refund_due_at: d.refund_due_at,
     completed_at: d.completed_at,
@@ -614,15 +631,17 @@ export function rowToDepositHistory(
 ): DepositHistoryEvent {
   return {
     id: r.id,
+    tenant_id: r.organization_id,
     deposit_id: r.deposit_id,
     event_type: r.event_type as DepositHistoryEvent["event_type"],
     amount: toMoney(r.amount),
-    payment_method: (r.payment_method as DepositHistoryEvent["payment_method"]) ?? null,
+    payment_method:
+      (r.payment_method as DepositHistoryEvent["payment_method"]) ?? null,
     transaction_id: r.related_transaction_id,
     reason: r.reason,
     staff_id: r.staff_id,
     at: r.created_at,
-    request_key: null,
+    request_key: r.request_key,
   };
 }
 
@@ -631,7 +650,7 @@ export function depositHistoryToRow(
 ): Partial<DepositHistoryEventRow> {
   return {
     id: e.id,
-    organization_id: e.deposit_id ? "" : "", // set by adapter
+    organization_id: e.tenant_id,
     deposit_id: e.deposit_id,
     event_type: e.event_type,
     amount: e.amount,
@@ -640,7 +659,7 @@ export function depositHistoryToRow(
     related_transaction_id: e.transaction_id,
     reason: e.reason,
     notes: null,
-    request_key: e.request_key,
+    request_key: e.request_key ?? null,
     created_at: e.at,
   };
 }

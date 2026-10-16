@@ -17,7 +17,10 @@ import type {
   Reservation,
   FinancialTransaction,
 } from "../types";
-import type { BookingRequest, BookingOutboundEvent } from "../bookingRequestTypes";
+import type {
+  BookingRequest,
+  BookingOutboundEvent,
+} from "../bookingRequestTypes";
 import type { Inspection } from "../inspectionTypes";
 import type { RentalDeposit, DepositHistoryEvent } from "../depositTypes";
 import { getSupabase } from "./client";

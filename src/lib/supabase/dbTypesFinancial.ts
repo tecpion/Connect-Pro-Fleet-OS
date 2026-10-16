@@ -80,6 +80,7 @@ export interface DepositHistoryEventRow {
   related_transaction_id: string | null;
   reason: string | null;
   notes: string | null;
+  request_key: string | null;
   created_at: string;
 }
 

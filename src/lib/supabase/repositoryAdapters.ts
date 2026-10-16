@@ -11,6 +11,9 @@ import type {
   Reservation,
   FinancialTransaction,
 } from "../types";
+import type { BookingRequest } from "../bookingRequestTypes";
+import type { Inspection } from "../inspectionTypes";
+import type { RentalDeposit, DepositHistoryEvent } from "../depositTypes";
 import type { getSupabase } from "./client";
 import {
   type CustomerRepository,
@@ -18,6 +21,9 @@ import {
   type RentalRepository,
   type ReservationRepository,
   type LedgerRepository,
+  type BookingRequestRepository,
+  type InspectionRepository,
+  type DepositRepository,
   normalizeError,
 } from "./repository";
 import {
@@ -36,6 +42,16 @@ import {
   rowToTransaction,
   transactionToRow,
   transactionPatchToRow,
+  rowToBookingRequest,
+  bookingRequestToRow,
+  bookingRequestPatchToRow,
+  rowToInspection,
+  inspectionToRow,
+  rowToDeposit,
+  depositToRow,
+  depositPatchToRow,
+  rowToDepositHistory,
+  depositHistoryToRow,
 } from "./repositoryMappers";
 
 type Db = NonNullable<ReturnType<typeof getSupabase>>;
@@ -263,5 +279,123 @@ export class SupabaseLedgerRepository implements LedgerRepository {
       .single();
     if (error) throw normalizeError(error);
     return rowToTransaction(data);
+  }
+}
+
+export class SupabaseBookingRequestRepository implements BookingRequestRepository {
+  constructor(private db: Db) {}
+  async list(orgId: string): Promise<BookingRequest[]> {
+    const { data, error } = await this.db
+      .from("booking_requests")
+      .select("*")
+      .eq("organization_id", orgId)
+      .order("created_at", { ascending: false });
+    if (error) throw normalizeError(error);
+    return (data ?? []).map(rowToBookingRequest);
+  }
+  async insert(b: BookingRequest): Promise<BookingRequest> {
+    const { data, error } = await this.db
+      .from("booking_requests")
+      .insert(bookingRequestToRow(b))
+      .select()
+      .single();
+    if (error) throw normalizeError(error);
+    return rowToBookingRequest(data);
+  }
+  async update(
+    orgId: string,
+    id: string,
+    patch: Partial<BookingRequest>,
+  ): Promise<BookingRequest> {
+    const { data, error } = await this.db
+      .from("booking_requests")
+      .update(bookingRequestPatchToRow(patch))
+      .eq("organization_id", orgId)
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw normalizeError(error);
+    return rowToBookingRequest(data);
+  }
+}
+
+export class SupabaseInspectionRepository implements InspectionRepository {
+  constructor(private db: Db) {}
+  async list(orgId: string): Promise<Inspection[]> {
+    const { data, error } = await this.db
+      .from("inspections")
+      .select("*")
+      .eq("organization_id", orgId)
+      .order("timestamp", { ascending: false });
+    if (error) throw normalizeError(error);
+    return (data ?? []).map(rowToInspection);
+  }
+  async insert(i: Inspection): Promise<Inspection> {
+    const { data, error } = await this.db
+      .from("inspections")
+      .insert(inspectionToRow(i))
+      .select()
+      .single();
+    if (error) throw normalizeError(error);
+    return rowToInspection(data);
+  }
+}
+
+export class SupabaseDepositRepository implements DepositRepository {
+  constructor(private db: Db) {}
+  async list(orgId: string): Promise<RentalDeposit[]> {
+    const { data, error } = await this.db
+      .from("security_deposits")
+      .select("*")
+      .eq("organization_id", orgId)
+      .order("created_at", { ascending: false });
+    if (error) throw normalizeError(error);
+    return (data ?? []).map(rowToDeposit);
+  }
+  async insert(d: RentalDeposit): Promise<RentalDeposit> {
+    const { data, error } = await this.db
+      .from("security_deposits")
+      .insert(depositToRow(d))
+      .select()
+      .single();
+    if (error) throw normalizeError(error);
+    return rowToDeposit(data);
+  }
+  async update(
+    orgId: string,
+    id: string,
+    patch: Partial<RentalDeposit>,
+  ): Promise<RentalDeposit> {
+    const { data, error } = await this.db
+      .from("security_deposits")
+      .update(depositPatchToRow(patch))
+      .eq("organization_id", orgId)
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw normalizeError(error);
+    return rowToDeposit(data);
+  }
+  async listHistory(
+    orgId: string,
+    depositId: string,
+  ): Promise<DepositHistoryEvent[]> {
+    const { data, error } = await this.db
+      .from("deposit_history_events")
+      .select("*")
+      .eq("organization_id", orgId)
+      .eq("deposit_id", depositId)
+      .order("created_at", { ascending: true });
+    if (error) throw normalizeError(error);
+    return (data ?? []).map(rowToDepositHistory);
+  }
+  async insertHistory(e: DepositHistoryEvent): Promise<DepositHistoryEvent> {
+    const { data, error } = await this.db
+      .from("deposit_history_events")
+      .insert(depositHistoryToRow(e))
+      .select()
+      .single();
+    if (error) throw normalizeError(error);
+    return rowToDepositHistory(data);
   }
 }

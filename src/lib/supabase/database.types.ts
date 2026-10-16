@@ -28,6 +28,12 @@ import type {
   RentalRow,
   RentalVehicleExchangeRow,
   BillingPeriodRow,
+  BookingRequestRow,
+  BookingOutboundEventRow,
+  InspectionRow,
+  AgreementTemplateRow,
+  MasterAgreementRow,
+  AgreementInstanceRow,
 } from "./dbTypesCore";
 import type {
   RentalLedgerTransactionRow,
@@ -126,6 +132,12 @@ export interface Database {
       rentals: Entity<RentalRow>;
       rental_vehicle_exchanges: Entity<RentalVehicleExchangeRow>;
       billing_periods: Entity<BillingPeriodRow>;
+      booking_requests: Entity<BookingRequestRow>;
+      booking_outbound_events: Entity<BookingOutboundEventRow>;
+      inspections: Entity<InspectionRow>;
+      agreement_templates: Entity<AgreementTemplateRow>;
+      master_agreements: Entity<MasterAgreementRow>;
+      agreement_instances: Entity<AgreementInstanceRow>;
       rental_ledger_transactions: Entity<RentalLedgerTransactionRow>;
       payment_allocations: Entity<PaymentAllocationRow>;
       security_deposits: Entity<SecurityDepositRow>;
