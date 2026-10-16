@@ -169,7 +169,9 @@ export interface VerificationRepository {
     patch: Partial<VerificationRequest>,
   ): Promise<VerificationRequest>;
   listRequirements(orgId: string): Promise<VerificationRequirement[]>;
-  insertRequirement(r: VerificationRequirement): Promise<VerificationRequirement>;
+  insertRequirement(
+    r: VerificationRequirement,
+  ): Promise<VerificationRequirement>;
   updateRequirement(
     orgId: string,
     id: string,
@@ -180,7 +182,9 @@ export interface VerificationRepository {
   listAudit(orgId: string): Promise<VerificationAuditEvent[]>;
   insertAudit(e: VerificationAuditEvent): Promise<VerificationAuditEvent>;
   listUsageCharges(orgId: string): Promise<VerificationUsageCharge[]>;
-  insertUsageCharge(c: VerificationUsageCharge): Promise<VerificationUsageCharge>;
+  insertUsageCharge(
+    c: VerificationUsageCharge,
+  ): Promise<VerificationUsageCharge>;
   updateUsageCharge(
     orgId: string,
     id: string,

@@ -125,19 +125,27 @@ export function documentRecordPatchToRow(
 ): Partial<ComplianceDocumentRow> {
   const row: Partial<ComplianceDocumentRow> = {};
   if (patch.tenant_id !== undefined) row.organization_id = patch.tenant_id;
-  if (patch.document_type !== undefined) row.document_type = patch.document_type;
+  if (patch.document_type !== undefined)
+    row.document_type = patch.document_type;
   if (patch.entity_type !== undefined) row.entity_type = patch.entity_type;
   if (patch.entity_id !== undefined) row.entity_id = patch.entity_id;
   if (patch.entity_label !== undefined) row.entity_label = patch.entity_label;
-  if (patch.document_number !== undefined) row.document_number = patch.document_number;
+  if (patch.document_number !== undefined)
+    row.document_number = patch.document_number;
   if (patch.issuer !== undefined) row.issuer = patch.issuer;
-  if (patch.state_jurisdiction !== undefined) row.state_jurisdiction = patch.state_jurisdiction;
-  if (patch.effective_date !== undefined) row.effective_date = patch.effective_date;
-  if (patch.expiration_date !== undefined) row.expiration_date = patch.expiration_date;
+  if (patch.state_jurisdiction !== undefined)
+    row.state_jurisdiction = patch.state_jurisdiction;
+  if (patch.effective_date !== undefined)
+    row.effective_date = patch.effective_date;
+  if (patch.expiration_date !== undefined)
+    row.expiration_date = patch.expiration_date;
   if (patch.status !== undefined) row.status = patch.status;
-  if (patch.verification_status !== undefined) row.verification_status = patch.verification_status;
-  if (patch.file_reference !== undefined) row.file_reference = patch.file_reference;
-  if (patch.original_filename !== undefined) row.original_filename = patch.original_filename;
+  if (patch.verification_status !== undefined)
+    row.verification_status = patch.verification_status;
+  if (patch.file_reference !== undefined)
+    row.file_reference = patch.file_reference;
+  if (patch.original_filename !== undefined)
+    row.original_filename = patch.original_filename;
   if (patch.mime_type !== undefined) row.mime_type = patch.mime_type;
   if (patch.notes !== undefined) row.notes = patch.notes;
   if (patch.source !== undefined) row.source = patch.source;
@@ -145,12 +153,16 @@ export function documentRecordPatchToRow(
   if (patch.uploaded_at !== undefined) row.uploaded_at = patch.uploaded_at;
   if (patch.reviewed_by !== undefined) row.reviewed_by = patch.reviewed_by;
   if (patch.reviewed_at !== undefined) row.reviewed_at = patch.reviewed_at;
-  if (patch.rejected_reason !== undefined) row.rejected_reason = patch.rejected_reason;
+  if (patch.rejected_reason !== undefined)
+    row.rejected_reason = patch.rejected_reason;
   if (patch.archived_at !== undefined) row.archived_at = patch.archived_at;
-  if (patch.supersedes_document_id !== undefined) row.supersedes_document_id = patch.supersedes_document_id;
-  if (patch.superseded_by_document_id !== undefined) row.superseded_by_document_id = patch.superseded_by_document_id;
+  if (patch.supersedes_document_id !== undefined)
+    row.supersedes_document_id = patch.supersedes_document_id;
+  if (patch.superseded_by_document_id !== undefined)
+    row.superseded_by_document_id = patch.superseded_by_document_id;
   if (patch.location_id !== undefined) row.location_id = patch.location_id;
-  if (patch.assigned_staff_id !== undefined) row.assigned_staff_id = patch.assigned_staff_id;
+  if (patch.assigned_staff_id !== undefined)
+    row.assigned_staff_id = patch.assigned_staff_id;
   if (patch.created_by !== undefined) row.created_by = patch.created_by;
   return row;
 }
@@ -451,7 +463,8 @@ export function rowToVerificationUsageCharge(
     verification_request_id: r.verification_request_id,
     service_type: r.service_type as VerificationType,
     provider: r.provider as VerificationProviderId,
-    provider_cost_mock: r.provider_cost_mock == null ? null : Number(r.provider_cost_mock),
+    provider_cost_mock:
+      r.provider_cost_mock == null ? null : Number(r.provider_cost_mock),
     platform_price_mock: Number(r.platform_price_mock),
     currency: r.currency,
     status: r.status as UsageChargeStatus,

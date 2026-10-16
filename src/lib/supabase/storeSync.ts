@@ -175,9 +175,11 @@ export async function hydrateCompliance(
 export function persistComplianceDocumentInsert(d: DocumentRecord): void {
   const r = repos();
   if (!r?.compliance) return;
-  void r.compliance.insertDocument(d).catch((e) =>
-    console.error("[storeSync] compliance document insert failed", e),
-  );
+  void r.compliance
+    .insertDocument(d)
+    .catch((e) =>
+      console.error("[storeSync] compliance document insert failed", e),
+    );
 }
 
 export function persistComplianceDocumentUpdate(
@@ -187,25 +189,31 @@ export function persistComplianceDocumentUpdate(
 ): void {
   const r = repos();
   if (!r?.compliance) return;
-  void r.compliance.updateDocument(orgId, id, patch).catch((e) =>
-    console.error("[storeSync] compliance document update failed", e),
-  );
+  void r.compliance
+    .updateDocument(orgId, id, patch)
+    .catch((e) =>
+      console.error("[storeSync] compliance document update failed", e),
+    );
 }
 
 export function persistComplianceOverrideInsert(o: ComplianceOverride): void {
   const r = repos();
   if (!r?.compliance) return;
-  void r.compliance.insertOverride(o).catch((e) =>
-    console.error("[storeSync] compliance override insert failed", e),
-  );
+  void r.compliance
+    .insertOverride(o)
+    .catch((e) =>
+      console.error("[storeSync] compliance override insert failed", e),
+    );
 }
 
 export function persistComplianceEventInsert(e: ComplianceEvent): void {
   const r = repos();
   if (!r?.compliance) return;
-  void r.compliance.insertEvent(e).catch((err) =>
-    console.error("[storeSync] compliance event insert failed", err),
-  );
+  void r.compliance
+    .insertEvent(e)
+    .catch((err) =>
+      console.error("[storeSync] compliance event insert failed", err),
+    );
 }
 
 export interface VerificationSyncHandles {
@@ -232,13 +240,15 @@ export async function hydrateVerification(
 ): Promise<boolean> {
   const r = repos();
   if (!r?.verification) return false;
-  const [requests, requirements, overrides, audit, charges] = await Promise.all([
-    r.verification.listRequests(orgId),
-    r.verification.listRequirements(orgId),
-    r.verification.listOverrides(orgId),
-    r.verification.listAudit(orgId),
-    r.verification.listUsageCharges(orgId),
-  ]);
+  const [requests, requirements, overrides, audit, charges] = await Promise.all(
+    [
+      r.verification.listRequests(orgId),
+      r.verification.listRequirements(orgId),
+      r.verification.listOverrides(orgId),
+      r.verification.listAudit(orgId),
+      r.verification.listUsageCharges(orgId),
+    ],
+  );
   handles.setRequests(() => requests);
   handles.setRequirements(() => requirements);
   handles.setOverrides(() => overrides);
@@ -250,9 +260,11 @@ export async function hydrateVerification(
 export function persistVerificationRequestInsert(v: VerificationRequest): void {
   const r = repos();
   if (!r?.verification) return;
-  void r.verification.insertRequest(v).catch((e) =>
-    console.error("[storeSync] verification request insert failed", e),
-  );
+  void r.verification
+    .insertRequest(v)
+    .catch((e) =>
+      console.error("[storeSync] verification request insert failed", e),
+    );
 }
 
 export function persistVerificationRequestUpdate(
@@ -262,9 +274,11 @@ export function persistVerificationRequestUpdate(
 ): void {
   const r = repos();
   if (!r?.verification) return;
-  void r.verification.updateRequest(orgId, id, patch).catch((e) =>
-    console.error("[storeSync] verification request update failed", e),
-  );
+  void r.verification
+    .updateRequest(orgId, id, patch)
+    .catch((e) =>
+      console.error("[storeSync] verification request update failed", e),
+    );
 }
 
 export function persistVerificationRequirementInsert(
@@ -272,9 +286,11 @@ export function persistVerificationRequirementInsert(
 ): void {
   const r = repos();
   if (!r?.verification) return;
-  void r.verification.insertRequirement(req).catch((e) =>
-    console.error("[storeSync] verification requirement insert failed", e),
-  );
+  void r.verification
+    .insertRequirement(req)
+    .catch((e) =>
+      console.error("[storeSync] verification requirement insert failed", e),
+    );
 }
 
 export function persistVerificationOverrideInsert(
@@ -282,9 +298,11 @@ export function persistVerificationOverrideInsert(
 ): void {
   const r = repos();
   if (!r?.verification) return;
-  void r.verification.insertOverride(o).catch((e) =>
-    console.error("[storeSync] verification override insert failed", e),
-  );
+  void r.verification
+    .insertOverride(o)
+    .catch((e) =>
+      console.error("[storeSync] verification override insert failed", e),
+    );
 }
 
 export function persistVerificationAuditInsert(
@@ -292,9 +310,11 @@ export function persistVerificationAuditInsert(
 ): void {
   const r = repos();
   if (!r?.verification) return;
-  void r.verification.insertAudit(e).catch((err) =>
-    console.error("[storeSync] verification audit insert failed", err),
-  );
+  void r.verification
+    .insertAudit(e)
+    .catch((err) =>
+      console.error("[storeSync] verification audit insert failed", err),
+    );
 }
 
 export function persistVerificationUsageChargeInsert(
@@ -302,7 +322,9 @@ export function persistVerificationUsageChargeInsert(
 ): void {
   const r = repos();
   if (!r?.verification) return;
-  void r.verification.insertUsageCharge(c).catch((e) =>
-    console.error("[storeSync] verification usage charge insert failed", e),
-  );
+  void r.verification
+    .insertUsageCharge(c)
+    .catch((e) =>
+      console.error("[storeSync] verification usage charge insert failed", e),
+    );
 }

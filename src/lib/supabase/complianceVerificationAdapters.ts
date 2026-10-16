@@ -47,6 +47,7 @@ import {
 } from "./complianceVerificationMappers";
 import type {
   ComplianceOverrideRow,
+  VerificationRequestRow,
   VerificationRequirementRow,
   VerificationUsageChargeRow,
 } from "./dbTypesComplianceVerification";
@@ -209,12 +210,21 @@ export class SupabaseVerificationRepository implements VerificationRepository {
     id: string,
     patch: Partial<VerificationRequest>,
   ): Promise<VerificationRequest> {
-    const row = verificationRequestToRow(
-      { ...({} as VerificationRequest), ...patch },
-    );
+    // Build a partial row from only the patched fields so .update() receives a
+    // clean Partial<VerificationRequestRow> (no excess/unknown keys).
+    const full = verificationRequestToRow({
+      ...({} as VerificationRequest),
+      ...patch,
+    });
+    const row: Partial<VerificationRequestRow> = {};
+    for (const [k, v] of Object.entries(full)) {
+      if (patch[k as keyof VerificationRequest] !== undefined) {
+        (row as Record<string, unknown>)[k] = v;
+      }
+    }
     const { data, error } = await this.db
       .from("verification_requests")
-      .update(row as unknown as Record<string, unknown>)
+      .update(row)
       .eq("organization_id", orgId)
       .eq("id", id)
       .select()
@@ -289,7 +299,9 @@ export class SupabaseVerificationRepository implements VerificationRepository {
     if (error) throw normalizeError(error);
     return (data ?? []).map(rowToVerificationAuditEvent);
   }
-  async insertAudit(e: VerificationAuditEvent): Promise<VerificationAuditEvent> {
+  async insertAudit(
+    e: VerificationAuditEvent,
+  ): Promise<VerificationAuditEvent> {
     const { data, error } = await this.db
       .from("verification_audit_events")
       .insert(verificationAuditEventToRow(e))

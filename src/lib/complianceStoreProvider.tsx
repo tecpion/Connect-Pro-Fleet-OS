@@ -87,7 +87,8 @@ export function ComplianceProvider({ children }: { children: ReactNode }) {
   );
   const [events, setEvents] = useState<ComplianceEvent[]>(seedComplianceEvents);
 
-  const { activeOrgId } = useAuth();
+  const { session } = useAuth();
+  const activeOrgId = session.activeOrganizationId;
 
   // Phase 3: hydrate compliance state from Cloud on auth/org change. In memory
   // mode (no Cloud config) this is a no-op and the seeded demo data stays.
@@ -170,7 +171,10 @@ export function ComplianceProvider({ children }: { children: ReactNode }) {
           d.id === id ? { ...d, ...patch, updated_at: nowIso() } : d,
         ),
       );
-      persistComplianceDocumentUpdate(TENANT_ID, id, { ...patch, updated_at: nowIso() });
+      persistComplianceDocumentUpdate(TENANT_ID, id, {
+        ...patch,
+        updated_at: nowIso(),
+      });
     },
     [],
   );
