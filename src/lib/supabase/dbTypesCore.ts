@@ -268,3 +268,116 @@ export interface BillingPeriodRow {
   metadata: Json | null;
   created_at: string;
 }
+
+// ── Phase 2: rental lifecycle rows ───────────────────────────────
+
+export interface BookingRequestRow {
+  id: string;
+  organization_id: string;
+  location_id: string | null;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  email: string;
+  requested_vehicle_id: string | null;
+  requested_vehicle_class_id: string | null;
+  requested_start_date: string | null;
+  requested_end_date: string | null;
+  rental_duration_type: string;
+  notes: string | null;
+  driver_license_document_reference: string | null;
+  driver_license_status: string;
+  verification_status: string;
+  source: string;
+  crm_contact_id: string | null;
+  crm_opportunity_id: string | null;
+  crm_pipeline_stage: string | null;
+  external_request_id: string | null;
+  lead_source: string | null;
+  submitted_at: string;
+  form_answers: Json | null;
+  status: string;
+  assigned_to: string | null;
+  customer_match: Json | null;
+  converted_reservation_id: string | null;
+  declined: Json | null;
+  waitlist: Json | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BookingOutboundEventRow {
+  id: string;
+  organization_id: string;
+  event_type: string;
+  booking_request_id: string | null;
+  crm_opportunity_id: string | null;
+  crm_contact_id: string | null;
+  reservation_id: string | null;
+  rental_id: string | null;
+  payload: Json | null;
+  delivery_state: string;
+  created_at: string;
+}
+
+export interface InspectionRow {
+  id: string;
+  organization_id: string;
+  reservation_id: string | null;
+  vehicle_id: string;
+  inspection_type: string;
+  photos: Json;
+  odometer_reading: number;
+  fuel_level: number;
+  damage_notes: string;
+  damage_detected: boolean;
+  damage_ai_confidence: number;
+  damage_ai_flagged_regions: Json;
+  inspector_signature_path: string | null;
+  timestamp: string;
+}
+
+export interface AgreementTemplateRow {
+  id: string;
+  organization_id: string;
+  name: string;
+  agreement_type: string;
+  description: string;
+  file_path: string | null;
+  file_name: string | null;
+  version: number;
+  effective_date: string | null;
+  status: string;
+  is_default: boolean;
+  created_by: string | null;
+  created_at: string;
+}
+
+export interface MasterAgreementRow {
+  id: string;
+  organization_id: string;
+  driver_id: string | null;
+  signature_path: string;
+  signed_at: string;
+  terms_version: string;
+  expires_at: string | null;
+  status: string;
+  rate_at_signing: number;
+  vehicle_id_at_signing: string | null;
+}
+
+export interface AgreementInstanceRow {
+  id: string;
+  organization_id: string;
+  master_agreement_id: string | null;
+  reservation_id: string | null;
+  period_start: string | null;
+  period_end: string | null;
+  vehicle_id: string | null;
+  mileage_start: number;
+  mileage_end: number | null;
+  rate: number;
+  pdf_path: string | null;
+  generated_at: string;
+}

@@ -401,3 +401,246 @@ export function reservationPatchToRow(
 ): Partial<ReservationRow> {
   return reservationToRow({ ...({} as Reservation), ...patch });
 }
+
+// ── Phase 2 mappers: booking requests, inspections, deposits ──────────────
+
+import type {
+  BookingRequest,
+  BookingOutboundEvent,
+  CustomerMatchResolution,
+  BookingRequestStatus,
+  BookingDriverLicenseStatus,
+  BookingVerificationStatus,
+  RentalDurationType,
+  BookingRequestSource,
+} from "../bookingRequestTypes";
+import type { Inspection } from "../inspectionTypes";
+import type { RentalDeposit, DepositHistoryEvent, DepositStatus } from "../depositTypes";
+import type {
+  BookingRequestRow,
+  BookingOutboundEventRow,
+  InspectionRow,
+} from "./database.types";
+
+export function rowToBookingRequest(r: BookingRequestRow): BookingRequest {
+  return {
+    id: r.id,
+    organization_id: r.organization_id,
+    location_id: r.location_id,
+    first_name: r.first_name,
+    last_name: r.last_name,
+    phone: r.phone,
+    email: r.email,
+    requested_vehicle_id: r.requested_vehicle_id,
+    requested_vehicle_class_id: r.requested_vehicle_class_id,
+    requested_start_date: r.requested_start_date,
+    requested_end_date: r.requested_end_date,
+    rental_duration_type: (r.rental_duration_type as RentalDurationType) ?? "unknown",
+    notes: r.notes,
+    driver_license_document_reference: r.driver_license_document_reference,
+    driver_license_status: r.driver_license_status as BookingDriverLicenseStatus,
+    verification_status: r.verification_status as BookingVerificationStatus,
+    source: r.source as BookingRequestSource,
+    crm_contact_id: r.crm_contact_id,
+    crm_opportunity_id: r.crm_opportunity_id,
+    crm_pipeline_stage: r.crm_pipeline_stage,
+    external_request_id: r.external_request_id,
+    lead_source: r.lead_source,
+    submitted_at: r.submitted_at,
+    form_answers: (r.form_answers as Record<string, string> | null) ?? null,
+    status: r.status as BookingRequestStatus,
+    assigned_to: r.assigned_to,
+    customer_match: (r.customer_match as unknown as CustomerMatchResolution) ?? {
+      kind: "none",
+    },
+    converted_reservation_id: r.converted_reservation_id,
+    declined: (r.declined as unknown as BookingRequest["declined"]) ?? null,
+    waitlist: (r.waitlist as unknown as BookingRequest["waitlist"]) ?? null,
+    created_by: r.created_by,
+    created_at: r.created_at,
+    updated_at: r.updated_at,
+  };
+}
+
+export function bookingRequestToRow(
+  b: BookingRequest,
+): Partial<BookingRequestRow> {
+  return {
+    id: b.id,
+    organization_id: b.organization_id,
+    location_id: b.location_id,
+    first_name: b.first_name,
+    last_name: b.last_name,
+    phone: b.phone,
+    email: b.email,
+    requested_vehicle_id: b.requested_vehicle_id,
+    requested_vehicle_class_id: b.requested_vehicle_class_id,
+    requested_start_date: b.requested_start_date,
+    requested_end_date: b.requested_end_date,
+    rental_duration_type: b.rental_duration_type ?? "unknown",
+    notes: b.notes,
+    driver_license_document_reference: b.driver_license_document_reference,
+    driver_license_status: b.driver_license_status,
+    verification_status: b.verification_status,
+    source: b.source,
+    crm_contact_id: b.crm_contact_id,
+    crm_opportunity_id: b.crm_opportunity_id,
+    crm_pipeline_stage: b.crm_pipeline_stage,
+    external_request_id: b.external_request_id,
+    lead_source: b.lead_source,
+    submitted_at: b.submitted_at,
+    form_answers: (b.form_answers as unknown as BookingRequestRow["form_answers"]) ?? null,
+    status: b.status,
+    assigned_to: b.assigned_to,
+    customer_match: (b.customer_match as unknown as BookingRequestRow["customer_match"]) ?? null,
+    converted_reservation_id: b.converted_reservation_id,
+    declined: (b.declined as unknown as BookingRequestRow["declined"]) ?? null,
+    waitlist: (b.waitlist as unknown as BookingRequestRow["waitlist"]) ?? null,
+    created_by: b.created_by,
+    created_at: b.created_at,
+    updated_at: b.updated_at,
+  };
+}
+
+export function bookingRequestPatchToRow(
+  patch: Partial<BookingRequest>,
+): Partial<BookingRequestRow> {
+  return bookingRequestToRow({ ...({} as BookingRequest), ...patch });
+}
+
+export function rowToInspection(r: InspectionRow): Inspection {
+  return {
+    id: r.id,
+    reservation_id: r.reservation_id ?? "",
+    vehicle_id: r.vehicle_id,
+    inspection_type: r.inspection_type as Inspection["inspection_type"],
+    photos: (r.photos as string[]) ?? [],
+    odometer_reading: r.odometer_reading,
+    fuel_level: r.fuel_level,
+    damage_notes: r.damage_notes,
+    damage_detected: r.damage_detected,
+    damage_ai_confidence: toMoney(r.damage_ai_confidence),
+    damage_ai_flagged_regions: (r.damage_ai_flagged_regions as unknown as Inspection["damage_ai_flagged_regions"]) ?? [],
+    inspector_signature_url: r.inspector_signature_path,
+    timestamp: r.timestamp,
+    tenant_id: r.organization_id,
+  };
+}
+
+export function inspectionToRow(i: Inspection): Partial<InspectionRow> {
+  return {
+    id: i.id,
+    organization_id: i.tenant_id,
+    reservation_id: i.reservation_id || null,
+    vehicle_id: i.vehicle_id,
+    inspection_type: i.inspection_type,
+    photos: (i.photos as unknown as InspectionRow["photos"]) ?? [],
+    odometer_reading: i.odometer_reading,
+    fuel_level: i.fuel_level,
+    damage_notes: i.damage_notes,
+    damage_detected: i.damage_detected,
+    damage_ai_confidence: i.damage_ai_confidence,
+    damage_ai_flagged_regions: (i.damage_ai_flagged_regions as unknown as InspectionRow["damage_ai_flagged_regions"]) ?? [],
+    inspector_signature_path: i.inspector_signature_url,
+    timestamp: i.timestamp,
+  };
+}
+
+export function rowToDeposit(
+  r: SecurityDepositRow,
+): RentalDeposit {
+  return {
+    id: r.id,
+    tenant_id: r.organization_id,
+    reservation_id: r.reservation_id,
+    rental_id: r.rental_id,
+    customer_id: r.customer_id,
+    vehicle_id: r.vehicle_id,
+    policy_id: r.policy_id,
+    required_amount: toMoney(r.required_amount),
+    collected_amount: toMoney(r.collected_amount),
+    applied_amount: toMoney(r.applied_amount),
+    refunded_amount: toMoney(r.refunded_amount),
+    forfeited_amount: toMoney(r.forfeited_amount),
+    status: r.status as DepositStatus,
+    currency: r.currency,
+    source_snapshot: (r.source_snapshot as unknown as RentalDeposit["source_snapshot"]) ?? {
+      source: "company_default",
+    },
+    collected_at: r.collected_at,
+    refund_due_at: r.refund_due_at,
+    completed_at: r.completed_at,
+    notes: r.notes,
+    created_at: r.created_at,
+    updated_at: r.updated_at,
+    created_by: null,
+  };
+}
+
+export function depositToRow(d: RentalDeposit): Partial<SecurityDepositRow> {
+  return {
+    id: d.id,
+    organization_id: d.tenant_id,
+    reservation_id: d.reservation_id,
+    rental_id: d.rental_id,
+    customer_id: d.customer_id,
+    vehicle_id: d.vehicle_id,
+    policy_id: d.policy_id,
+    required_amount: d.required_amount,
+    collected_amount: d.collected_amount,
+    applied_amount: d.applied_amount,
+    refunded_amount: d.refunded_amount,
+    forfeited_amount: d.forfeited_amount,
+    status: d.status,
+    currency: d.currency,
+    source_snapshot: (d.source_snapshot as unknown as SecurityDepositRow["source_snapshot"]) ?? null,
+    collected_at: d.collected_at,
+    refund_due_at: d.refund_due_at,
+    completed_at: d.completed_at,
+    notes: d.notes,
+    created_at: d.created_at,
+    updated_at: d.updated_at,
+  };
+}
+
+export function depositPatchToRow(
+  patch: Partial<RentalDeposit>,
+): Partial<SecurityDepositRow> {
+  return depositToRow({ ...({} as RentalDeposit), ...patch });
+}
+
+export function rowToDepositHistory(
+  r: DepositHistoryEventRow,
+): DepositHistoryEvent {
+  return {
+    id: r.id,
+    deposit_id: r.deposit_id,
+    event_type: r.event_type as DepositHistoryEvent["event_type"],
+    amount: toMoney(r.amount),
+    payment_method: (r.payment_method as DepositHistoryEvent["payment_method"]) ?? null,
+    transaction_id: r.related_transaction_id,
+    reason: r.reason,
+    staff_id: r.staff_id,
+    at: r.created_at,
+    request_key: null,
+  };
+}
+
+export function depositHistoryToRow(
+  e: DepositHistoryEvent,
+): Partial<DepositHistoryEventRow> {
+  return {
+    id: e.id,
+    organization_id: e.deposit_id ? "" : "", // set by adapter
+    deposit_id: e.deposit_id,
+    event_type: e.event_type,
+    amount: e.amount,
+    payment_method: (e.payment_method as string | null) ?? null,
+    staff_id: e.staff_id,
+    related_transaction_id: e.transaction_id,
+    reason: e.reason,
+    notes: null,
+    request_key: e.request_key,
+    created_at: e.at,
+  };
+}

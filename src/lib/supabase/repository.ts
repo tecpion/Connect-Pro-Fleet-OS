@@ -17,6 +17,9 @@ import type {
   Reservation,
   FinancialTransaction,
 } from "../types";
+import type { BookingRequest, BookingOutboundEvent } from "../bookingRequestTypes";
+import type { Inspection } from "../inspectionTypes";
+import type { RentalDeposit, DepositHistoryEvent } from "../depositTypes";
 import { getSupabase } from "./client";
 import {
   SupabaseCustomerRepository,
@@ -24,6 +27,9 @@ import {
   SupabaseRentalRepository,
   SupabaseLedgerRepository,
   SupabaseReservationRepository,
+  SupabaseBookingRequestRepository,
+  SupabaseInspectionRepository,
+  SupabaseDepositRepository,
 } from "./repositoryAdapters";
 
 // ---------------------------------------------------------------------------
@@ -83,6 +89,33 @@ export interface LedgerRepository {
   ): Promise<FinancialTransaction>;
 }
 
+export interface BookingRequestRepository {
+  list(orgId: string): Promise<BookingRequest[]>;
+  insert(b: BookingRequest): Promise<BookingRequest>;
+  update(
+    orgId: string,
+    id: string,
+    patch: Partial<BookingRequest>,
+  ): Promise<BookingRequest>;
+}
+
+export interface InspectionRepository {
+  list(orgId: string): Promise<Inspection[]>;
+  insert(i: Inspection): Promise<Inspection>;
+}
+
+export interface DepositRepository {
+  list(orgId: string): Promise<RentalDeposit[]>;
+  insert(d: RentalDeposit): Promise<RentalDeposit>;
+  update(
+    orgId: string,
+    id: string,
+    patch: Partial<RentalDeposit>,
+  ): Promise<RentalDeposit>;
+  listHistory(orgId: string, depositId: string): Promise<DepositHistoryEvent[]>;
+  insertHistory(e: DepositHistoryEvent): Promise<DepositHistoryEvent>;
+}
+
 // Re-export adapter classes + mappers so existing imports keep working.
 export {
   SupabaseCustomerRepository,
@@ -90,6 +123,9 @@ export {
   SupabaseRentalRepository,
   SupabaseLedgerRepository,
   SupabaseReservationRepository,
+  SupabaseBookingRequestRepository,
+  SupabaseInspectionRepository,
+  SupabaseDepositRepository,
 };
 
 // ---------------------------------------------------------------------------
@@ -168,6 +204,9 @@ export function createRepositories(): {
   rentals: RentalRepository | null;
   reservations: ReservationRepository | null;
   ledger: LedgerRepository | null;
+  bookingRequests: BookingRequestRepository | null;
+  inspections: InspectionRepository | null;
+  deposits: DepositRepository | null;
 } {
   const db = getSupabase();
   if (!db)
@@ -177,6 +216,9 @@ export function createRepositories(): {
       rentals: null,
       reservations: null,
       ledger: null,
+      bookingRequests: null,
+      inspections: null,
+      deposits: null,
     };
   return {
     customers: new SupabaseCustomerRepository(db),
@@ -184,5 +226,8 @@ export function createRepositories(): {
     rentals: new SupabaseRentalRepository(db),
     reservations: new SupabaseReservationRepository(db),
     ledger: new SupabaseLedgerRepository(db),
+    bookingRequests: new SupabaseBookingRequestRepository(db),
+    inspections: new SupabaseInspectionRepository(db),
+    deposits: new SupabaseDepositRepository(db),
   };
 }

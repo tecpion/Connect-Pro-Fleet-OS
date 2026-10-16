@@ -104,6 +104,115 @@ export type Database = {
           },
         ]
       }
+      agreement_instances: {
+        Row: {
+          generated_at: string
+          id: string
+          master_agreement_id: string | null
+          mileage_end: number | null
+          mileage_start: number
+          organization_id: string
+          pdf_path: string | null
+          period_end: string | null
+          period_start: string | null
+          rate: number
+          reservation_id: string | null
+          vehicle_id: string | null
+        }
+        Insert: {
+          generated_at?: string
+          id?: string
+          master_agreement_id?: string | null
+          mileage_end?: number | null
+          mileage_start?: number
+          organization_id: string
+          pdf_path?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          rate?: number
+          reservation_id?: string | null
+          vehicle_id?: string | null
+        }
+        Update: {
+          generated_at?: string
+          id?: string
+          master_agreement_id?: string | null
+          mileage_end?: number | null
+          mileage_start?: number
+          organization_id?: string
+          pdf_path?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          rate?: number
+          reservation_id?: string | null
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agreement_instances_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agreement_templates: {
+        Row: {
+          agreement_type: string
+          created_at: string
+          created_by: string | null
+          description: string
+          effective_date: string | null
+          file_name: string | null
+          file_path: string | null
+          id: string
+          is_default: boolean
+          name: string
+          organization_id: string
+          status: string
+          version: number
+        }
+        Insert: {
+          agreement_type?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          effective_date?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          id?: string
+          is_default?: boolean
+          name: string
+          organization_id: string
+          status?: string
+          version?: number
+        }
+        Update: {
+          agreement_type?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          effective_date?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          id?: string
+          is_default?: boolean
+          name?: string
+          organization_id?: string
+          status?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agreement_templates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       billing_periods: {
         Row: {
           amount: number
@@ -172,6 +281,172 @@ export type Database = {
             columns: ["rental_id"]
             isOneToOne: false
             referencedRelation: "rentals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booking_outbound_events: {
+        Row: {
+          booking_request_id: string | null
+          created_at: string
+          crm_contact_id: string | null
+          crm_opportunity_id: string | null
+          delivery_state: string
+          event_type: string
+          id: string
+          organization_id: string
+          payload: Json | null
+          rental_id: string | null
+          reservation_id: string | null
+        }
+        Insert: {
+          booking_request_id?: string | null
+          created_at?: string
+          crm_contact_id?: string | null
+          crm_opportunity_id?: string | null
+          delivery_state?: string
+          event_type: string
+          id?: string
+          organization_id: string
+          payload?: Json | null
+          rental_id?: string | null
+          reservation_id?: string | null
+        }
+        Update: {
+          booking_request_id?: string | null
+          created_at?: string
+          crm_contact_id?: string | null
+          crm_opportunity_id?: string | null
+          delivery_state?: string
+          event_type?: string
+          id?: string
+          organization_id?: string
+          payload?: Json | null
+          rental_id?: string | null
+          reservation_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_outbound_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booking_requests: {
+        Row: {
+          assigned_to: string | null
+          converted_reservation_id: string | null
+          created_at: string
+          created_by: string | null
+          crm_contact_id: string | null
+          crm_opportunity_id: string | null
+          crm_pipeline_stage: string | null
+          customer_match: Json | null
+          declined: Json | null
+          driver_license_document_reference: string | null
+          driver_license_status: string
+          email: string
+          external_request_id: string | null
+          first_name: string
+          form_answers: Json | null
+          id: string
+          last_name: string
+          lead_source: string | null
+          location_id: string | null
+          notes: string | null
+          organization_id: string
+          phone: string
+          rental_duration_type: string
+          requested_end_date: string | null
+          requested_start_date: string | null
+          requested_vehicle_class_id: string | null
+          requested_vehicle_id: string | null
+          source: string
+          status: string
+          submitted_at: string
+          updated_at: string
+          verification_status: string
+          waitlist: Json | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          converted_reservation_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          crm_contact_id?: string | null
+          crm_opportunity_id?: string | null
+          crm_pipeline_stage?: string | null
+          customer_match?: Json | null
+          declined?: Json | null
+          driver_license_document_reference?: string | null
+          driver_license_status?: string
+          email?: string
+          external_request_id?: string | null
+          first_name: string
+          form_answers?: Json | null
+          id?: string
+          last_name: string
+          lead_source?: string | null
+          location_id?: string | null
+          notes?: string | null
+          organization_id: string
+          phone?: string
+          rental_duration_type?: string
+          requested_end_date?: string | null
+          requested_start_date?: string | null
+          requested_vehicle_class_id?: string | null
+          requested_vehicle_id?: string | null
+          source?: string
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+          verification_status?: string
+          waitlist?: Json | null
+        }
+        Update: {
+          assigned_to?: string | null
+          converted_reservation_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          crm_contact_id?: string | null
+          crm_opportunity_id?: string | null
+          crm_pipeline_stage?: string | null
+          customer_match?: Json | null
+          declined?: Json | null
+          driver_license_document_reference?: string | null
+          driver_license_status?: string
+          email?: string
+          external_request_id?: string | null
+          first_name?: string
+          form_answers?: Json | null
+          id?: string
+          last_name?: string
+          lead_source?: string | null
+          location_id?: string | null
+          notes?: string | null
+          organization_id?: string
+          phone?: string
+          rental_duration_type?: string
+          requested_end_date?: string | null
+          requested_start_date?: string | null
+          requested_vehicle_class_id?: string | null
+          requested_vehicle_id?: string | null
+          source?: string
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+          verification_status?: string
+          waitlist?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_requests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -849,6 +1124,7 @@ export type Database = {
           payment_method: string | null
           reason: string | null
           related_transaction_id: string | null
+          request_key: string | null
           staff_id: string | null
         }
         Insert: {
@@ -862,6 +1138,7 @@ export type Database = {
           payment_method?: string | null
           reason?: string | null
           related_transaction_id?: string | null
+          request_key?: string | null
           staff_id?: string | null
         }
         Update: {
@@ -875,6 +1152,7 @@ export type Database = {
           payment_method?: string | null
           reason?: string | null
           related_transaction_id?: string | null
+          request_key?: string | null
           staff_id?: string | null
         }
         Relationships: [
@@ -1741,6 +2019,65 @@ export type Database = {
           },
         ]
       }
+      inspections: {
+        Row: {
+          damage_ai_confidence: number
+          damage_ai_flagged_regions: Json
+          damage_detected: boolean
+          damage_notes: string
+          fuel_level: number
+          id: string
+          inspection_type: string
+          inspector_signature_path: string | null
+          odometer_reading: number
+          organization_id: string
+          photos: Json
+          reservation_id: string | null
+          timestamp: string
+          vehicle_id: string
+        }
+        Insert: {
+          damage_ai_confidence?: number
+          damage_ai_flagged_regions?: Json
+          damage_detected?: boolean
+          damage_notes?: string
+          fuel_level?: number
+          id?: string
+          inspection_type?: string
+          inspector_signature_path?: string | null
+          odometer_reading?: number
+          organization_id: string
+          photos?: Json
+          reservation_id?: string | null
+          timestamp?: string
+          vehicle_id: string
+        }
+        Update: {
+          damage_ai_confidence?: number
+          damage_ai_flagged_regions?: Json
+          damage_detected?: boolean
+          damage_notes?: string
+          fuel_level?: number
+          id?: string
+          inspection_type?: string
+          inspector_signature_path?: string | null
+          odometer_reading?: number
+          organization_id?: string
+          photos?: Json
+          reservation_id?: string | null
+          timestamp?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspections_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       integration_events: {
         Row: {
           attempts: number
@@ -2471,6 +2808,53 @@ export type Database = {
           },
         ]
       }
+      master_agreements: {
+        Row: {
+          driver_id: string | null
+          expires_at: string | null
+          id: string
+          organization_id: string
+          rate_at_signing: number
+          signature_path: string
+          signed_at: string
+          status: string
+          terms_version: string
+          vehicle_id_at_signing: string | null
+        }
+        Insert: {
+          driver_id?: string | null
+          expires_at?: string | null
+          id?: string
+          organization_id: string
+          rate_at_signing?: number
+          signature_path: string
+          signed_at?: string
+          status?: string
+          terms_version?: string
+          vehicle_id_at_signing?: string | null
+        }
+        Update: {
+          driver_id?: string | null
+          expires_at?: string | null
+          id?: string
+          organization_id?: string
+          rate_at_signing?: number
+          signature_path?: string
+          signed_at?: string
+          status?: string
+          terms_version?: string
+          vehicle_id_at_signing?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "master_agreements_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       migration_import_batches: {
         Row: {
           error_count: number
@@ -3037,166 +3421,6 @@ export type Database = {
         }
         Relationships: []
       }
-      poc_customers: {
-        Row: {
-          email: string | null
-          id: string
-          name: string
-          org_id: string
-        }
-        Insert: {
-          email?: string | null
-          id?: string
-          name: string
-          org_id: string
-        }
-        Update: {
-          email?: string | null
-          id?: string
-          name?: string
-          org_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "poc_customers_org_id_fkey"
-            columns: ["org_id"]
-            isOneToOne: false
-            referencedRelation: "poc_orgs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      poc_memberships: {
-        Row: {
-          id: string
-          org_id: string
-          status: string
-          user_id: string
-        }
-        Insert: {
-          id?: string
-          org_id: string
-          status?: string
-          user_id: string
-        }
-        Update: {
-          id?: string
-          org_id?: string
-          status?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "poc_memberships_org_id_fkey"
-            columns: ["org_id"]
-            isOneToOne: false
-            referencedRelation: "poc_orgs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      poc_orgs: {
-        Row: {
-          id: string
-          name: string
-          slug: string | null
-        }
-        Insert: {
-          id: string
-          name: string
-          slug?: string | null
-        }
-        Update: {
-          id?: string
-          name?: string
-          slug?: string | null
-        }
-        Relationships: []
-      }
-      poc_reservations: {
-        Row: {
-          customer_id: string | null
-          end_date: string
-          id: string
-          org_id: string
-          start_date: string
-          status: string
-          vehicle_id: string | null
-        }
-        Insert: {
-          customer_id?: string | null
-          end_date: string
-          id?: string
-          org_id: string
-          start_date: string
-          status?: string
-          vehicle_id?: string | null
-        }
-        Update: {
-          customer_id?: string | null
-          end_date?: string
-          id?: string
-          org_id?: string
-          start_date?: string
-          status?: string
-          vehicle_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "poc_reservations_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "poc_customers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "poc_reservations_org_id_fkey"
-            columns: ["org_id"]
-            isOneToOne: false
-            referencedRelation: "poc_orgs"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "poc_reservations_vehicle_id_fkey"
-            columns: ["vehicle_id"]
-            isOneToOne: false
-            referencedRelation: "poc_vehicles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      poc_vehicles: {
-        Row: {
-          id: string
-          license_plate: string
-          make: string
-          model: string
-          org_id: string
-        }
-        Insert: {
-          id?: string
-          license_plate: string
-          make: string
-          model: string
-          org_id: string
-        }
-        Update: {
-          id?: string
-          license_plate?: string
-          make?: string
-          model?: string
-          org_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "poc_vehicles_org_id_fkey"
-            columns: ["org_id"]
-            isOneToOne: false
-            referencedRelation: "poc_orgs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       profiles: {
         Row: {
           avatar_path: string | null
@@ -3532,9 +3756,12 @@ export type Database = {
           next_payment_due: string | null
           organization_id: string
           payment_cutoff_time: string | null
+          policy_snapshot: Json | null
           pricing_snapshot: Json | null
+          prior_agreement_id: string | null
           rate_amount: number
           rate_type: string
+          renewed_from_agreement_id: string | null
           rental_origin: string | null
           reservation_id: string | null
           scheduled_return_date: string
@@ -3576,9 +3803,12 @@ export type Database = {
           next_payment_due?: string | null
           organization_id: string
           payment_cutoff_time?: string | null
+          policy_snapshot?: Json | null
           pricing_snapshot?: Json | null
+          prior_agreement_id?: string | null
           rate_amount?: number
           rate_type?: string
+          renewed_from_agreement_id?: string | null
           rental_origin?: string | null
           reservation_id?: string | null
           scheduled_return_date: string
@@ -3620,9 +3850,12 @@ export type Database = {
           next_payment_due?: string | null
           organization_id?: string
           payment_cutoff_time?: string | null
+          policy_snapshot?: Json | null
           pricing_snapshot?: Json | null
+          prior_agreement_id?: string | null
           rate_amount?: number
           rate_type?: string
+          renewed_from_agreement_id?: string | null
           rental_origin?: string | null
           reservation_id?: string | null
           scheduled_return_date?: string
@@ -4263,7 +4496,6 @@ export type Database = {
         }
         Returns: string
       }
-      poc_is_member: { Args: { org_id: string }; Returns: boolean }
       post_payment: {
         Args: {
           p_amount: number
