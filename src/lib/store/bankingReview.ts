@@ -6,6 +6,10 @@ import type { AccountTransfer, FinancialAccount } from "../bankingTypes";
 import type { StoreState } from "./storeState";
 import { TENANT_ID, uid } from "./ids";
 import { logReconEvent } from "./bankingShared";
+import {
+  persistAccountTransferInsert,
+  persistFinancialAccountInsert,
+} from "../supabase/phase5StoreSync";
 
 export function buildBankingReview(s: StoreState) {
   function ignoreTransaction(importedTransactionId: string, reason?: string) {
@@ -63,6 +67,7 @@ export function buildBankingReview(s: StoreState) {
       created_at: new Date().toISOString(),
     };
     s.setAccountTransfers((tr) => [transfer, ...tr]);
+    persistAccountTransferInsert(transfer);
     const ids = input.counterpartImportedId
       ? [imp.id, input.counterpartImportedId]
       : [imp.id];
@@ -131,6 +136,7 @@ export function buildBankingReview(s: StoreState) {
       updated_at: now,
     };
     s.setFinancialAccounts((a) => [account, ...a]);
+    persistFinancialAccountInsert(account);
     return id;
   }
   function updateFinancialAccount(

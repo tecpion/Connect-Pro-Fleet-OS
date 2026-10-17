@@ -22,6 +22,10 @@ import {
 } from "../csvImport";
 import { logReconEvent } from "./bankingShared";
 import { runSuggestionsFor } from "./bankingMatch";
+import {
+  persistImportedTransactionInsert,
+  persistFinancialAccountInsert,
+} from "../supabase/phase5StoreSync";
 
 export function buildBankingImport(s: StoreState) {
   function importCsv(input: {
@@ -99,6 +103,7 @@ export function buildBankingImport(s: StoreState) {
       accepted++;
     }
     s.setImportedTransactions((t) => [...newTxns, ...t]);
+    for (const txn of newTxns) persistImportedTransactionInsert(txn);
 
     // Create a statement if we have a date range.
     let statementId: string | null = null;

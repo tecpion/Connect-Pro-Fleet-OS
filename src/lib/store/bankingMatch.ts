@@ -22,6 +22,7 @@ import {
   defaultTenderForAccount,
   defaultProcessorForAccount,
 } from "./bankingShared";
+import { persistReconciliationMatchInsert } from "../supabase/phase5StoreSync";
 
 /** Run suggestions for a single imported transaction (auto-confirm exact ID). */
 export function runSuggestionsFor(s: StoreState, txn: ImportedTransaction) {
@@ -104,6 +105,7 @@ function doConfirmMatch(
     notes: input.notes ?? null,
   };
   s.setReconciliationMatches((m) => [match, ...m]);
+  persistReconciliationMatchInsert(match);
   const newAllocated = already + input.allocated_amount;
   const fullyMatched = newAllocated >= imp.amount - 0.005;
   s.setImportedTransactions((t) =>

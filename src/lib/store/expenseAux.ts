@@ -19,6 +19,10 @@ import { TENANT_ID, uid } from "./ids";
 import type { StoreState } from "./storeState";
 import type { ExpenseShared } from "./expenseShared";
 import { allocExpenseNumber } from "./expenseShared";
+import {
+  persistExpenseReceiptInsert,
+  persistExpenseCategoryInsert,
+} from "../supabase/phase5StoreSync";
 
 export function buildExpenseAux(s: StoreState, h: ExpenseShared) {
   function addExpenseReceipt(input: {
@@ -43,6 +47,7 @@ export function buildExpenseAux(s: StoreState, h: ExpenseShared) {
       voided_at: null,
     };
     s.setExpenseReceipts((rs) => [receipt, ...rs]);
+    persistExpenseReceiptInsert(receipt);
     // Update receipt status on the expense.
     s.setExpenses((es) =>
       es.map((e) =>
@@ -102,6 +107,7 @@ export function buildExpenseAux(s: StoreState, h: ExpenseShared) {
 
   function addExpenseCategory(c: ExpenseCategory) {
     s.setExpenseCategories((cs) => [c, ...cs]);
+    persistExpenseCategoryInsert(c);
   }
 
   function updateExpenseCategory(id: string, patch: Partial<ExpenseCategory>) {

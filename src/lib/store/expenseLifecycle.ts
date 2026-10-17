@@ -16,6 +16,13 @@ import { TENANT_ID, uid } from "./ids";
 import type { StoreState } from "./storeState";
 import type { ExpenseShared } from "./expenseShared";
 import { allocExpenseNumber } from "./expenseShared";
+import {
+  persistExpenseInsert,
+  persistExpenseUpdate,
+  persistExpenseLineItemInsert,
+  persistExpenseReimbursementInsert,
+  persistExpenseReimbursementUpdate,
+} from "../supabase/phase5StoreSync";
 
 export function buildExpenseLifecycle(s: StoreState, h: ExpenseShared) {
   function createExpense(input: {
@@ -80,6 +87,7 @@ export function buildExpenseLifecycle(s: StoreState, h: ExpenseShared) {
       updated_at: now,
     };
     s.setExpenses((es) => [expense, ...es]);
+    persistExpenseInsert(expense);
 
     // Line items (split).
     if (input.line_items && input.line_items.length > 0) {
@@ -89,6 +97,7 @@ export function buildExpenseLifecycle(s: StoreState, h: ExpenseShared) {
         expense_id: id,
       }));
       s.setExpenseLineItems((ls) => [...ls, ...items]);
+      for (const li of items) persistExpenseLineItemInsert(li);
     }
 
     // Reimbursement (recorded once — paying it later does NOT create a second expense).
@@ -109,6 +118,7 @@ export function buildExpenseLifecycle(s: StoreState, h: ExpenseShared) {
         created_at: now,
       };
       s.setExpenseReimbursements((rs) => [rmb, ...rs]);
+      persistExpenseReimbursementInsert(rmb);
       h.logEvent(
         id,
         "reimbursement_created",
@@ -158,6 +168,7 @@ export function buildExpenseLifecycle(s: StoreState, h: ExpenseShared) {
     const e = s.expenses.find((x) => x.id === id);
     if (!e) return;
     h.patchExpense(id, patch);
+    persistExpenseUpdate(e.tenant_id, id, patch);
     h.logEvent(id, "corrected", "Expense metadata updated");
   }
 
@@ -186,6 +197,7 @@ export function buildExpenseLifecycle(s: StoreState, h: ExpenseShared) {
       updated_at: now,
     };
     s.setExpenses((es) => [reversal, ...es]);
+    persistExpenseInsert(reversal);
     h.logEvent(reversal.id, "reversed", `Reversed ${original.expense_number}`, {
       oldValue: id,
       note: reason,
@@ -206,6 +218,10 @@ export function buildExpenseLifecycle(s: StoreState, h: ExpenseShared) {
           : r,
       ),
     );
+    persistExpenseReimbursementUpdate(rmb.tenant_id, reimbursementId, {
+      status: "approved",
+      approved_at: new Date().toISOString(),
+    });
     h.logEvent(
       rmb.expense_id,
       "reimbursement_approved",
@@ -228,6 +244,11 @@ export function buildExpenseLifecycle(s: StoreState, h: ExpenseShared) {
           : r,
       ),
     );
+    persistExpenseReimbursementUpdate(rmb.tenant_id, reimbursementId, {
+      status: "paid",
+      paid_at: now,
+      payment_method: method,
+    });
     // Mark the expense's reimbursement status as paid (no second expense created).
     s.setExpenses((es) =>
       es.map((e) =>
@@ -236,6 +257,10 @@ export function buildExpenseLifecycle(s: StoreState, h: ExpenseShared) {
           : e,
       ),
     );
+    persistExpenseUpdate(rmb.tenant_id, rmb.expense_id, {
+      reimbursement_status: "paid",
+      updated_at: now,
+    });
     h.logEvent(
       rmb.expense_id,
       "reimbursement_paid",

@@ -1,6 +1,7 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -19,6 +20,15 @@ import type {
   OwnershipChangeRecord,
 } from "./ownershipTypes";
 import { TENANT_ID } from "./store";
+import { useAuth } from "./supabase/authContext";
+import {
+  hydrateInvestor,
+  persistInvestorInsert,
+  persistInvestorVehicleInsert,
+  persistSettlementInsert,
+  persistSettlementUpdate,
+  type InvestorSyncHandles,
+} from "./supabase/phase5StoreSync";
 
 // Investor / JV store — V1 staff-only module. Standalone context (mirrors the
 // resource-center / incidents pattern) because the main fleet store module is
@@ -208,6 +218,8 @@ function monthsBetween(start: string, end: string): number {
 const InvestorContext = createContext<InvestorStore | null>(null);
 
 export function InvestorProvider({ children }: { children: ReactNode }) {
+  const { session } = useAuth();
+  const activeOrgId = session.activeOrganizationId;
   const [investorState, setInvestors] = useState(seedInvestors);
   const [ivState, setIvs] = useState(seedInvestorVehicles);
   const [vocState, setVocs] = useState(seedOperatingCosts);
@@ -216,6 +228,27 @@ export function InvestorProvider({ children }: { children: ReactNode }) {
   const [ownershipChangeState, setOwnershipChanges] = useState<
     OwnershipChangeRecord[]
   >([]);
+
+  // Phase 5: hydrate investor/JV state from Cloud on auth/org change.
+  // In memory mode hydrateInvestor is a no-op and seeded demo data stays.
+  useEffect(() => {
+    if (!activeOrgId) return;
+    let active = true;
+    const handles: InvestorSyncHandles = {
+      setInvestors: setInvestors,
+      setInvestorVehicles: setIvs,
+      setSettlements: setSettlements,
+    };
+    void hydrateInvestor(activeOrgId, handles)
+      .then((ran) => {
+        if (!ran || !active) return;
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeOrgId]);
 
   const store = useMemo<InvestorStore>(
     () => ({
@@ -226,13 +259,19 @@ export function InvestorProvider({ children }: { children: ReactNode }) {
       settlements: settlementState,
       ownershipChanges: ownershipChangeState,
 
-      addInvestor: (i) => setInvestors((is) => [...is, i]),
+      addInvestor: (i) => {
+        setInvestors((is) => [...is, i]);
+        persistInvestorInsert(i);
+      },
       updateInvestor: (id, patch) =>
         setInvestors((is) =>
           is.map((x) => (x.id === id ? { ...x, ...patch } : x)),
         ),
 
-      addInvestorVehicle: (iv) => setIvs((ivs) => [...ivs, iv]),
+      addInvestorVehicle: (iv) => {
+        setIvs((ivs) => [...ivs, iv]);
+        persistInvestorVehicleInsert(iv);
+      },
       updateInvestorVehicle: (id, patch) =>
         setIvs((ivs) => ivs.map((x) => (x.id === id ? { ...x, ...patch } : x))),
       removeInvestorVehicle: (id) =>
@@ -414,16 +453,22 @@ export function InvestorProvider({ children }: { children: ReactNode }) {
           created_at: new Date().toISOString(),
         };
         setSettlements((ss) => [settlement, ...ss]);
+        persistSettlementInsert(settlement);
         return settlement;
       },
 
       markSettlementPaid: (id, payoutDate) =>
         setSettlements((ss) =>
-          ss.map((s) =>
-            s.id === id
-              ? { ...s, payout_status: "paid", payout_date: payoutDate }
-              : s,
-          ),
+          ss.map<Settlement>((s) => {
+            if (s.id !== id) return s;
+            const next: Settlement = {
+              ...s,
+              payout_status: "paid",
+              payout_date: payoutDate,
+            };
+            persistSettlementUpdate(s.tenant_id, id, "paid", payoutDate);
+            return next;
+          }),
         ),
     }),
     [

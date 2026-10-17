@@ -32,6 +32,7 @@ import { buildExpenseMethods } from "./expenseStore";
 import { buildBankingMethods } from "./bankingStore";
 import { useAuth } from "../supabase/authContext";
 import { hydratePhase1Slices } from "../supabase/storeSync";
+import { hydrateExpenses, hydrateBanking } from "../supabase/phase5StoreSync";
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const s = useStoreState();
@@ -285,6 +286,55 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       // Hydration must never crash the app — if the Cloud read fails (e.g. no
       // session/network in a test env) the seeded in-memory data stays as the
       // UI cache. Swallow the rejection so it does not leak as unhandled.
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeOrgId]);
+
+  // Phase 5: hydrate expenses from Cloud on auth/org change. In memory mode
+  // hydrateExpenses is a no-op and the seeded demo data stays.
+  useEffect(() => {
+    if (!activeOrgId) return;
+    let active = true;
+    void hydrateExpenses(activeOrgId, {
+      setExpenses: s.setExpenses,
+      setExpenseLineItems: s.setExpenseLineItems,
+      setExpenseCategories: s.setExpenseCategories,
+      setExpenseEvents: s.setExpenseEvents,
+      setExpenseReceipts: s.setExpenseReceipts,
+      setExpenseReimbursements: s.setExpenseReimbursements,
+      setCashAccounts: s.setCashAccounts,
+      setCashEntries: s.setCashEntries,
+    })
+      .then((ran) => {
+        if (!ran || !active) return;
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeOrgId]);
+
+  // Phase 5: hydrate banking evidence from Cloud on auth/org change. Bank
+  // transactions are evidence only — no auto-creation of authoritative records.
+  useEffect(() => {
+    if (!activeOrgId) return;
+    let active = true;
+    void hydrateBanking(activeOrgId, {
+      setFinancialAccounts: s.setFinancialAccounts,
+      setImportedTransactions: s.setImportedTransactions,
+      setStatements: s.setStatements,
+      setImportBatches: s.setImportBatches,
+      setReconciliationMatches: s.setReconciliationMatches,
+      setAccountTransfers: s.setAccountTransfers,
+      setReconciliationEvents: s.setReconciliationEvents,
+    })
+      .then((ran) => {
+        if (!ran || !active) return;
+      })
       .catch(() => {});
     return () => {
       active = false;
