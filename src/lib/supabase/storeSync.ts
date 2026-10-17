@@ -1,4 +1,5 @@
-// Connect Pro Fleet — Cloud store hydration + persistence sync (Phase 1 + 3 + 4).
+// Connect Pro Fleet — Cloud store hydration + persistence sync
+// (Phase 1 + 3 + 4).
 //
 // Bridges the frozen in-memory StoreProvider to the Cloud repository layer
 // WITHOUT changing the synchronous `useStore()` API that every component
@@ -22,6 +23,21 @@ import type {
   VerificationAuditEvent,
   VerificationUsageCharge,
 } from "../verificationTypes";
+import type {
+  TelematicsDevice,
+  TelematicsDeviceAssignment,
+  TelematicsPosition,
+  TelematicsEvent,
+  TelematicsTrip,
+  TelematicsAlert,
+  TelematicsGeofence,
+} from "../telematicsTypes";
+import type {
+  Violation,
+  ViolationEvidence,
+  ViolationEvent,
+} from "../violationTypes";
+import type { CaseRecord, CaseEvent } from "../caseCenterTypes";
 import { getSupabase, getBackendMode } from "./client";
 import { createRepositories } from "./repository";
 import type {
@@ -30,6 +46,9 @@ import type {
   ReservationRepository,
   ComplianceRepository,
   VerificationRepository,
+  TelematicsRepository,
+  ViolationRepository,
+  CaseRepository,
 } from "./repository";
 
 export interface StoreSyncHandles {
@@ -44,7 +63,18 @@ export interface StoreSyncDeps {
   reservations: Reservation[];
 }
 
-function repos() {
+export interface Repositories {
+  customers: CustomerRepository | null;
+  vehicles: VehicleRepository | null;
+  reservations: ReservationRepository | null;
+  compliance: ComplianceRepository | null;
+  verification: VerificationRepository | null;
+  telematics: TelematicsRepository | null;
+  violations: ViolationRepository | null;
+  cases: CaseRepository | null;
+}
+
+function repos(): Repositories | null {
   if (getBackendMode() !== "supabase") return null;
   return createRepositories();
 }
@@ -143,6 +173,9 @@ export type {
   ReservationRepository,
   ComplianceRepository,
   VerificationRepository,
+  TelematicsRepository,
+  ViolationRepository,
+  CaseRepository,
 };
 
 // ── Phase 3: Compliance + Verification hydration + persistence ──
@@ -327,4 +360,314 @@ export function persistVerificationUsageChargeInsert(
     .catch((e) =>
       console.error("[storeSync] verification usage charge insert failed", e),
     );
+}
+
+// ── Phase 4: Telematics + Violations + Cases hydration + persistence ──
+
+export interface TelematicsSyncHandles {
+  setDevices: (
+    updater: (prev: TelematicsDevice[]) => TelematicsDevice[],
+  ) => void;
+  setAssignments: (
+    updater: (
+      prev: TelematicsDeviceAssignment[],
+    ) => TelematicsDeviceAssignment[],
+  ) => void;
+  setPositions: (
+    updater: (prev: TelematicsPosition[]) => TelematicsPosition[],
+  ) => void;
+  setEvents: (updater: (prev: TelematicsEvent[]) => TelematicsEvent[]) => void;
+  setTrips: (updater: (prev: TelematicsTrip[]) => TelematicsTrip[]) => void;
+  setAlerts: (updater: (prev: TelematicsAlert[]) => TelematicsAlert[]) => void;
+  setGeofences: (
+    updater: (prev: TelematicsGeofence[]) => TelematicsGeofence[],
+  ) => void;
+}
+
+export async function hydrateTelematics(
+  orgId: string,
+  handles: TelematicsSyncHandles,
+): Promise<boolean> {
+  const r = repos();
+  if (!r?.telematics) return false;
+  const [devices, assignments, positions, events, trips, alerts, geofences] =
+    await Promise.all([
+      r.telematics.listDevices(orgId),
+      r.telematics.listAssignments(orgId),
+      r.telematics.listPositions(orgId),
+      r.telematics.listEvents(orgId),
+      r.telematics.listTrips(orgId),
+      r.telematics.listAlerts(orgId),
+      r.telematics.listGeofences(orgId),
+    ]);
+  handles.setDevices(() => devices);
+  handles.setAssignments(() => assignments);
+  handles.setPositions(() => positions);
+  handles.setEvents(() => events);
+  handles.setTrips(() => trips);
+  handles.setAlerts(() => alerts);
+  handles.setGeofences(() => geofences);
+  return true;
+}
+
+export function persistTelematicsDeviceInsert(d: TelematicsDevice): void {
+  const r = repos();
+  if (!r?.telematics) return;
+  void r.telematics
+    .insertDevice(d)
+    .catch((e) =>
+      console.error("[storeSync] telematics device insert failed", e),
+    );
+}
+
+export function persistTelematicsDeviceUpdate(
+  orgId: string,
+  id: string,
+  patch: Partial<TelematicsDevice>,
+): void {
+  const r = repos();
+  if (!r?.telematics) return;
+  void r.telematics
+    .updateDevice(orgId, id, patch)
+    .catch((e) =>
+      console.error("[storeSync] telematics device update failed", e),
+    );
+}
+
+export function persistTelematicsAssignmentInsert(
+  a: TelematicsDeviceAssignment,
+  orgId: string,
+): void {
+  const r = repos();
+  if (!r?.telematics) return;
+  void r.telematics
+    .insertAssignment(a, orgId)
+    .catch((e) =>
+      console.error("[storeSync] telematics assignment insert failed", e),
+    );
+}
+
+export function persistTelematicsAssignmentUpdate(
+  orgId: string,
+  id: string,
+  patch: Partial<TelematicsDeviceAssignment>,
+): void {
+  const r = repos();
+  if (!r?.telematics) return;
+  void r.telematics
+    .updateAssignment(orgId, id, patch)
+    .catch((e) =>
+      console.error("[storeSync] telematics assignment update failed", e),
+    );
+}
+
+export function persistTelematicsPositionInsert(
+  p: TelematicsPosition,
+  orgId: string,
+): void {
+  const r = repos();
+  if (!r?.telematics) return;
+  void r.telematics
+    .insertPosition(p, orgId)
+    .catch((e) =>
+      console.error("[storeSync] telematics position insert failed", e),
+    );
+}
+
+export function persistTelematicsEventInsert(e: TelematicsEvent): void {
+  const r = repos();
+  if (!r?.telematics) return;
+  void r.telematics
+    .insertEvent(e)
+    .catch((err) =>
+      console.error("[storeSync] telematics event insert failed", err),
+    );
+}
+
+export function persistTelematicsTripInsert(t: TelematicsTrip): void {
+  const r = repos();
+  if (!r?.telematics) return;
+  void r.telematics
+    .insertTrip(t)
+    .catch((e) =>
+      console.error("[storeSync] telematics trip insert failed", e),
+    );
+}
+
+export function persistTelematicsAlertInsert(a: TelematicsAlert): void {
+  const r = repos();
+  if (!r?.telematics) return;
+  void r.telematics
+    .insertAlert(a)
+    .catch((e) =>
+      console.error("[storeSync] telematics alert insert failed", e),
+    );
+}
+
+export function persistTelematicsAlertUpdate(
+  orgId: string,
+  id: string,
+  patch: Partial<TelematicsAlert>,
+): void {
+  const r = repos();
+  if (!r?.telematics) return;
+  void r.telematics
+    .updateAlert(orgId, id, patch)
+    .catch((e) =>
+      console.error("[storeSync] telematics alert update failed", e),
+    );
+}
+
+export function persistTelematicsGeofenceInsert(g: TelematicsGeofence): void {
+  const r = repos();
+  if (!r?.telematics) return;
+  void r.telematics
+    .insertGeofence(g)
+    .catch((e) =>
+      console.error("[storeSync] telematics geofence insert failed", e),
+    );
+}
+
+export function persistTelematicsGeofenceUpdate(
+  orgId: string,
+  id: string,
+  patch: Partial<TelematicsGeofence>,
+): void {
+  const r = repos();
+  if (!r?.telematics) return;
+  void r.telematics
+    .updateGeofence(orgId, id, patch)
+    .catch((e) =>
+      console.error("[storeSync] telematics geofence update failed", e),
+    );
+}
+
+export function persistTelematicsGeofenceDelete(
+  orgId: string,
+  id: string,
+): void {
+  const r = repos();
+  if (!r?.telematics) return;
+  void r.telematics
+    .deleteGeofence(orgId, id)
+    .catch((e) =>
+      console.error("[storeSync] telematics geofence delete failed", e),
+    );
+}
+
+// ── Violations ──
+
+export interface ViolationSyncHandles {
+  setViolations: (updater: (prev: Violation[]) => Violation[]) => void;
+  setEvidence: (
+    updater: (prev: ViolationEvidence[]) => ViolationEvidence[],
+  ) => void;
+  setEvents: (updater: (prev: ViolationEvent[]) => ViolationEvent[]) => void;
+}
+
+export async function hydrateViolations(
+  orgId: string,
+  handles: ViolationSyncHandles,
+): Promise<boolean> {
+  const r = repos();
+  if (!r?.violations) return false;
+  const [violations, evidence, events] = await Promise.all([
+    r.violations.list(orgId),
+    r.violations.listEvidence(orgId),
+    r.violations.listEvents(orgId),
+  ]);
+  handles.setViolations(() => violations);
+  handles.setEvidence(() => evidence);
+  handles.setEvents(() => events);
+  return true;
+}
+
+export function persistViolationInsert(v: Violation): void {
+  const r = repos();
+  if (!r?.violations) return;
+  void r.violations
+    .insert(v)
+    .catch((e) => console.error("[storeSync] violation insert failed", e));
+}
+
+export function persistViolationUpdate(
+  orgId: string,
+  id: string,
+  patch: Partial<Violation>,
+): void {
+  const r = repos();
+  if (!r?.violations) return;
+  void r.violations
+    .update(orgId, id, patch)
+    .catch((e) => console.error("[storeSync] violation update failed", e));
+}
+
+export function persistViolationEvidenceInsert(e: ViolationEvidence): void {
+  const r = repos();
+  if (!r?.violations) return;
+  void r.violations
+    .insertEvidence(e)
+    .catch((err) =>
+      console.error("[storeSync] violation evidence insert failed", err),
+    );
+}
+
+export function persistViolationEventInsert(e: ViolationEvent): void {
+  const r = repos();
+  if (!r?.violations) return;
+  void r.violations
+    .insertEvent(e)
+    .catch((err) =>
+      console.error("[storeSync] violation event insert failed", err),
+    );
+}
+
+// ── Cases ──
+
+export interface CaseSyncHandles {
+  setCases: (updater: (prev: CaseRecord[]) => CaseRecord[]) => void;
+  setCaseEvents: (updater: (prev: CaseEvent[]) => CaseEvent[]) => void;
+}
+
+export async function hydrateCases(
+  orgId: string,
+  handles: CaseSyncHandles,
+): Promise<boolean> {
+  const r = repos();
+  if (!r?.cases) return false;
+  const [cases, caseEvents] = await Promise.all([
+    r.cases.list(orgId),
+    r.cases.listEvents(orgId),
+  ]);
+  handles.setCases(() => cases);
+  handles.setCaseEvents(() => caseEvents);
+  return true;
+}
+
+export function persistCaseInsert(c: CaseRecord): void {
+  const r = repos();
+  if (!r?.cases) return;
+  void r.cases
+    .insert(c)
+    .catch((e) => console.error("[storeSync] case insert failed", e));
+}
+
+export function persistCaseUpdate(
+  orgId: string,
+  id: string,
+  patch: Partial<CaseRecord>,
+): void {
+  const r = repos();
+  if (!r?.cases) return;
+  void r.cases
+    .update(orgId, id, patch)
+    .catch((e) => console.error("[storeSync] case update failed", e));
+}
+
+export function persistCaseEventInsert(e: CaseEvent): void {
+  const r = repos();
+  if (!r?.cases) return;
+  void r.cases
+    .insertEvent(e)
+    .catch((err) => console.error("[storeSync] case event insert failed", err));
 }

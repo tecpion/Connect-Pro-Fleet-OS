@@ -49,6 +49,14 @@ import {
   SupabaseComplianceRepository,
   SupabaseVerificationRepository,
 } from "./repositoryAdapters";
+import {
+  SupabaseTelematicsRepository,
+  SupabaseViolationRepository,
+  SupabaseCaseRepository,
+  type TelematicsRepository,
+  type ViolationRepository,
+  type CaseRepository,
+} from "./phase4Adapters";
 
 // ---------------------------------------------------------------------------
 // Repository interfaces
@@ -204,7 +212,11 @@ export {
   SupabaseDepositRepository,
   SupabaseComplianceRepository,
   SupabaseVerificationRepository,
+  SupabaseTelematicsRepository,
+  SupabaseViolationRepository,
+  SupabaseCaseRepository,
 };
+export type { TelematicsRepository, ViolationRepository, CaseRepository };
 
 // ---------------------------------------------------------------------------
 // Error normalization
@@ -287,6 +299,9 @@ export function createRepositories(): {
   deposits: DepositRepository | null;
   compliance: ComplianceRepository | null;
   verification: VerificationRepository | null;
+  telematics: TelematicsRepository | null;
+  violations: ViolationRepository | null;
+  cases: CaseRepository | null;
 } {
   const db = getSupabase();
   if (!db)
@@ -301,6 +316,9 @@ export function createRepositories(): {
       deposits: null,
       compliance: null,
       verification: null,
+      telematics: null,
+      violations: null,
+      cases: null,
     };
   return {
     customers: new SupabaseCustomerRepository(db),
@@ -313,5 +331,8 @@ export function createRepositories(): {
     deposits: new SupabaseDepositRepository(db),
     compliance: new SupabaseComplianceRepository(db),
     verification: new SupabaseVerificationRepository(db),
+    telematics: new SupabaseTelematicsRepository(db),
+    violations: new SupabaseViolationRepository(db),
+    cases: new SupabaseCaseRepository(db),
   };
 }
