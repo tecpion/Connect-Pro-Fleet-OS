@@ -28,6 +28,7 @@ import {
 } from "./phase4-e2e-builders";
 import { cleanupPhase4E2E } from "./phase4-e2e-cleanup";
 import type { PossessionMatrixRow } from "./phase4-e2e-possession";
+import type { ExchangeMatrixRow } from "./phase4-e2e-exchange";
 
 export interface Step {
   step: string;
@@ -42,6 +43,7 @@ export async function runPhase4E2E(): Promise<{
   orgB?: string | null;
   recordIds?: Record<string, string>;
   matchMatrix?: PossessionMatrixRow[];
+  exchangeMatrix?: ExchangeMatrixRow[];
 }> {
   const steps: Step[] = [];
   const stamp = Date.now();
@@ -339,6 +341,22 @@ export async function runPhase4E2E(): Promise<{
 
   const matchMatrix = possession.matrix;
 
+  // ── Vehicle-exchange possession matrix (3 cases, real exchange record) ──
+  // Proves the frozen resolver is exchange-aware against a real
+  // RentalVehicleExchange: V1 out + V2 in at T2.
+  const veh1Id = crypto.randomUUID();
+  const veh2Id = ctx.vehId; // the rental's current vehicle (post-exchange)
+  const rentalForExchange = buildRental(ctx);
+  const { runExchangePossessionMatrix } = await import("./phase4-e2e-exchange");
+  const exchange = await runExchangePossessionMatrix(
+    ctx,
+    veh1Id,
+    veh2Id,
+    rentalForExchange,
+  );
+  steps.push(...exchange.steps);
+  const exchangeMatrix = exchange.matrix;
+
   // ── Cleanup ──
   await cleanupPhase4E2E(
     admin as never,
@@ -348,5 +366,5 @@ export async function runPhase4E2E(): Promise<{
   );
 
   const passed = steps.every((s) => s.ok);
-  return { passed, steps, orgA, orgB, recordIds, matchMatrix };
+  return { passed, steps, orgA, orgB, recordIds, matchMatrix, exchangeMatrix };
 }
