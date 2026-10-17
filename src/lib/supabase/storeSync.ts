@@ -38,6 +38,30 @@ import type {
   ViolationEvent,
 } from "../violationTypes";
 import type { CaseRecord, CaseEvent } from "../caseCenterTypes";
+import type {
+  ExpenseTransaction,
+  ExpenseLineItem,
+  ExpenseCategory,
+  ExpenseEvent,
+  ExpenseReceipt,
+  ExpenseReimbursement,
+  CashAccount,
+  CashEntry,
+} from "../expenseTypes";
+import type {
+  FinancialAccount,
+  ImportedTransaction,
+  FinancialStatement,
+  ImportBatch,
+  ReconciliationMatch,
+  AccountTransfer,
+  ReconciliationEvent,
+} from "../bankingTypes";
+import type {
+  Investor,
+  InvestorVehicle,
+  Settlement,
+} from "../investorTypes";
 import { getSupabase, getBackendMode } from "./client";
 import { createRepositories } from "./repository";
 import type {
@@ -49,6 +73,9 @@ import type {
   TelematicsRepository,
   ViolationRepository,
   CaseRepository,
+  ExpenseRepository,
+  BankingRepository,
+  InvestorRepository,
 } from "./repository";
 
 export interface StoreSyncHandles {

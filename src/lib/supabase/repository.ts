@@ -57,6 +57,22 @@ import {
   type ViolationRepository,
   type CaseRepository,
 } from "./phase4Adapters";
+import {
+  SupabaseExpenseRepository,
+  SupabaseBankingRepository,
+  SupabaseInvestorRepository,
+  type ExpenseRepository,
+  type BankingRepository,
+  type InvestorRepository,
+} from "./phase5Adapters";
+import {
+  SupabaseExpenseRepository,
+  SupabaseBankingRepository,
+  SupabaseInvestorRepository,
+  type ExpenseRepository,
+  type BankingRepository,
+  type InvestorRepository,
+} from "./phase5Adapters";
 
 // ---------------------------------------------------------------------------
 // Repository interfaces
@@ -215,8 +231,18 @@ export {
   SupabaseTelematicsRepository,
   SupabaseViolationRepository,
   SupabaseCaseRepository,
+  SupabaseExpenseRepository,
+  SupabaseBankingRepository,
+  SupabaseInvestorRepository,
 };
-export type { TelematicsRepository, ViolationRepository, CaseRepository };
+export type {
+  TelematicsRepository,
+  ViolationRepository,
+  CaseRepository,
+  ExpenseRepository,
+  BankingRepository,
+  InvestorRepository,
+};
 
 // ---------------------------------------------------------------------------
 // Error normalization
@@ -318,6 +344,9 @@ export function createRepositories(): {
   telematics: TelematicsRepository | null;
   violations: ViolationRepository | null;
   cases: CaseRepository | null;
+  expenses: ExpenseRepository | null;
+  banking: BankingRepository | null;
+  investor: InvestorRepository | null;
 } {
   const db = getSupabase();
   if (!db)
@@ -335,6 +364,9 @@ export function createRepositories(): {
       telematics: null,
       violations: null,
       cases: null,
+      expenses: null,
+      banking: null,
+      investor: null,
     };
   return {
     customers: new SupabaseCustomerRepository(db),
@@ -350,5 +382,8 @@ export function createRepositories(): {
     telematics: new SupabaseTelematicsRepository(db),
     violations: new SupabaseViolationRepository(db),
     cases: new SupabaseCaseRepository(db),
+    expenses: new SupabaseExpenseRepository(db),
+    banking: new SupabaseBankingRepository(db),
+    investor: new SupabaseInvestorRepository(db),
   };
 }
