@@ -43,6 +43,7 @@ import { Route as ApiPhase1E2eRouteImport } from './routes/api/phase1-e2e'
 import { Route as ApiPhase2E2eRouteImport } from './routes/api/phase2-e2e'
 import { Route as ApiPhase3E2eRouteImport } from './routes/api/phase3-e2e'
 import { Route as ApiPhase4E2eRouteImport } from './routes/api/phase4-e2e'
+import { Route as ApiPhase5E2eRouteImport } from './routes/api/phase5-e2e'
 import { Route as ApiPortalE2eRouteImport } from './routes/api/portal-e2e'
 import { Route as CheckoutIdRouteImport } from './routes/checkout/$id'
 import { Route as CustomersIndexRouteImport } from './routes/customers/index'
@@ -271,6 +272,11 @@ const ApiPhase3E2eRoute = ApiPhase3E2eRouteImport.update({
 const ApiPhase4E2eRoute = ApiPhase4E2eRouteImport.update({
   id: '/api/phase4-e2e',
   path: '/api/phase4-e2e',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPhase5E2eRoute = ApiPhase5E2eRouteImport.update({
+  id: '/api/phase5-e2e',
+  path: '/api/phase5-e2e',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPortalE2eRoute = ApiPortalE2eRouteImport.update({
@@ -610,6 +616,7 @@ export interface FileRoutesByFullPath {
   '/api/phase2-e2e': typeof ApiPhase2E2eRoute
   '/api/phase3-e2e': typeof ApiPhase3E2eRoute
   '/api/phase4-e2e': typeof ApiPhase4E2eRoute
+  '/api/phase5-e2e': typeof ApiPhase5E2eRoute
   '/api/portal-e2e': typeof ApiPortalE2eRoute
   '/checkout/$id': typeof CheckoutIdRoute
   '/customers/$id': typeof CustomersIdRoute
@@ -704,6 +711,7 @@ export interface FileRoutesByTo {
   '/api/phase2-e2e': typeof ApiPhase2E2eRoute
   '/api/phase3-e2e': typeof ApiPhase3E2eRoute
   '/api/phase4-e2e': typeof ApiPhase4E2eRoute
+  '/api/phase5-e2e': typeof ApiPhase5E2eRoute
   '/api/portal-e2e': typeof ApiPortalE2eRoute
   '/checkout/$id': typeof CheckoutIdRoute
   '/customers/$id': typeof CustomersIdRoute
@@ -799,6 +807,7 @@ export interface FileRoutesById {
   '/api/phase2-e2e': typeof ApiPhase2E2eRoute
   '/api/phase3-e2e': typeof ApiPhase3E2eRoute
   '/api/phase4-e2e': typeof ApiPhase4E2eRoute
+  '/api/phase5-e2e': typeof ApiPhase5E2eRoute
   '/api/portal-e2e': typeof ApiPortalE2eRoute
   '/checkout/$id': typeof CheckoutIdRoute
   '/customers/$id': typeof CustomersIdRoute
@@ -896,6 +905,7 @@ export interface FileRouteTypes {
     | '/api/phase2-e2e'
     | '/api/phase3-e2e'
     | '/api/phase4-e2e'
+    | '/api/phase5-e2e'
     | '/api/portal-e2e'
     | '/checkout/$id'
     | '/customers/$id'
@@ -990,6 +1000,7 @@ export interface FileRouteTypes {
     | '/api/phase2-e2e'
     | '/api/phase3-e2e'
     | '/api/phase4-e2e'
+    | '/api/phase5-e2e'
     | '/api/portal-e2e'
     | '/checkout/$id'
     | '/customers/$id'
@@ -1084,6 +1095,7 @@ export interface FileRouteTypes {
     | '/api/phase2-e2e'
     | '/api/phase3-e2e'
     | '/api/phase4-e2e'
+    | '/api/phase5-e2e'
     | '/api/portal-e2e'
     | '/checkout/$id'
     | '/customers/$id'
@@ -1180,6 +1192,7 @@ export interface RootRouteChildren {
   ApiPhase2E2eRoute: typeof ApiPhase2E2eRoute
   ApiPhase3E2eRoute: typeof ApiPhase3E2eRoute
   ApiPhase4E2eRoute: typeof ApiPhase4E2eRoute
+  ApiPhase5E2eRoute: typeof ApiPhase5E2eRoute
   ApiPortalE2eRoute: typeof ApiPortalE2eRoute
   CheckoutIdRoute: typeof CheckoutIdRoute
   CustomersIdRoute: typeof CustomersIdRoute
@@ -1452,6 +1465,13 @@ declare module '@tanstack/react-router' {
       path: '/api/phase4-e2e'
       fullPath: '/api/phase4-e2e'
       preLoaderRoute: typeof ApiPhase4E2eRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/phase5-e2e': {
+      id: '/api/phase5-e2e'
+      path: '/api/phase5-e2e'
+      fullPath: '/api/phase5-e2e'
+      preLoaderRoute: typeof ApiPhase5E2eRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/portal-e2e': {
@@ -1978,6 +1998,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPhase2E2eRoute: ApiPhase2E2eRoute,
   ApiPhase3E2eRoute: ApiPhase3E2eRoute,
   ApiPhase4E2eRoute: ApiPhase4E2eRoute,
+  ApiPhase5E2eRoute: ApiPhase5E2eRoute,
   ApiPortalE2eRoute: ApiPortalE2eRoute,
   CheckoutIdRoute: CheckoutIdRoute,
   CustomersIdRoute: CustomersIdRoute,
