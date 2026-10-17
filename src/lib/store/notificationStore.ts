@@ -250,7 +250,10 @@ export function buildNotificationMethods(s: StoreState) {
 
     // --- email retry (success-locked, increments attempt_count) -----------
     retryEmail: (notificationId: string): void => {
-      if (hasSentEmailDelivery(s.notificationDeliveries, notificationId))
+      if (
+        hasSentEmailDelivery(s.notificationDeliveries, notificationId) ||
+        s.sentEmailLocks.current.has(notificationId)
+      )
         return;
       const n = s.notifications.find((x) => x.id === notificationId);
       if (!n) return;

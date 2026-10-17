@@ -143,6 +143,10 @@ export interface StoreState {
    *  s.notifications inside a single batched act() are stale, so we track
    *  used dedupe keys in a ref that updates synchronously. */
   notificationKeys: React.MutableRefObject<Set<string>>;
+  /** Synchronous email success-lock registry. A SENT email delivery records
+   *  its notification id here immediately so retryEmail's success-lock is not
+   *  defeated by a stale-closure read of s.notificationDeliveries. */
+  sentEmailLocks: React.MutableRefObject<Set<string>>;
   // Build #13 — maintenance work orders + events + vendors + receipts.
   workOrders: MaintenanceWorkOrder[];
   workOrderEvents: MaintenanceWorkOrderEvent[];
@@ -361,6 +365,7 @@ export function useStoreState(): StoreState {
       seed.notifications.map((n) => n.dedupe_key).filter(Boolean) as string[],
     ),
   );
+  const sentEmailLocks = useRef<Set<string>>(new Set());
   const [notificationDeliveries, setNotificationDeliveries] = useState<
     NotificationDelivery[]
   >(seed.notificationDeliveries);
@@ -520,6 +525,7 @@ export function useStoreState(): StoreState {
     notificationDeliveries,
     notificationPreferences,
     notificationKeys,
+    sentEmailLocks,
     workOrders,
     workOrderEvents,
     maintenanceVendors,

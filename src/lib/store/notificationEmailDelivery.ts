@@ -35,7 +35,6 @@ export function actionLabelFor(url: string | null): string {
   return "Open";
 }
 
-/** Append a delivery record to the store. */
 export function makeAddDelivery(s: StoreState): AddDeliveryFn {
   return (input) => {
     const now = new Date().toISOString();
@@ -56,6 +55,12 @@ export function makeAddDelivery(s: StoreState): AddDeliveryFn {
       failure_reason: input.failureReason ?? null,
       created_at: now,
     };
+    // Synchronous success-lock: record SENT email deliveries in a ref so the
+    // success-lock check in retryEmail is not defeated by a stale-closure read
+    // of s.notificationDeliveries inside a single batched act().
+    if (input.channel === "email" && input.status === "sent") {
+      s.sentEmailLocks.current.add(input.notificationId);
+    }
     s.setNotificationDeliveries((ds) => [d, ...ds]);
   };
 }
