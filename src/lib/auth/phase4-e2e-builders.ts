@@ -187,7 +187,10 @@ export function buildViolation(
   return {
     id: uuid(),
     tenant_id: ctx.orgA,
-    violation_number: `VIO-${ctx.stamp}-${opts.id.slice(-4)}`,
+    // violation_number must be unique per row; derive from the unique
+    // externalEventId (EXT-A/EXT-B/EXT-CROSS-...) rather than the shared stamp
+    // so two violations in the same E2E run don't collide on the unique index.
+    violation_number: `VIO-${opts.externalEventId}`,
     violation_type: "toll",
     status: "new",
     vehicle_id: opts.vehicleId,
