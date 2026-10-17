@@ -39,11 +39,7 @@ import type {
   AccountTransfer,
   ReconciliationEvent,
 } from "../bankingTypes";
-import type {
-  Investor,
-  InvestorVehicle,
-  Settlement,
-} from "../investorTypes";
+import type { Investor, InvestorVehicle, Settlement } from "../investorTypes";
 import { getBackendMode } from "./client";
 import { createRepositories } from "./repository";
 import type {
@@ -96,21 +92,22 @@ export async function hydrateExpenses(
   const r = repos();
   if (!r?.expenses) return false;
   try {
-    const [
-      expenses,
-      lineItems,
-      categories,
-      events,
-      receipts,
-      reimbursements,
-    ] = await Promise.all([
-      r.expenses.list(orgId),
-      r.expenses.listLineItems(orgId),
+    const [expenses, categories, receipts, reimbursements] = await Promise.all([
+      r.expenses.listTransactions(orgId),
       r.expenses.listCategories(orgId),
-      r.expenses.listEvents(orgId),
       r.expenses.listReceipts(orgId),
       r.expenses.listReimbursements(orgId),
     ]);
+    // Line items are scoped per-expense (listLineItems(orgId, expenseId)).
+    // Hydrate them by fetching across each transaction, preserving order.
+    const lineItems: ExpenseLineItem[] = [];
+    for (const e of expenses) {
+      const items = await r.expenses.listLineItems(orgId, e.id);
+      lineItems.push(...items);
+    }
+    // Expense events are not a Cloud-backed table in this phase; do not
+    // fabricate Cloud-backed state. They remain in-memory/transitional.
+    const events: ExpenseEvent[] = [];
     handles.setExpenses(() => expenses);
     handles.setExpenseLineItems(() => lineItems);
     handles.setExpenseCategories(() => categories);
@@ -132,8 +129,10 @@ export function persistExpenseInsert(e: ExpenseTransaction): void {
   const r = repos();
   if (!r?.expenses) return;
   void r.expenses
-    .insert(e)
-    .catch((err) => console.error("[phase5Sync] expense insert failed", err));
+    .insertTransaction(e)
+    .catch((err: unknown) =>
+      console.error("[phase5Sync] expense insert failed", err),
+    );
 }
 
 export function persistExpenseUpdate(
@@ -144,8 +143,10 @@ export function persistExpenseUpdate(
   const r = repos();
   if (!r?.expenses) return;
   void r.expenses
-    .update(orgId, id, patch)
-    .catch((err) => console.error("[phase5Sync] expense update failed", err));
+    .updateTransaction(orgId, id, patch)
+    .catch((err: unknown) =>
+      console.error("[phase5Sync] expense update failed", err),
+    );
 }
 
 export function persistExpenseLineItemInsert(li: ExpenseLineItem): void {
@@ -153,7 +154,7 @@ export function persistExpenseLineItemInsert(li: ExpenseLineItem): void {
   if (!r?.expenses) return;
   void r.expenses
     .insertLineItem(li)
-    .catch((err) =>
+    .catch((err: unknown) =>
       console.error("[phase5Sync] expense line item insert failed", err),
     );
 }
@@ -163,7 +164,7 @@ export function persistExpenseReceiptInsert(rc: ExpenseReceipt): void {
   if (!r?.expenses) return;
   void r.expenses
     .insertReceipt(rc)
-    .catch((err) =>
+    .catch((err: unknown) =>
       console.error("[phase5Sync] expense receipt insert failed", err),
     );
 }
@@ -175,7 +176,7 @@ export function persistExpenseReimbursementInsert(
   if (!r?.expenses) return;
   void r.expenses
     .insertReimbursement(rm)
-    .catch((err) =>
+    .catch((err: unknown) =>
       console.error("[phase5Sync] expense reimbursement insert failed", err),
     );
 }
@@ -189,7 +190,7 @@ export function persistExpenseReimbursementUpdate(
   if (!r?.expenses) return;
   void r.expenses
     .updateReimbursement(orgId, id, patch)
-    .catch((err) =>
+    .catch((err: unknown) =>
       console.error("[phase5Sync] expense reimbursement update failed", err),
     );
 }
@@ -199,24 +200,14 @@ export function persistExpenseCategoryInsert(c: ExpenseCategory): void {
   if (!r?.expenses) return;
   void r.expenses
     .insertCategory(c)
-    .catch((err) =>
+    .catch((err: unknown) =>
       console.error("[phase5Sync] expense category insert failed", err),
     );
 }
 
-export function persistExpenseCategoryUpdate(
-  orgId: string,
-  id: string,
-  patch: Partial<ExpenseCategory>,
-): void {
-  const r = repos();
-  if (!r?.expenses) return;
-  void r.expenses
-    .updateCategory(orgId, id, patch)
-    .catch((err) =>
-      console.error("[phase5Sync] expense category update failed", err),
-    );
-}
+// NOTE: ExpenseRepository has no category-update method (categories are
+// insert/list only in the live schema). Category edits remain in-memory until
+// a later phase adds an updateCategory capability — do not fabricate a call.
 
 // ── Banking (evidence only — never auto-create authoritative records) ──────
 
@@ -249,16 +240,23 @@ export async function hydrateBanking(
   const r = repos();
   if (!r?.banking) return false;
   try {
-    const [accounts, imported, statements, batches, matches, transfers, events] =
-      await Promise.all([
-        r.banking.listAccounts(orgId),
-        r.banking.listImportedTransactions(orgId),
-        r.banking.listStatements(orgId),
-        r.banking.listBatches(orgId),
-        r.banking.listMatches(orgId),
-        r.banking.listTransfers(orgId),
-        r.banking.listEvents(orgId),
-      ]);
+    const [
+      accounts,
+      imported,
+      statements,
+      batches,
+      matches,
+      transfers,
+      events,
+    ] = await Promise.all([
+      r.banking.listAccounts(orgId),
+      r.banking.listImportedTransactions(orgId),
+      r.banking.listStatements(orgId),
+      r.banking.listBatches(orgId),
+      r.banking.listMatches(orgId),
+      r.banking.listTransfers(orgId),
+      r.banking.listReconEvents(orgId),
+    ]);
     handles.setFinancialAccounts(() => accounts);
     handles.setImportedTransactions(() => imported);
     handles.setStatements(() => statements);
@@ -278,19 +276,17 @@ export function persistFinancialAccountInsert(a: FinancialAccount): void {
   if (!r?.banking) return;
   void r.banking
     .insertAccount(a)
-    .catch((err) =>
+    .catch((err: unknown) =>
       console.error("[phase5Sync] financial account insert failed", err),
     );
 }
 
-export function persistImportedTransactionInsert(
-  t: ImportedTransaction,
-): void {
+export function persistImportedTransactionInsert(t: ImportedTransaction): void {
   const r = repos();
   if (!r?.banking) return;
   void r.banking
     .insertImportedTransaction(t)
-    .catch((err) =>
+    .catch((err: unknown) =>
       console.error("[phase5Sync] imported transaction insert failed", err),
     );
 }
@@ -300,7 +296,7 @@ export function persistReconciliationMatchInsert(m: ReconciliationMatch): void {
   if (!r?.banking) return;
   void r.banking
     .insertMatch(m)
-    .catch((err) =>
+    .catch((err: unknown) =>
       console.error("[phase5Sync] reconciliation match insert failed", err),
     );
 }
@@ -310,7 +306,7 @@ export function persistAccountTransferInsert(t: AccountTransfer): void {
   if (!r?.banking) return;
   void r.banking
     .insertTransfer(t)
-    .catch((err) =>
+    .catch((err: unknown) =>
       console.error("[phase5Sync] account transfer insert failed", err),
     );
 }
@@ -319,8 +315,8 @@ export function persistReconciliationEventInsert(e: ReconciliationEvent): void {
   const r = repos();
   if (!r?.banking) return;
   void r.banking
-    .insertEvent(e)
-    .catch((err) =>
+    .insertReconEvent(e)
+    .catch((err: unknown) =>
       console.error("[phase5Sync] reconciliation event insert failed", err),
     );
 }
@@ -344,7 +340,7 @@ export async function hydrateInvestor(
   try {
     const [investors, investorVehicles, settlements] = await Promise.all([
       r.investor.listInvestors(orgId),
-      r.investor.listInvestorVehicles(orgId),
+      r.investor.listPairings(orgId),
       r.investor.listSettlements(orgId),
     ]);
     handles.setInvestors(() => investors);
@@ -362,15 +358,17 @@ export function persistInvestorInsert(i: Investor): void {
   if (!r?.investor) return;
   void r.investor
     .insertInvestor(i)
-    .catch((err) => console.error("[phase5Sync] investor insert failed", err));
+    .catch((err: unknown) =>
+      console.error("[phase5Sync] investor insert failed", err),
+    );
 }
 
 export function persistInvestorVehicleInsert(iv: InvestorVehicle): void {
   const r = repos();
   if (!r?.investor) return;
   void r.investor
-    .insertInvestorVehicle(iv)
-    .catch((err) =>
+    .insertPairing(iv)
+    .catch((err: unknown) =>
       console.error("[phase5Sync] investor vehicle insert failed", err),
     );
 }
@@ -380,7 +378,7 @@ export function persistSettlementInsert(s: Settlement): void {
   if (!r?.investor) return;
   void r.investor
     .insertSettlement(s)
-    .catch((err) =>
+    .catch((err: unknown) =>
       console.error("[phase5Sync] settlement insert failed", err),
     );
 }
@@ -388,14 +386,14 @@ export function persistSettlementInsert(s: Settlement): void {
 export function persistSettlementUpdate(
   orgId: string,
   id: string,
-  status: Settlement["status"],
+  status: Settlement["payout_status"],
   paidAt?: string | null,
 ): void {
   const r = repos();
   if (!r?.investor) return;
   void r.investor
     .updateSettlementStatus(orgId, id, status, paidAt)
-    .catch((err) =>
+    .catch((err: unknown) =>
       console.error("[phase5Sync] settlement update failed", err),
     );
 }

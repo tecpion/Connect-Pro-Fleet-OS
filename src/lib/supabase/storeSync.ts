@@ -57,11 +57,7 @@ import type {
   AccountTransfer,
   ReconciliationEvent,
 } from "../bankingTypes";
-import type {
-  Investor,
-  InvestorVehicle,
-  Settlement,
-} from "../investorTypes";
+import type { Investor, InvestorVehicle, Settlement } from "../investorTypes";
 import { getSupabase, getBackendMode } from "./client";
 import { createRepositories } from "./repository";
 import type {

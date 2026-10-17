@@ -65,14 +65,6 @@ import {
   type BankingRepository,
   type InvestorRepository,
 } from "./phase5Adapters";
-import {
-  SupabaseExpenseRepository,
-  SupabaseBankingRepository,
-  SupabaseInvestorRepository,
-  type ExpenseRepository,
-  type BankingRepository,
-  type InvestorRepository,
-} from "./phase5Adapters";
 
 // ---------------------------------------------------------------------------
 // Repository interfaces
