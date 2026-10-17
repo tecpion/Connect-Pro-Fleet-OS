@@ -11,13 +11,23 @@
 // registries so rapid synchronous calls (double-click, batched act()) are
 // safe. The violations ref is always-current so reads inside one batched
 // action see authoritative state, not a stale closure.
+//
+// Phase 4: Cloud-backed when Cloud is configured. Hydrates violations +
+// evidence + events from Cloud on auth/org change and persists inserts/updates
+// through the ViolationRepository. Inbound provider ingestion uses
+// findByExternalEventId so duplicate external events are idempotent (no
+// duplicate violation rows, no duplicate customer charges on recovery retry).
+// In memory mode (no Cloud config) every persist call is a no-op so the seeded
+// demo experience is unchanged.
 
 import {
   createContext,
   useContext,
+  useEffect,
   useMemo,
   useState,
   useRef,
+  useCallback,
   type ReactNode,
 } from "react";
 import type {
@@ -45,12 +55,22 @@ import type { ViolationMutationDeps } from "./violationMutationHelpers";
 import { makeViolationLifecycle } from "./violationLifecycle";
 import { resolveVehiclePossessionAt } from "./violationPossession";
 import { uid, TENANT_ID } from "./store/ids";
+import { useAuth } from "./supabase/authContext";
+import {
+  hydrateViolations,
+  persistViolationInsert,
+  persistViolationUpdate,
+  persistViolationEvidenceInsert,
+  persistViolationEventInsert,
+} from "./supabase/storeSync";
 
 const ViolationContext = createContext<ViolationStore | null>(null);
 
 export function ViolationProvider({ children }: { children: ReactNode }) {
   const store = useStore();
   const { violationPolicy } = useViolationPolicy();
+  const { session } = useAuth();
+  const activeOrgId = session.activeOrganizationId;
   const [violations, setViolations] = useState<Violation[]>(
     seedViolations.violations,
   );
@@ -68,6 +88,76 @@ export function ViolationProvider({ children }: { children: ReactNode }) {
   const chargeKeys = useRef<Set<string>>(new Set());
   const paymentKeys = useRef<Set<string>>(new Set());
 
+  // Phase 4: hydrate violations from Cloud on auth/org change. In memory
+  // mode (no Cloud config) this is a no-op and the seeded demo data stays.
+  useEffect(() => {
+    if (!activeOrgId) return;
+    let active = true;
+    void hydrateViolations(activeOrgId, {
+      setViolations,
+      setEvidence,
+      setEvents,
+    })
+      .then((ran) => {
+        if (!ran || !active) return;
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeOrgId]);
+
+  // Cloud persist wrappers around the setters. Diff the resolved array against
+  // the true `prev` (not the ref) so insert vs update is detected correctly
+  // even inside a batched act(). Fire-and-forget; local state is authoritative.
+  // Memoized on activeOrgId so the mutation deps stay stable.
+  const setViolationsPersist = useCallback(
+    (next: Violation[] | ((prev: Violation[]) => Violation[])) => {
+      setViolations((prev) => {
+        const resolved = typeof next === "function" ? next(prev) : next;
+        if (activeOrgId) {
+          for (const v of resolved) {
+            const existed = prev.find((x) => x.id === v.id);
+            if (!existed) persistViolationInsert(v);
+            else if (existed.updated_at !== v.updated_at)
+              persistViolationUpdate(activeOrgId, v.id, v);
+          }
+        }
+        return resolved;
+      });
+    },
+    [activeOrgId],
+  );
+  const setEvidencePersist = useCallback(
+    (u: (prev: ViolationEvidence[]) => ViolationEvidence[]) => {
+      setEvidence((prev) => {
+        const resolved = u(prev);
+        if (activeOrgId) {
+          for (const e of resolved) {
+            if (!prev.find((x) => x.id === e.id)) persistViolationEvidenceInsert(e);
+          }
+        }
+        return resolved;
+      });
+    },
+    [activeOrgId],
+  );
+  const setEventsPersist = useCallback(
+    (u: (prev: ViolationEvent[]) => ViolationEvent[]) => {
+      setEvents((prev) => {
+        const resolved = u(prev);
+        if (activeOrgId) {
+          for (const e of resolved) {
+            if (!prev.find((x) => x.id === e.id)) persistViolationEventInsert(e);
+          }
+        }
+        return resolved;
+      });
+    },
+    [activeOrgId],
+  );
+
   // Collect ALL vehicle exchanges (the store method is per-rental; the
   // possession resolver needs the full array).
   const allExchanges = useMemo(
@@ -78,9 +168,9 @@ export function ViolationProvider({ children }: { children: ReactNode }) {
   const deps: ViolationMutationDeps = {
     store,
     violationsRef,
-    setViolations,
-    setEvidence,
-    setEvents,
+    setViolations: setViolationsPersist,
+    setEvidence: setEvidencePersist,
+    setEvents: setEventsPersist,
     chargeKeys,
     paymentKeys,
     policyRef,
@@ -94,8 +184,8 @@ export function ViolationProvider({ children }: { children: ReactNode }) {
       }),
   };
 
-  const mut = useMemo(() => makeViolationMutations(deps), [store]);
-  const life = useMemo(() => makeViolationLifecycle(deps), [store]);
+  const mut = useMemo(() => makeViolationMutations(deps), [store, setViolationsPersist, setEvidencePersist, setEventsPersist]);
+  const life = useMemo(() => makeViolationLifecycle(deps), [store, setViolationsPersist, setEvidencePersist, setEventsPersist]);
 
   const value = useMemo<ViolationStore>(
     () => ({
@@ -168,9 +258,9 @@ export function ViolationProvider({ children }: { children: ReactNode }) {
           uploaded_by: store.currentStaffId,
           uploaded_at: new Date().toISOString(),
         };
-        setEvidence((es) => [ev, ...es]);
+        setEvidencePersist((es) => [ev, ...es]);
         // event
-        setEvents((es) => [
+        setEventsPersist((es) => [
           {
             id: uid("vevt"),
             tenant_id: TENANT_ID,
@@ -186,7 +276,7 @@ export function ViolationProvider({ children }: { children: ReactNode }) {
       },
 
       addNote: (id, text) => {
-        setViolations((vs) =>
+        setViolationsPersist((vs) =>
           vs.map((v) =>
             v.id === id
               ? {
@@ -197,7 +287,7 @@ export function ViolationProvider({ children }: { children: ReactNode }) {
               : v,
           ),
         );
-        setEvents((es) => [
+        setEventsPersist((es) => [
           {
             id: uid("vevt"),
             tenant_id: TENANT_ID,

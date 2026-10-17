@@ -9,13 +9,22 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useMemo,
   useState,
+  useCallback,
   type ReactNode,
 } from "react";
 import type { CaseRecord, CaseEvent, CaseOutcome } from "../caseCenterTypes";
 import { TENANT_ID } from "./ids";
 import { seedCases, seedCaseEvents } from "./seedCaseCenter";
+import { useAuth } from "../supabase/authContext";
+import {
+  hydrateCases,
+  persistCaseInsert,
+  persistCaseUpdate,
+  persistCaseEventInsert,
+} from "../supabase/storeSync";
 
 const uid = (p: string) => `${p}_${Math.random().toString(36).slice(2, 8)}`;
 
@@ -71,8 +80,63 @@ function event(
 }
 
 export function CaseCenterProvider({ children }: { children: ReactNode }) {
-  const [caseState, setCases] = useState(seedCases);
-  const [eventState, setEvents] = useState(seedCaseEvents);
+  const { session } = useAuth();
+  const activeOrgId = session.activeOrganizationId;
+  const [caseState, setCasesRaw] = useState(seedCases);
+  const [eventState, setEventsRaw] = useState(seedCaseEvents);
+
+  // Phase 4: hydrate cases + events from Cloud on auth/org change. In memory
+  // mode (no Cloud config) this is a no-op and the seeded demo data stays.
+  useEffect(() => {
+    if (!activeOrgId) return;
+    let active = true;
+    void hydrateCases(activeOrgId, {
+      setCases: setCasesRaw,
+      setCaseEvents: setEventsRaw,
+    })
+      .then((ran) => {
+        if (!ran || !active) return;
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeOrgId]);
+
+  // Cloud persist wrappers: diff the resolved array against true `prev` and
+  // fire insert/update through the CaseRepository. Fire-and-forget.
+  const setCases = useCallback(
+    (next: CaseRecord[] | ((prev: CaseRecord[]) => CaseRecord[])) => {
+      setCasesRaw((prev) => {
+        const resolved = typeof next === "function" ? next(prev) : next;
+        if (activeOrgId) {
+          for (const c of resolved) {
+            const existed = prev.find((x) => x.id === c.id);
+            if (!existed) persistCaseInsert(c);
+            else if (existed.updated_at !== c.updated_at)
+              persistCaseUpdate(activeOrgId, c.id, c);
+          }
+        }
+        return resolved;
+      });
+    },
+    [activeOrgId],
+  );
+  const setEvents = useCallback(
+    (next: CaseEvent[] | ((prev: CaseEvent[]) => CaseEvent[])) => {
+      setEventsRaw((prev) => {
+        const resolved = typeof next === "function" ? next(prev) : next;
+        if (activeOrgId) {
+          for (const e of resolved) {
+            if (!prev.find((x) => x.id === e.id)) persistCaseEventInsert(e);
+          }
+        }
+        return resolved;
+      });
+    },
+    [activeOrgId],
+  );
 
   const store = useMemo<CaseCenterStore>(
     () => ({
@@ -235,7 +299,7 @@ export function CaseCenterProvider({ children }: { children: ReactNode }) {
         return `CASE-2026-${String(max + 1).padStart(4, "0")}`;
       },
     }),
-    [caseState, eventState],
+    [caseState, eventState, setCases, setEvents],
   );
 
   return (
