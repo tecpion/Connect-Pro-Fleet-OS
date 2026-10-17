@@ -27,6 +27,7 @@ import {
   type Phase4Context,
 } from "./phase4-e2e-builders";
 import { cleanupPhase4E2E } from "./phase4-e2e-cleanup";
+import type { PossessionMatrixRow } from "./phase4-e2e-possession";
 
 export interface Step {
   step: string;
@@ -40,7 +41,7 @@ export async function runPhase4E2E(): Promise<{
   orgA?: string | null;
   orgB?: string | null;
   recordIds?: Record<string, string>;
-  matchMatrix?: Record<string, unknown>[];
+  matchMatrix?: PossessionMatrixRow[];
 }> {
   const steps: Step[] = [];
   const stamp = Date.now();
