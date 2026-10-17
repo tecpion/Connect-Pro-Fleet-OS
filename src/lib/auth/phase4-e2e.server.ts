@@ -148,9 +148,9 @@ export async function runPhase4E2E(): Promise<{
     orgA,
     userAId,
     userBId,
-    vehId: `veh_${stamp}`,
-    custId: `cust_${stamp}`,
-    rentalId: `rent_${stamp}`,
+    vehId: crypto.randomUUID(),
+    custId: crypto.randomUUID(),
+    rentalId: crypto.randomUUID(),
     now,
     nowIso: now.toISOString(),
     stamp,
@@ -443,7 +443,7 @@ export async function runPhase4E2E(): Promise<{
   });
 
   const noteEv = await repoA.cases.insertEvent({
-    id: `ce_note_${stamp}`,
+    id: crypto.randomUUID(),
     tenant_id: orgA,
     case_id: caseRec.id,
     type: "note_added",

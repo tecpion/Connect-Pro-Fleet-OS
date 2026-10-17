@@ -1,5 +1,8 @@
 // Phase 4 E2E — frozen-shape domain object builders for telematics,
 // tolls/violations, and cases. Split out so the E2E runner stays focused.
+//
+// IMPORTANT: all production table IDs are uuid. Builders use crypto.randomUUID()
+// for every entity id so inserts into live Cloud tables don't fail uuid casts.
 
 import type { Vehicle, RentalAgreement } from "@/lib/types";
 import type {
@@ -13,12 +16,20 @@ export interface Phase4Context {
   orgA: string;
   userAId: string;
   userBId: string;
-  vehId: string;
-  custId: string;
-  rentalId: string;
+  vehId: string; // uuid
+  custId: string; // uuid
+  rentalId: string; // uuid
   now: Date;
   nowIso: string;
   stamp: number;
+}
+
+function uuid(): string {
+  // crypto.randomUUID is available in the Node server runtime.
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return "00000000-0000-4000-8000-" + String(Date.now()).slice(-12);
 }
 
 export function buildVehicle(ctx: Phase4Context): Vehicle {
@@ -115,7 +126,7 @@ export function buildCustomer(ctx: Phase4Context) {
     first_name: "Hector",
     last_name: "Park",
     phone: "555-0200",
-    email: "hector@e2e.test",
+    email: `hector-${ctx.stamp}@e2e.test`,
     date_of_birth: "",
     address: "",
     city: "",
@@ -133,7 +144,7 @@ export function buildCustomer(ctx: Phase4Context) {
 
 export function buildTelematicsDevice(ctx: Phase4Context): TelematicsDevice {
   return {
-    id: `tel_${ctx.stamp}`,
+    id: uuid(),
     organization_id: ctx.orgA,
     provider: "custom",
     external_device_id: `EXT-${ctx.stamp}`,
@@ -152,7 +163,7 @@ export function buildAssignment(
   deviceId: string,
 ): TelematicsDeviceAssignment {
   return {
-    id: `asg_${ctx.stamp}`,
+    id: uuid(),
     device_id: deviceId,
     vehicle_id: ctx.vehId,
     started_at: ctx.nowIso,
@@ -174,7 +185,7 @@ export function buildViolation(
   },
 ): Violation {
   return {
-    id: opts.id,
+    id: uuid(),
     tenant_id: ctx.orgA,
     violation_number: `VIO-${ctx.stamp}-${opts.id.slice(-4)}`,
     violation_type: "toll",
@@ -229,7 +240,7 @@ export function buildViolation(
 
 export function buildCase(ctx: Phase4Context, violationId: string): CaseRecord {
   return {
-    id: `case_${ctx.stamp}`,
+    id: uuid(),
     tenant_id: ctx.orgA,
     case_number: `CASE-2026-${ctx.stamp}`,
     category: "tolls_tickets",
@@ -281,3 +292,5 @@ export function buildCase(ctx: Phase4Context, violationId: string): CaseRecord {
     closed_at: null,
   };
 }
+
+export { uuid as phase4Uuid };
