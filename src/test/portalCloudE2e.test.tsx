@@ -102,8 +102,8 @@ describe("Build #33 — Portal Lite: authorization + isolation + idempotency", (
         customer_id: "cus_1",
         rental_id: "rnt_1",
         exchange_reason: "other",
-        exchange_issue_description: "Van too large.",
-        exchange_preferred_timing: null,
+        issue_description: "Van too large.",
+        preferred_timing: null,
         customer_note: null,
       });
     });
@@ -150,7 +150,7 @@ describe("Build #33 — Portal Lite: authorization + isolation + idempotency", (
       result.current.requests.staffReview(TENANT_ID, createdId, {
         status: "under_review",
         staff_response: "Reviewing with fleet.",
-        actor: "Owner Alpha",
+        staff_name: "Owner Alpha",
       });
     });
     const after = result.current.requests
