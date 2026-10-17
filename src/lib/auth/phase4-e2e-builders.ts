@@ -6,7 +6,7 @@ import type {
   TelematicsDevice,
   TelematicsDeviceAssignment,
 } from "@/lib/telematicsTypes";
-import type { Violation } from "@/lib/violationTypes";
+import type { Violation, MatchingConfidence } from "@/lib/violationTypes";
 import type { CaseRecord } from "@/lib/caseCenterTypes";
 
 export interface Phase4Context {
@@ -59,30 +59,53 @@ export function buildVehicle(ctx: Phase4Context): Vehicle {
 }
 
 export function buildRental(ctx: Phase4Context): RentalAgreement {
+  const now = ctx.now;
+  // Possession interval: [now-1d 00:00, now+2d 23:59]. Events inside this
+  // window match; events before/after fall to before_rental/after_return.
+  const checkoutDate = new Date(now.getTime() - 86_400_000)
+    .toISOString()
+    .slice(0, 10);
+  const returnDate = new Date(now.getTime() + 2 * 86_400_000)
+    .toISOString()
+    .slice(0, 10);
   return {
     id: ctx.rentalId,
     tenant_id: ctx.orgA,
     reservation_id: null,
-    vehicle_id: ctx.vehId,
     customer_id: ctx.custId,
-    renter_name: "Hector Park",
-    renter_email: "hector@e2e.test",
-    renter_phone: "555-0200",
-    // Possession interval: [now-1d, now+2d]. Events inside this window match.
-    start_date: new Date(ctx.now.getTime() - 86_400_000).toISOString(),
-    end_date: new Date(ctx.now.getTime() + 2 * 86_400_000).toISOString(),
+    vehicle_id: ctx.vehId,
+    agreement_number: `AGR-${ctx.stamp}`,
     status: "active",
-    daily_rate: 90,
-    weekly_rate: 540,
+    checkout_date: checkoutDate,
+    checkout_time: "00:00",
+    scheduled_return_date: returnDate,
+    scheduled_return_time: "23:59",
+    actual_return_date: returnDate,
+    actual_return_time: "23:59",
+    rate_type: "daily",
+    rate_amount: 90,
+    subtotal: 270,
+    tax: 0,
+    fees: 0,
+    discount: 0,
     deposit_amount: 600,
-    agreement_signed: true,
-    agreement_signed_at: ctx.nowIso,
-    agreement_template_version: "v1",
+    amount_paid: 0,
+    balance_due: 0,
+    mileage_out: 12000,
+    mileage_in: null,
+    fuel_out: null,
+    fuel_in: null,
+    weekly_payment_day: null,
+    next_payment_due: null,
+    payment_cutoff_time: null,
+    grace_period: 0,
+    late_fee: 0,
+    late_fee_applied: false,
+    weeks_rented: 0,
+    created_by: ctx.userAId,
     created_at: ctx.nowIso,
     updated_at: ctx.nowIso,
-    pickup_location: "lot-1",
-    dropoff_location: "lot-1",
-  } as RentalAgreement;
+  } as unknown as RentalAgreement;
 }
 
 export function buildCustomer(ctx: Phase4Context) {
@@ -112,11 +135,11 @@ export function buildTelematicsDevice(ctx: Phase4Context): TelematicsDevice {
   return {
     id: `tel_${ctx.stamp}`,
     organization_id: ctx.orgA,
-    provider: "samsara",
+    provider: "custom",
     external_device_id: `EXT-${ctx.stamp}`,
     imei_or_serial: `IMEI-${ctx.stamp}`,
     vehicle_id: ctx.vehId,
-    status: "connected",
+    status: "online",
     installed_at: ctx.nowIso,
     last_connected_at: ctx.nowIso,
     battery_voltage: 12.4,
@@ -134,7 +157,7 @@ export function buildAssignment(
     vehicle_id: ctx.vehId,
     started_at: ctx.nowIso,
     ended_at: null,
-    reason: "checkout",
+    reason: "install",
   };
 }
 
@@ -147,7 +170,7 @@ export function buildViolation(
     vehicleId: string;
     rentalId: string | null;
     customerId: string | null;
-    matchingConfidence: "matched" | "no_match" | "ambiguous" | "manual" | null;
+    matchingConfidence: MatchingConfidence | null;
   },
 ): Violation {
   return {
@@ -172,7 +195,7 @@ export function buildViolation(
     penalties_amount: 0,
     admin_fee_amount: 0,
     total_amount: 25,
-    responsibility: "unreviewed",
+    responsibility: "unknown",
     responsibility_reason: null,
     responsibility_notes: null,
     responsibility_decided_by: null,
@@ -185,13 +208,13 @@ export function buildViolation(
     reduced_amount: null,
     company_payment_status: "not_paid",
     customer_charge_status: "not_charged",
-    reimbursement_status: "not_reimbursed",
+    reimbursement_status: "none",
     linked_expense_id: null,
     customer_charge_transaction_id: null,
     charge_idempotency_key: null,
     assigned_staff_id: null,
     notes: null,
-    source: "provider",
+    source: "toll_provider",
     created_by: ctx.userAId,
     created_at: ctx.nowIso,
     updated_at: ctx.nowIso,
@@ -201,7 +224,7 @@ export function buildViolation(
     matching_confidence: opts.matchingConfidence,
     reviewed_by: null,
     reviewed_at: null,
-  } as Violation;
+  } as unknown as Violation;
 }
 
 export function buildCase(ctx: Phase4Context, violationId: string): CaseRecord {

@@ -135,7 +135,8 @@ export function ViolationProvider({ children }: { children: ReactNode }) {
         const resolved = u(prev);
         if (activeOrgId) {
           for (const e of resolved) {
-            if (!prev.find((x) => x.id === e.id)) persistViolationEvidenceInsert(e);
+            if (!prev.find((x) => x.id === e.id))
+              persistViolationEvidenceInsert(e);
           }
         }
         return resolved;
@@ -149,7 +150,8 @@ export function ViolationProvider({ children }: { children: ReactNode }) {
         const resolved = u(prev);
         if (activeOrgId) {
           for (const e of resolved) {
-            if (!prev.find((x) => x.id === e.id)) persistViolationEventInsert(e);
+            if (!prev.find((x) => x.id === e.id))
+              persistViolationEventInsert(e);
           }
         }
         return resolved;
@@ -184,8 +186,14 @@ export function ViolationProvider({ children }: { children: ReactNode }) {
       }),
   };
 
-  const mut = useMemo(() => makeViolationMutations(deps), [store, setViolationsPersist, setEvidencePersist, setEventsPersist]);
-  const life = useMemo(() => makeViolationLifecycle(deps), [store, setViolationsPersist, setEvidencePersist, setEventsPersist]);
+  const mut = useMemo(
+    () => makeViolationMutations(deps),
+    [store, setViolationsPersist, setEvidencePersist, setEventsPersist],
+  );
+  const life = useMemo(
+    () => makeViolationLifecycle(deps),
+    [store, setViolationsPersist, setEvidencePersist, setEventsPersist],
+  );
 
   const value = useMemo<ViolationStore>(
     () => ({
