@@ -75,6 +75,7 @@ export async function deliverEmail(
 ): Promise<void> {
   const staff = s.staff.find((x) => x.id === n.recipient_user_id);
   if (!staff || !staff.email) {
+    s.sentEmailLocks.current.delete(n.id);
     addDelivery({
       notificationId: n.id,
       recipientUserId: n.recipient_user_id,
@@ -87,6 +88,7 @@ export async function deliverEmail(
   }
   const provider = getEmailProvider();
   if (!provider.isConfigured()) {
+    s.sentEmailLocks.current.delete(n.id);
     addDelivery({
       notificationId: n.id,
       recipientUserId: n.recipient_user_id,
@@ -115,6 +117,9 @@ export async function deliverEmail(
     html: content.html,
     text: content.text,
   });
+  if (!result.ok) {
+    s.sentEmailLocks.current.delete(n.id);
+  }
   addDelivery({
     notificationId: n.id,
     recipientUserId: n.recipient_user_id,

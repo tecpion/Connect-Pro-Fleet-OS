@@ -4,7 +4,7 @@
 // stale `s.*` closures until React re-renders, so setPreference / ensureSystemTask
 // / assignTask / notify are each in their own act() block.
 
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { StoreProvider, useStore } from "@/lib/store";
 import {
@@ -297,7 +297,14 @@ describe("channel preferences", () => {
         sourceEventId: "tsk_chan2",
       })!;
     });
-    await new Promise((res) => setTimeout(res, 30));
+    // Deterministically wait for the async email send to land.
+    await vi.waitFor(() => {
+      expect(
+        r.current
+          .deliveriesFor(id)
+          .some((x) => x.channel === "email" && x.status === "sent"),
+      ).toBe(true);
+    });
     const d = r.current.deliveriesFor(id);
     expect(d.some((x) => x.channel === "in_app")).toBe(false);
     expect(d.some((x) => x.channel === "email" && x.status === "sent")).toBe(

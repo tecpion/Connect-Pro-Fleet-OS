@@ -1,6 +1,6 @@
 // Connect Pro Fleet — Build #12 cleanup: email provider + idempotency + finance.
 
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { StoreProvider, useStore } from "@/lib/store";
 import {
@@ -77,7 +77,13 @@ describe("email provider hardening", () => {
         sourceEventId: "tsk_prov2",
       })!;
     });
-    await new Promise((res) => setTimeout(res, 30));
+    await vi.waitFor(() => {
+      expect(
+        r.current
+          .deliveriesFor(id)
+          .some((x) => x.channel === "email" && x.status === "sent"),
+      ).toBe(true);
+    });
     const email = r.current
       .deliveriesFor(id)
       .filter((x) => x.channel === "email");
@@ -99,7 +105,13 @@ describe("email provider hardening", () => {
         sourceEventId: "tsk_prov3",
       })!;
     });
-    await new Promise((res) => setTimeout(res, 30));
+    await vi.waitFor(() => {
+      expect(
+        r.current
+          .deliveriesFor(id)
+          .some((x) => x.channel === "email" && x.status === "failed"),
+      ).toBe(true);
+    });
     const email = r.current
       .deliveriesFor(id)
       .filter((x) => x.channel === "email");
@@ -120,7 +132,14 @@ describe("email provider hardening", () => {
         sourceEventId: "tsk_prov4",
       })!;
     });
-    await new Promise((res) => setTimeout(res, 30));
+    // Deterministically wait for the initial async email send to land.
+    await vi.waitFor(() => {
+      expect(
+        r.current
+          .deliveriesFor(id)
+          .some((x) => x.channel === "email" && x.status === "sent"),
+      ).toBe(true);
+    });
     const sentBefore = r.current
       .deliveriesFor(id)
       .filter((x) => x.channel === "email" && x.status === "sent").length;
@@ -146,10 +165,22 @@ describe("email provider hardening", () => {
         sourceEventId: "tsk_prov5",
       })!;
     });
-    await new Promise((res) => setTimeout(res, 30));
+    await vi.waitFor(() => {
+      expect(
+        r.current
+          .deliveriesFor(id)
+          .some((x) => x.channel === "email" && x.status === "failed"),
+      ).toBe(true);
+    });
     const notifBefore = r.current.notifications.length;
     act(() => r.current.retryEmail(id));
-    await new Promise((res) => setTimeout(res, 30));
+    await vi.waitFor(() => {
+      expect(
+        r.current
+          .deliveriesFor(id)
+          .some((x) => x.channel === "email" && (x.attempt_count ?? 1) >= 2),
+      ).toBe(true);
+    });
     expect(r.current.notifications.length).toBe(notifBefore);
     const attempts = r.current
       .deliveriesFor(id)

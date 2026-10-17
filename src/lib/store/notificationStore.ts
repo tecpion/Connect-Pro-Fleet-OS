@@ -160,7 +160,15 @@ export function buildNotificationMethods(s: StoreState) {
       });
     }
     if (wantEmail) {
-      void deliverEmail(s, n, rule.reason, addDelivery);
+      // Synchronously claim the email-send lock so a concurrent retryEmail
+      // call cannot fire a duplicate send while the initial deliverEmail is
+      // still in-flight (its addDelivery runs asynchronously after the provider
+      // promise resolves). If the send ultimately FAILS, deliverEmail clears
+      // the lock so a manual retry is still permitted.
+      s.sentEmailLocks.current.add(id);
+      void deliverEmail(s, n, rule.reason, addDelivery).catch(() => {
+        s.sentEmailLocks.current.delete(id);
+      });
     }
     return id;
   }
