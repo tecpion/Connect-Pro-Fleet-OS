@@ -1048,6 +1048,39 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_auth_links: {
+        Row: {
+          created_at: string
+          customer_id: string
+          email: string
+          id: string
+          organization_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          email: string
+          id?: string
+          organization_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          email?: string
+          id?: string
+          organization_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       customers: {
         Row: {
           address: string | null
@@ -3845,6 +3878,87 @@ export type Database = {
         }
         Relationships: []
       }
+      portal_requests: {
+        Row: {
+          assigned_staff_id: string | null
+          created_at: string
+          current_scheduled_end: string | null
+          customer_id: string
+          customer_note: string | null
+          estimated_extension_charge: number | null
+          exchange_issue_description: string | null
+          exchange_preferred_timing: string | null
+          exchange_reason: string | null
+          id: string
+          last_activity_at: string
+          linked_task_id: string | null
+          organization_id: string
+          rental_id: string | null
+          request_number: string
+          request_type: string
+          requested_new_end: string | null
+          requested_return_date: string | null
+          requested_return_location: string | null
+          resolved_at: string | null
+          staff_response: string | null
+          status: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_staff_id?: string | null
+          created_at?: string
+          current_scheduled_end?: string | null
+          customer_id: string
+          customer_note?: string | null
+          estimated_extension_charge?: number | null
+          exchange_issue_description?: string | null
+          exchange_preferred_timing?: string | null
+          exchange_reason?: string | null
+          id?: string
+          last_activity_at?: string
+          linked_task_id?: string | null
+          organization_id: string
+          rental_id?: string | null
+          request_number: string
+          request_type: string
+          requested_new_end?: string | null
+          requested_return_date?: string | null
+          requested_return_location?: string | null
+          resolved_at?: string | null
+          staff_response?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_staff_id?: string | null
+          created_at?: string
+          current_scheduled_end?: string | null
+          customer_id?: string
+          customer_note?: string | null
+          estimated_extension_charge?: number | null
+          exchange_issue_description?: string | null
+          exchange_preferred_timing?: string | null
+          exchange_reason?: string | null
+          id?: string
+          last_activity_at?: string
+          linked_task_id?: string | null
+          organization_id?: string
+          rental_id?: string | null
+          request_number?: string
+          request_type?: string
+          requested_new_end?: string | null
+          requested_return_date?: string | null
+          requested_return_location?: string | null
+          resolved_at?: string | null
+          staff_response?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_path: string | null
@@ -5847,6 +5961,10 @@ export type Database = {
         }
         Returns: string
       }
+      next_portal_request_number: {
+        Args: { p_org_id: string }
+        Returns: string
+      }
       post_payment: {
         Args: {
           p_amount: number
@@ -5879,6 +5997,14 @@ export type Database = {
           created_org: boolean
           organization_id: string
           role_id: string
+        }[]
+      }
+      resolve_customer_portal_auth: {
+        Args: { p_user_id: string }
+        Returns: {
+          customer_id: string
+          email: string
+          organization_id: string
         }[]
       }
     }
