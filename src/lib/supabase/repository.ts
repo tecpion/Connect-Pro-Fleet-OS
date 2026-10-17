@@ -238,7 +238,23 @@ export class RepositoryError extends Error {
 }
 
 export function normalizeError(err: unknown): RepositoryError {
-  const msg = err instanceof Error ? err.message : String(err);
+  let msg = "";
+  let hint = "";
+  if (err && typeof err === "object") {
+    const e = err as {
+      message?: unknown;
+      details?: unknown;
+      hint?: unknown;
+      code?: unknown;
+      error?: unknown;
+    };
+    if (typeof e.message === "string") msg = e.message;
+    else if (typeof e.error === "string") msg = e.error;
+    else if (typeof e.details === "string") msg = e.details;
+    if (typeof e.hint === "string") hint = e.hint;
+  }
+  if (!msg) msg = err instanceof Error ? err.message : String(err);
+  if (hint && !msg.includes(hint)) msg = `${msg} (hint: ${hint})`;
   const lower = msg.toLowerCase();
   if (
     lower.includes("jwt") ||

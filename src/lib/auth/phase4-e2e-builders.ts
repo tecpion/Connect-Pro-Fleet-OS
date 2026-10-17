@@ -294,3 +294,91 @@ export function buildCase(ctx: Phase4Context, violationId: string): CaseRecord {
 }
 
 export { uuid as phase4Uuid };
+
+/**
+ * Minimal DB-shaped rows (organization_id, NOT NULL columns only) used by the
+ * Phase 4 E2E setup so the Phase 1/2 FK chain customer→vehicle→rental exists
+ * before telematics/violation/case inserts run. The domain builders above
+ * emit `tenant_id`/images/documents which the live Postgres columns do not
+ * have, so these are the correct shapes for raw table inserts.
+ */
+export function buildCustomerRow(ctx: Phase4Context): Record<string, unknown> {
+  return {
+    id: ctx.custId,
+    organization_id: ctx.orgA,
+    first_name: "Hector",
+    last_name: "Park",
+    phone: "555-0200",
+    email: `hector-${ctx.stamp}@e2e.test`,
+    customer_status: "active",
+    customer_source: "walk_in",
+    notes: "",
+    created_at: ctx.nowIso,
+    updated_at: ctx.nowIso,
+  };
+}
+
+export function buildVehicleRow(ctx: Phase4Context): Record<string, unknown> {
+  return {
+    id: ctx.vehId,
+    organization_id: ctx.orgA,
+    vin: `E2E4${ctx.stamp}`,
+    make: "Ford",
+    model: "Transit",
+    year: 2023,
+    license_plate: "E2E4-A",
+    status: "rented",
+    location: "lot-1",
+    vehicle_type: "van",
+    daily_rate: 90,
+    weekly_rate: 540,
+    deposit_amount: 600,
+    purchase_price: 0,
+    current_mileage: 12000,
+    created_at: ctx.nowIso,
+    updated_at: ctx.nowIso,
+  };
+}
+
+export function buildRentalRow(ctx: Phase4Context): Record<string, unknown> {
+  const now = ctx.now;
+  const checkoutDate = new Date(now.getTime() - 86_400_000)
+    .toISOString()
+    .slice(0, 10);
+  const returnDate = new Date(now.getTime() + 2 * 86_400_000)
+    .toISOString()
+    .slice(0, 10);
+  return {
+    id: ctx.rentalId,
+    organization_id: ctx.orgA,
+    customer_id: ctx.custId,
+    vehicle_id: ctx.vehId,
+    agreement_number: `AGR-${ctx.stamp}`,
+    status: "active",
+    checkout_date: checkoutDate,
+    checkout_time: "00:00",
+    scheduled_return_date: returnDate,
+    scheduled_return_time: "23:59",
+    actual_return_date: returnDate,
+    actual_return_time: "23:59",
+    rate_type: "daily",
+    rate_amount: 90,
+    subtotal: 270,
+    tax: 0,
+    fees: 0,
+    discount: 0,
+    deposit_amount: 600,
+    amount_paid: 0,
+    balance_due: 0,
+    mileage_out: 12000,
+    fuel_out: null,
+    fuel_in: null,
+    grace_period: 0,
+    late_fee: 0,
+    late_fee_applied: false,
+    weeks_rented: 0,
+    created_by: ctx.userAId,
+    created_at: ctx.nowIso,
+    updated_at: ctx.nowIso,
+  };
+}

@@ -5,11 +5,24 @@ export const Route = createFileRoute("/api/phase4-e2e")({
   server: {
     handlers: {
       POST: async () => {
-        const result = await runPhase4E2E();
-        return new Response(JSON.stringify(result), {
-          status: result.passed ? 200 : 500,
-          headers: { "Content-Type": "application/json" },
-        });
+        try {
+          const result = await runPhase4E2E();
+          return new Response(JSON.stringify(result), {
+            status: result.passed ? 200 : 500,
+            headers: { "Content-Type": "application/json" },
+          });
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          return new Response(
+            JSON.stringify({
+              passed: false,
+              crashed: true,
+              error: message,
+              stack: err instanceof Error ? err.stack : undefined,
+            }),
+            { status: 500, headers: { "Content-Type": "application/json" } },
+          );
+        }
       },
     },
   },

@@ -12,13 +12,13 @@ import {
 } from "@/lib/supabase/phase4Adapters";
 import { resolveVehiclePossessionAt } from "@/lib/violationPossession";
 import {
-  buildVehicle,
-  buildCustomer,
-  buildRental,
   buildTelematicsDevice,
   buildAssignment,
   buildViolation,
   buildCase,
+  buildCustomer,
+  buildVehicle,
+  buildRental,
   type Phase4Context,
 } from "./phase4-e2e-builders";
 
