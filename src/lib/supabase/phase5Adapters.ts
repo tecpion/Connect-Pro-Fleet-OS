@@ -9,7 +9,13 @@
 // The store owns domain semantics; these adapters own durable read/write +
 // mapping between DB rows and domain objects.
 
-import type { ExpenseTransaction, ExpenseCategory, ExpenseLineItem, ExpenseReceipt, ExpenseReimbursement } from "../expenseTypes";
+import type {
+  ExpenseTransaction,
+  ExpenseCategory,
+  ExpenseLineItem,
+  ExpenseReceipt,
+  ExpenseReimbursement,
+} from "../expenseTypes";
 import type {
   FinancialAccount,
   ImportedTransaction,
@@ -20,6 +26,8 @@ import type {
   ReconciliationEvent,
 } from "../bankingTypes";
 import type { Investor, InvestorVehicle, Settlement } from "../investorTypes";
+import type { ExpenseReimbursementRow } from "./dbTypesFinancial";
+import type { InvestorSettlementRow } from "./dbTypesIntegrations";
 import type { getSupabase } from "./client";
 import { normalizeError } from "./repository";
 import {
@@ -142,7 +150,10 @@ export class SupabaseExpenseRepository implements ExpenseRepository {
     return rowToExpenseCategory(data);
   }
 
-  async listLineItems(orgId: string, expenseId: string): Promise<ExpenseLineItem[]> {
+  async listLineItems(
+    orgId: string,
+    expenseId: string,
+  ): Promise<ExpenseLineItem[]> {
     const { data, error } = await this.db
       .from("expense_line_items")
       .select("*")
@@ -200,7 +211,9 @@ export class SupabaseExpenseRepository implements ExpenseRepository {
     return (data ?? []).map(rowToExpenseReimbursement);
   }
 
-  async insertReimbursement(rm: ExpenseReimbursement): Promise<ExpenseReimbursement> {
+  async insertReimbursement(
+    rm: ExpenseReimbursement,
+  ): Promise<ExpenseReimbursement> {
     const { data, error } = await this.db
       .from("expense_reimbursements")
       .insert(expenseReimbursementToRow(rm))
@@ -215,11 +228,14 @@ export class SupabaseExpenseRepository implements ExpenseRepository {
     id: string,
     patch: Partial<ExpenseReimbursement>,
   ): Promise<ExpenseReimbursement> {
-    const updateRow: Record<string, unknown> = {};
-    if (patch.status !== undefined) updateRow.status = patch.status;
-    if (patch.approved_at !== undefined) updateRow.approved_at = patch.approved_at;
+    const updateRow: Partial<ExpenseReimbursementRow> = {};
+    if (patch.status !== undefined)
+      updateRow.status = patch.status as ExpenseReimbursementRow["status"];
+    if (patch.approved_at !== undefined)
+      updateRow.approved_at = patch.approved_at;
     if (patch.paid_at !== undefined) updateRow.paid_at = patch.paid_at;
-    if (patch.payment_method !== undefined) updateRow.payment_method = patch.payment_method;
+    if (patch.payment_method !== undefined)
+      updateRow.payment_method = patch.payment_method;
     if (patch.notes !== undefined) updateRow.notes = patch.notes;
     const { data, error } = await this.db
       .from("expense_reimbursements")
@@ -242,9 +258,17 @@ export interface BankingRepository {
   listAccounts(orgId: string): Promise<FinancialAccount[]>;
   insertAccount(a: FinancialAccount): Promise<FinancialAccount>;
   listImportedTransactions(orgId: string): Promise<ImportedTransaction[]>;
-  insertImportedTransaction(t: ImportedTransaction): Promise<ImportedTransaction>;
-  findByExternalId(orgId: string, externalId: string): Promise<ImportedTransaction | null>;
-  findByFingerprint(orgId: string, fingerprint: string): Promise<ImportedTransaction | null>;
+  insertImportedTransaction(
+    t: ImportedTransaction,
+  ): Promise<ImportedTransaction>;
+  findByExternalId(
+    orgId: string,
+    externalId: string,
+  ): Promise<ImportedTransaction | null>;
+  findByFingerprint(
+    orgId: string,
+    fingerprint: string,
+  ): Promise<ImportedTransaction | null>;
   listStatements(orgId: string): Promise<FinancialStatement[]>;
   insertStatement(s: FinancialStatement): Promise<FinancialStatement>;
   listBatches(orgId: string): Promise<ImportBatch[]>;
@@ -279,7 +303,9 @@ export class SupabaseBankingRepository implements BankingRepository {
     return rowToFinancialAccount(data);
   }
 
-  async listImportedTransactions(orgId: string): Promise<ImportedTransaction[]> {
+  async listImportedTransactions(
+    orgId: string,
+  ): Promise<ImportedTransaction[]> {
     const { data, error } = await this.db
       .from("imported_transactions")
       .select("*")
@@ -289,7 +315,9 @@ export class SupabaseBankingRepository implements BankingRepository {
     return (data ?? []).map(rowToImportedTransaction);
   }
 
-  async insertImportedTransaction(t: ImportedTransaction): Promise<ImportedTransaction> {
+  async insertImportedTransaction(
+    t: ImportedTransaction,
+  ): Promise<ImportedTransaction> {
     const { data, error } = await this.db
       .from("imported_transactions")
       .insert(importedTransactionToRow(t))
@@ -299,7 +327,10 @@ export class SupabaseBankingRepository implements BankingRepository {
     return rowToImportedTransaction(data);
   }
 
-  async findByExternalId(orgId: string, externalId: string): Promise<ImportedTransaction | null> {
+  async findByExternalId(
+    orgId: string,
+    externalId: string,
+  ): Promise<ImportedTransaction | null> {
     const { data, error } = await this.db
       .from("imported_transactions")
       .select("*")
@@ -310,7 +341,10 @@ export class SupabaseBankingRepository implements BankingRepository {
     return data ? rowToImportedTransaction(data) : null;
   }
 
-  async findByFingerprint(orgId: string, fingerprint: string): Promise<ImportedTransaction | null> {
+  async findByFingerprint(
+    orgId: string,
+    fingerprint: string,
+  ): Promise<ImportedTransaction | null> {
     const { data, error } = await this.db
       .from("imported_transactions")
       .select("*")
@@ -506,7 +540,9 @@ export class SupabaseInvestorRepository implements InvestorRepository {
     status: Settlement["payout_status"],
     paidAt?: string | null,
   ): Promise<Settlement> {
-    const updateRow: Record<string, unknown> = { status };
+    const updateRow: Partial<InvestorSettlementRow> = {
+      status: status as InvestorSettlementRow["status"],
+    };
     if (paidAt !== undefined) updateRow.paid_at = paidAt;
     const { data, error } = await this.db
       .from("investor_settlements")
