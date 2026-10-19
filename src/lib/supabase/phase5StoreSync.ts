@@ -48,11 +48,13 @@ import type {
   InvestorRepository,
 } from "./repository";
 
-function repos(): {
+export interface Phase5Repositories {
   expenses: ExpenseRepository | null;
   banking: BankingRepository | null;
   investor: InvestorRepository | null;
-} | null {
+}
+
+function repos(): Phase5Repositories | null {
   if (getBackendMode() !== "supabase") return null;
   const r = createRepositories();
   return {
@@ -88,8 +90,9 @@ export interface ExpenseSyncHandles {
 export async function hydrateExpenses(
   orgId: string,
   handles: ExpenseSyncHandles,
+  repositories?: Phase5Repositories,
 ): Promise<boolean> {
-  const r = repos();
+  const r = repositories ?? repos();
   if (!r?.expenses) return false;
   try {
     const [expenses, categories, receipts, reimbursements] = await Promise.all([
@@ -236,8 +239,9 @@ export interface BankingSyncHandles {
 export async function hydrateBanking(
   orgId: string,
   handles: BankingSyncHandles,
+  repositories?: Phase5Repositories,
 ): Promise<boolean> {
-  const r = repos();
+  const r = repositories ?? repos();
   if (!r?.banking) return false;
   try {
     const [
@@ -258,7 +262,33 @@ export async function hydrateBanking(
       r.banking.listReconEvents(orgId),
     ]);
     handles.setFinancialAccounts(() => accounts);
-    handles.setImportedTransactions(() => imported);
+    // Matches and transfers are authoritative Cloud records. Restore their
+    // derived evidence badges after relogin even when the imported row still
+    // carries its original unmatched status. This never creates ledger rows.
+    const transferIds = new Set(
+      transfers.flatMap((t) => t.imported_transaction_ids),
+    );
+    const restored = imported.map((t) => {
+      if (transferIds.has(t.id))
+        return {
+          ...t,
+          transfer_status: "transfer" as const,
+          review_status: "reviewed" as const,
+          match_status: "unmatched" as const,
+        };
+      const active = matches.filter(
+        (m) => m.imported_transaction_id === t.id && !m.voided_at,
+      );
+      if (!active.length) return t;
+      const allocated = active.reduce((sum, m) => sum + m.allocated_amount, 0);
+      const full = allocated >= t.amount - 0.005;
+      return {
+        ...t,
+        match_status: full ? ("matched" as const) : ("split_matched" as const),
+        review_status: full ? ("reviewed" as const) : t.review_status,
+      };
+    });
+    handles.setImportedTransactions(() => restored);
     handles.setStatements(() => statements);
     handles.setImportBatches(() => batches);
     handles.setReconciliationMatches(() => matches);
@@ -334,8 +364,9 @@ export interface InvestorSyncHandles {
 export async function hydrateInvestor(
   orgId: string,
   handles: InvestorSyncHandles,
+  repositories?: Phase5Repositories,
 ): Promise<boolean> {
-  const r = repos();
+  const r = repositories ?? repos();
   if (!r?.investor) return false;
   try {
     const [investors, investorVehicles, settlements] = await Promise.all([
