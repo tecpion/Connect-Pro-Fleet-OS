@@ -9,18 +9,50 @@
 // Phase 5 must NOT be marked PASS until this driver is fully implemented and
 // executed successfully against authenticated Org A / Org B clients.
 
+export interface Phase5Step {
+  step: string;
+  ok: boolean;
+  detail?: string;
+}
 export interface Phase5E2EResult {
-  passed: false;
-  ran: false;
-  reason: string;
-  note: string;
+  passed: boolean;
+  ran: boolean;
+  steps: Phase5Step[];
+  reason?: string;
+  orgA?: string;
+  orgB?: string;
+  recordIds?: Record<string, string>;
 }
 
 export async function runPhase5E2E(): Promise<Phase5E2EResult> {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_PUBLISHABLE_KEY;
+  const secret = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key || !secret)
+    return {
+      passed: false,
+      ran: false,
+      reason:
+        "Cloud server configuration unavailable; execute POST /api/phase5-e2e in AI Studio.",
+      steps: [
+        {
+          step: "server_config",
+          ok: false,
+          detail:
+            "Requires SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, SUPABASE_SERVICE_ROLE_KEY",
+        },
+      ],
+    };
   return {
     passed: false,
     ran: false,
-    reason: "Phase 5 live E2E driver has not been implemented yet.",
-    note: "Expense, Banking, and Investor/JV stores are Cloud-backed and the regression suite is green, but the authenticated Org A / Org B runtime E2E has not been executed. Phase 5 cannot be marked PASS until this runs successfully.",
+    reason: "Phase 5 live E2E runner not applied.",
+    steps: [
+      {
+        step: "server_config",
+        ok: false,
+        detail: "Phase 5 live E2E runner not applied.",
+      },
+    ],
   };
 }
