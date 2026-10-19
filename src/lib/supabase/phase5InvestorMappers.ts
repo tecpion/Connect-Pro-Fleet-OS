@@ -58,7 +58,39 @@ export function rowToInvestorVehicle(r: InvestorVehicleRow): InvestorVehicle {
     revenue_split_operator_pct: Math.max(0, 100 - pct),
     agreement_id: null,
     active: r.status === "active",
-    compensation: null,
+    compensation:
+      r.compensation_type === "fixed"
+        ? {
+            type: "fixed",
+            fixed_amount: r.fixed_amount ?? 0,
+            fixed_frequency: (r.fixed_frequency ?? "monthly") as
+              "weekly" | "biweekly" | "monthly" | "custom",
+            guaranteed_when_not_rented: r.guaranteed_when_not_rented ?? false,
+            guaranteed_during_downtime: r.guaranteed_during_downtime ?? false,
+            effective_date: r.effective_date.slice(0, 10),
+            end_date: r.end_date?.slice(0, 10) ?? null,
+            notes: r.notes,
+          }
+        : r.compensation_type === "custom"
+          ? {
+              type: "custom",
+              description: r.custom_terms ?? "",
+              effective_date: r.effective_date.slice(0, 10),
+              end_date: r.end_date?.slice(0, 10) ?? null,
+              notes: r.notes,
+            }
+          : {
+              type: "percentage",
+              basis:
+                r.basis === "net" || r.basis === "net_revenue"
+                  ? "net"
+                  : "gross",
+              investor_percentage: pct,
+              operator_percentage: Math.max(0, 100 - pct),
+              effective_date: r.effective_date.slice(0, 10),
+              end_date: r.end_date?.slice(0, 10) ?? null,
+              notes: r.notes,
+            },
     effective_date: r.effective_date ?? null,
   };
 }
@@ -72,17 +104,35 @@ export function investorVehicleToRow(
     investor_id: iv.investor_id,
     vehicle_id: iv.vehicle_id,
     status: iv.active ? "active" : "inactive",
-    effective_date: iv.effective_date ?? new Date().toISOString(),
-    end_date: null,
-    compensation_type: "percentage",
-    percentage: iv.revenue_split_investor_pct,
-    basis: "gross_revenue",
-    fixed_amount: null,
-    fixed_frequency: null,
-    guaranteed_when_not_rented: null,
-    guaranteed_during_downtime: null,
-    custom_terms: null,
-    notes: null,
+    effective_date:
+      iv.compensation?.effective_date ??
+      iv.effective_date ??
+      new Date().toISOString(),
+    end_date: iv.compensation?.end_date ?? null,
+    compensation_type: iv.compensation?.type ?? "percentage",
+    percentage:
+      iv.compensation?.type === "percentage"
+        ? iv.compensation.investor_percentage
+        : iv.revenue_split_investor_pct,
+    basis:
+      iv.compensation?.type === "percentage" ? iv.compensation.basis : "net",
+    fixed_amount:
+      iv.compensation?.type === "fixed" ? iv.compensation.fixed_amount : null,
+    fixed_frequency:
+      iv.compensation?.type === "fixed"
+        ? iv.compensation.fixed_frequency
+        : null,
+    guaranteed_when_not_rented:
+      iv.compensation?.type === "fixed"
+        ? iv.compensation.guaranteed_when_not_rented
+        : null,
+    guaranteed_during_downtime:
+      iv.compensation?.type === "fixed"
+        ? iv.compensation.guaranteed_during_downtime
+        : null,
+    custom_terms:
+      iv.compensation?.type === "custom" ? iv.compensation.description : null,
+    notes: iv.compensation?.notes ?? null,
   };
 }
 

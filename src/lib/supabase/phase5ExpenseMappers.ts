@@ -219,12 +219,10 @@ export function rowToExpenseReceipt(r: ExpenseReceiptRow): ExpenseReceipt {
 
 export function expenseReceiptToRow(
   rc: ExpenseReceipt,
-): Omit<
-  ExpenseReceiptRow,
-  "organization_id" | "receipt_type" | "amount" | "vendor_id"
-> {
+): Omit<ExpenseReceiptRow, "receipt_type" | "amount" | "vendor_id"> {
   return {
     id: rc.id,
+    organization_id: rc.tenant_id,
     expense_id: rc.expense_id,
     file_name: rc.file_name,
     storage_path: rc.file_url,

@@ -202,8 +202,10 @@ export function rowToImportBatch(r: ImportBatchRow): ImportBatch {
 
 export function importBatchToRow(
   b: ImportBatch,
-): Omit<ImportBatchRow, "id" | "import_type" | "rollback_status" | "metadata"> {
+): Omit<ImportBatchRow, "rollback_status" | "metadata"> {
   return {
+    id: b.id,
+    import_type: "banking",
     organization_id: b.tenant_id,
     source_name: b.source,
     source_file_name: b.source_file_name,
