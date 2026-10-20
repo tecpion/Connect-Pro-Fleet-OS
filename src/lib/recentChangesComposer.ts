@@ -38,6 +38,8 @@ import {
   assignmentTimelineEvents,
 } from "./timelineMiscNormalizer";
 
+import { startOfDayInTz } from "./timezone";
+
 const DAY = 86_400_000;
 
 /** A surfaced recent-change item with stable source traceability. */
@@ -205,10 +207,20 @@ export function getCompanyRecentChanges(
   return items;
 }
 
-/** Build the start-of-window for "since yesterday" using tenant-local day
- *  boundaries. Returns the start of the calendar day `daysBack` days before
- *  the as-of day (same wall-clock timezone the cutoffs are expressed in). */
-export function recentChangesWindowStart(asOf: Date, daysBack = 1): Date {
+/** Build the start-of-window for "since yesterday" using business-day
+ *  boundaries. When `tz` (an org timezone from `CompanyInfo.timezone`) is
+ *  supplied the day boundary is evaluated in that org zone (the returned
+ *  `Date` is a real UTC instant); otherwise the legacy machine-local
+ *  `setHours(0,0,0,0)` behavior is preserved. */
+export function recentChangesWindowStart(
+  asOf: Date,
+  daysBack = 1,
+  tz?: string,
+): Date {
+  if (tz) {
+    const sod = startOfDayInTz(asOf, tz);
+    return new Date(sod.getTime() - daysBack * DAY);
+  }
   const d = new Date(asOf);
   d.setHours(0, 0, 0, 0);
   return new Date(d.getTime() - daysBack * DAY);

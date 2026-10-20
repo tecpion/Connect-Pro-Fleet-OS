@@ -19,6 +19,15 @@
 import type { Incident } from "./incidents";
 import type { Violation } from "./violationTypes";
 import { VIOLATION_OPEN_STATUSES } from "./violationTypes";
+import {
+  startOfDayInTz,
+  endOfDayInTz,
+  startOfMonthInTz,
+  endOfMonthInTz,
+  startOfYearInTz,
+  endOfYearInTz,
+  zonedDateTimeParts,
+} from "./timezone";
 
 const DAY = 86_400_000;
 
@@ -28,16 +37,20 @@ function parseMs(iso: string | null | undefined): number | null {
   return isNaN(t) ? null : t;
 }
 
-/** Start of the calendar month containing `d` (tenant-local). */
-export function startOfMonth(d: Date): Date {
+/** Start of the calendar month containing `d`. `tz` (org timezone) makes the
+ *  boundary org-local; omitted preserves the legacy machine-local behavior. */
+export function startOfMonth(d: Date, tz?: string): Date {
+  if (tz) return startOfMonthInTz(d, tz);
   return new Date(d.getFullYear(), d.getMonth(), 1);
 }
 /** Start of the calendar year containing `d`. */
-export function startOfYear(d: Date): Date {
+export function startOfYear(d: Date, tz?: string): Date {
+  if (tz) return startOfYearInTz(d, tz);
   return new Date(d.getFullYear(), 0, 1);
 }
 /** End of the calendar month containing `d` (exclusive: first of next month). */
-export function endOfMonth(d: Date): Date {
+export function endOfMonth(d: Date, tz?: string): Date {
+  if (tz) return endOfMonthInTz(d, tz);
   return new Date(d.getFullYear(), d.getMonth() + 1, 1);
 }
 
@@ -55,24 +68,45 @@ export interface DateWindow {
   label: string;
 }
 
-/** Resolve an analytics range to a concrete [start, end) window in tenant time. */
+/** Resolve an analytics range to a concrete [start, end) window. When `tz`
+ *  (an org timezone from `CompanyInfo.timezone`) is supplied the month/year
+ *  boundaries are evaluated in that org zone; otherwise the legacy
+ *  machine-local behavior is preserved. The returned `Date`s are real UTC
+ *  instants. */
 export function resolveAnalyticsRange(
   range: AnalyticsRange,
   now: Date,
   custom?: { start: string; end: string },
+  tz?: string,
 ): DateWindow {
   switch (range) {
     case "this_month": {
-      const s = startOfMonth(now);
-      return { start: s, end: endOfMonth(now), label: "This Month" };
+      const s = startOfMonth(now, tz);
+      return { start: s, end: endOfMonth(now, tz), label: "This Month" };
     }
     case "last_month": {
+      if (tz) {
+        const curMonthStart = startOfMonthInTz(now, tz);
+        const prev = new Date(curMonthStart.getTime() - DAY);
+        return {
+          start: startOfMonth(prev, tz),
+          end: curMonthStart,
+          label: "Last Month",
+        };
+      }
       const s = startOfMonth(
         new Date(now.getFullYear(), now.getMonth() - 1, 1),
       );
       return { start: s, end: startOfMonth(now), label: "Last Month" };
     }
     case "this_year": {
+      if (tz) {
+        return {
+          start: startOfYear(now, tz),
+          end: endOfYearInTz(now, tz),
+          label: "This Year",
+        };
+      }
       const s = startOfYear(now);
       return {
         start: s,
@@ -81,6 +115,14 @@ export function resolveAnalyticsRange(
       };
     }
     case "last_year": {
+      if (tz) {
+        const p = zonedDateTimeParts(now, tz);
+        return {
+          start: startOfYear(new Date(Date.UTC(p.year - 1, 6, 1)), tz),
+          end: startOfYear(now, tz),
+          label: String(p.year - 1),
+        };
+      }
       const s = new Date(now.getFullYear() - 1, 0, 1);
       return {
         start: s,
@@ -89,7 +131,23 @@ export function resolveAnalyticsRange(
       };
     }
     case "last_12_months": {
-      // Trailing 12-month window ending at the current moment (tenant-local).
+      // Trailing 12-month window ending at the current moment. When tz is set,
+      // anchor the start to 12 org-calendar-months before the as-of day.
+      if (tz) {
+        const p = zonedDateTimeParts(now, tz);
+        const end = startOfDayInTz(now, tz);
+        let startMonth = p.month - 12;
+        let startYear = p.year;
+        while (startMonth <= 0) {
+          startMonth += 12;
+          startYear -= 1;
+        }
+        const start = startOfMonth(
+          new Date(Date.UTC(startYear, startMonth - 1, 15)),
+          tz,
+        );
+        return { start, end, label: "Last 12 Months" };
+      }
       const end = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const start = new Date(
         end.getFullYear() - 1,
@@ -99,6 +157,22 @@ export function resolveAnalyticsRange(
       return { start, end, label: "Last 12 Months" };
     }
     case "custom": {
+      if (tz) {
+        const s = custom
+          ? startOfDayInTz(new Date(custom.start + "T12:00:00Z"), tz)
+          : startOfMonth(now, tz);
+        const e = custom
+          ? new Date(
+              endOfDayInTz(new Date(custom.end + "T12:00:00Z"), tz).getTime() +
+                1,
+            )
+          : endOfMonth(now, tz);
+        return {
+          start: s,
+          end: e,
+          label: "Custom",
+        };
+      }
       const s = custom
         ? new Date(custom.start + "T00:00:00")
         : startOfMonth(now);
@@ -118,10 +192,11 @@ export function priorWindow(
   range: AnalyticsRange,
   now: Date,
   custom?: { start: string; end: string },
+  tz?: string,
 ): DateWindow | null {
   switch (range) {
     case "this_month": {
-      const cur = resolveAnalyticsRange("this_month", now);
+      const cur = resolveAnalyticsRange("this_month", now, custom, tz);
       const span = cur.end.getTime() - cur.start.getTime();
       return {
         start: new Date(cur.start.getTime() - span),
@@ -130,7 +205,7 @@ export function priorWindow(
       };
     }
     case "last_month": {
-      const cur = resolveAnalyticsRange("last_month", now);
+      const cur = resolveAnalyticsRange("last_month", now, custom, tz);
       const span = cur.end.getTime() - cur.start.getTime();
       return {
         start: new Date(cur.start.getTime() - span),
@@ -139,7 +214,7 @@ export function priorWindow(
       };
     }
     case "this_year": {
-      const cur = resolveAnalyticsRange("this_year", now);
+      const cur = resolveAnalyticsRange("this_year", now, custom, tz);
       const span = cur.end.getTime() - cur.start.getTime();
       return {
         start: new Date(cur.start.getTime() - span),
@@ -148,7 +223,7 @@ export function priorWindow(
       };
     }
     case "last_year": {
-      const cur = resolveAnalyticsRange("last_year", now);
+      const cur = resolveAnalyticsRange("last_year", now, custom, tz);
       const span = cur.end.getTime() - cur.start.getTime();
       return {
         start: new Date(cur.start.getTime() - span),
@@ -157,7 +232,7 @@ export function priorWindow(
       };
     }
     case "last_12_months": {
-      const cur = resolveAnalyticsRange("last_12_months", now);
+      const cur = resolveAnalyticsRange("last_12_months", now, custom, tz);
       const span = cur.end.getTime() - cur.start.getTime();
       return {
         start: new Date(cur.start.getTime() - span),

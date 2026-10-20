@@ -2,6 +2,15 @@
 //
 // Shared date-range + revenue/expense classification helpers used by the
 // profitability selectors. Pure functions, no React.
+//
+// Phase 6 — organization timezone: the public range resolver
+// `resolveProfitabilityRange` accepts an optional `tz` (an IANA zone from
+// `CompanyInfo.timezone`). When supplied, the day/month/year boundaries are
+// evaluated in the ORG timezone via the tested helpers in `./timezone`; the
+// returned `Date`s remain real UTC instants (an instant that is the same
+// point in time regardless of the machine's TZ). When omitted, the legacy
+// machine-local behavior is preserved exactly so existing callers/tests are
+// unchanged. No hard-coded timezone; no global "force UTC" workaround.
 
 import type { FinancialTransaction } from "./chargeTypes";
 import type { ExpenseCategory, ExpenseTransaction } from "./expenseTypes";
@@ -12,16 +21,27 @@ import type {
 } from "./profitabilityTypes";
 import { depositKind, isDepositHeldEvent } from "./deposit";
 import { isReversal as isExpenseReversal } from "./expenseSelectors";
+import {
+  startOfDayInTz,
+  endOfDayInTz,
+  startOfMonthInTz,
+  endOfMonthInTz,
+  startOfYearInTz,
+  endOfYearInTz,
+  zonedDateTimeParts,
+} from "./timezone";
 
 const DAY = 86_400_000;
 
-export function startOfDay(d: Date) {
+export function startOfDay(d: Date, tz?: string): Date {
+  if (tz) return startOfDayInTz(d, tz);
   const x = new Date(d);
   x.setHours(0, 0, 0, 0);
   return x;
 }
 
-export function endOfDay(d: Date) {
+export function endOfDay(d: Date, tz?: string): Date {
+  if (tz) return endOfDayInTz(d, tz);
   const x = new Date(d);
   x.setHours(23, 59, 59, 999);
   return x;
@@ -59,24 +79,47 @@ export function resolveProfitabilityRange(
     | "custom",
   custom?: { start: string; end: string },
   now = new Date(),
+  tz?: string,
 ): DateRange {
-  const today = startOfDay(now);
+  // Narrow the optional org timezone once. Every branch below that needs the
+  // org zone reads `tzResolved` (guaranteed string) — TS cannot infer that
+  // `tzParts`/`tzResolved` are set together, so we keep them paired.
+  const tzResolved = tz ?? null;
+  // Org-local weekday (1=Mon..7=Sun, shifted to Mon=0). When no tz is supplied
+  // the legacy `getDay()` (machine-local) path is preserved.
+  const weekdayMon0 = tzResolved
+    ? ((zonedDateTimeParts(now, tzResolved).day + 6) % 7) | 0
+    : (now.getDay() + 6) % 7;
+  const tzParts = tzResolved ? zonedDateTimeParts(now, tzResolved) : null;
+  const today = startOfDay(now, tz);
   switch (range) {
     case "today":
-      return { start: today, end: endOfDay(now) };
+      return { start: today, end: endOfDay(now, tz) };
     case "this_week": {
-      const day = (now.getDay() + 6) % 7;
       return {
-        start: startOfDay(new Date(now.getTime() - day * DAY)),
-        end: endOfDay(now),
+        start: startOfDay(new Date(now.getTime() - weekdayMon0 * DAY), tz),
+        end: endOfDay(now, tz),
       };
     }
     case "this_month":
-      return {
-        start: startOfDay(new Date(now.getFullYear(), now.getMonth(), 1)),
-        end: endOfDay(now),
-      };
+      return tz
+        ? { start: startOfMonthInTz(now, tz), end: endOfDay(now, tz) }
+        : {
+            start: startOfDay(new Date(now.getFullYear(), now.getMonth(), 1)),
+            end: endOfDay(now),
+          };
     case "last_month": {
+      if (tz) {
+        // Previous calendar month in the org zone: [start of last month,
+        // end of last month) using the org-aware month helpers.
+        const curMonthStart = startOfMonthInTz(now, tz);
+        const prevMonthStart = startOfMonthInTz(
+          new Date(curMonthStart.getTime() - DAY),
+          tz,
+        );
+        const lastMonthEnd = endOfMonthInTz(prevMonthStart, tz);
+        return { start: prevMonthStart, end: lastMonthEnd };
+      }
       const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
       const end = new Date(now.getFullYear(), now.getMonth(), 0);
       return { start: startOfDay(start), end: endOfDay(end) };
@@ -84,11 +127,19 @@ export function resolveProfitabilityRange(
     case "last_30_days": {
       // Build #33 — real rolling 30-day window ending today (inclusive).
       return {
-        start: startOfDay(new Date(now.getTime() - 29 * DAY)),
-        end: endOfDay(now),
+        start: startOfDay(new Date(now.getTime() - 29 * DAY), tz),
+        end: endOfDay(now, tz),
       };
     }
     case "this_quarter": {
+      if (tzParts && tzResolved) {
+        const q = Math.floor((tzParts.month - 1) / 3);
+        const qs = new Date(Date.UTC(tzParts.year, q * 3, 15));
+        return {
+          start: startOfMonthInTz(qs, tzResolved),
+          end: endOfDay(now, tz),
+        };
+      }
       const q = Math.floor(now.getMonth() / 3);
       return {
         start: startOfDay(new Date(now.getFullYear(), q * 3, 1)),
@@ -96,10 +147,12 @@ export function resolveProfitabilityRange(
       };
     }
     case "this_year":
-      return {
-        start: startOfDay(new Date(now.getFullYear(), 0, 1)),
-        end: endOfDay(now),
-      };
+      return tz
+        ? { start: startOfYearInTz(now, tz), end: endOfDay(now, tz) }
+        : {
+            start: startOfDay(new Date(now.getFullYear(), 0, 1)),
+            end: endOfDay(now),
+          };
     case "custom": {
       // Guard against empty/partial custom dates (e.g. user selected Custom
       // but hasn't picked a range yet). Fall back to "this month" so the
@@ -108,9 +161,21 @@ export function resolveProfitabilityRange(
       const cs = custom?.start;
       const ce = custom?.end;
       if (!cs || !ce) {
+        return tz
+          ? { start: startOfMonthInTz(now, tz), end: endOfDay(now, tz) }
+          : {
+              start: startOfDay(new Date(now.getFullYear(), now.getMonth(), 1)),
+              end: endOfDay(now),
+            };
+      }
+      // Custom dates are date-only domain values ("YYYY-MM-DD"). Interpret the
+      // start as local-midnight and the end as local-end-of-day in the ORG zone
+      // when supplied, so a date-only business date never shifts a calendar
+      // day because of UTC parsing.
+      if (tz) {
         return {
-          start: startOfDay(new Date(now.getFullYear(), now.getMonth(), 1)),
-          end: endOfDay(now),
+          start: startOfDay(new Date(cs + "T12:00:00Z"), tz),
+          end: endOfDay(new Date(ce + "T12:00:00Z"), tz),
         };
       }
       return {

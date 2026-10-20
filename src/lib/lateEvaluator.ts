@@ -10,8 +10,15 @@
 // turnover. When no cutoff time is configured the obligation is due at
 // end-of-day (23:59) of the due date, preserving the legacy date-only behavior.
 //
-// Local wall-clock time is used (the same timezone the cutoff is expressed in)
-// so a 2:00 PM cutoff is honored regardless of the server's UTC offset.
+// Phase 6 — organization timezone: the cutoff is expressed in the org's local
+// business time. `obligationDueInstant` / `isObligationLate` accept an optional
+// `tz` (an IANA zone from `CompanyInfo.timezone`). When supplied the due date
+// is interpreted as a wall time in that org zone (the returned instant is a
+// real UTC instant, correct regardless of the machine's TZ); the `now`
+// comparison uses the same wall-clock convention. When omitted the legacy
+// machine-local behavior is preserved exactly.
+
+import { startOfDayInTz, endOfDayInTz } from "./timezone";
 
 export interface ObligationLateInput {
   /** ISO date ("YYYY-MM-DD") the obligation is due. */
@@ -33,8 +40,27 @@ export interface ObligationLateResult {
 
 /** Build the wall-clock instant an obligation is payable through, applying the
  *  cutoff time in the tenant's local timezone (not UTC). Returns end-of-day
- *  when no cutoff time is configured. */
-export function obligationDueInstant(input: ObligationLateInput): number {
+ *  when no cutoff time is configured. `tz` (org timezone) makes the wall time
+ *  org-local; omitted preserves the legacy machine-local behavior. */
+export function obligationDueInstant(
+  input: ObligationLateInput,
+  tz?: string,
+): number {
+  if (tz) {
+    // Anchor to org-local midnight of the due day, then add the cutoff as a
+    // wall-clock duration. This matches the legacy "local midnight + cutoff"
+    // semantics in the org zone (cutoffs are business hours, never in the
+    // 2am DST gap, so the wall duration is unambiguous).
+    const midnight = startOfDayInTz(
+      new Date(input.due_at + "T12:00:00Z"),
+      tz,
+    ).getTime();
+    if (input.cutoff_time && /^\d{1,2}:\d{2}$/.test(input.cutoff_time)) {
+      const [h, m] = input.cutoff_time.split(":").map(Number);
+      return midnight + (h ?? 0) * 3600_000 + (m ?? 0) * 60_000;
+    }
+    return endOfDayInTz(new Date(input.due_at + "T12:00:00Z"), tz).getTime();
+  }
   const due = new Date(input.due_at + "T00:00:00");
   if (input.cutoff_time && /^\d{1,2}:\d{2}$/.test(input.cutoff_time)) {
     const [h, m] = input.cutoff_time.split(":").map(Number);
@@ -61,8 +87,9 @@ export function obligationDueInstant(input: ObligationLateInput): number {
 export function isObligationLate(
   input: ObligationLateInput,
   now: Date = new Date(),
+  tz?: string,
 ): ObligationLateResult {
-  const dueMs = obligationDueInstant(input);
+  const dueMs = obligationDueInstant(input, tz);
   const graceMs = Math.max(0, input.grace_period ?? 0) * 3600_000;
   const lateSinceMs = dueMs + graceMs;
   const hasCutoff = !!input.cutoff_time;
