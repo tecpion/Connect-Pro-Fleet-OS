@@ -25,11 +25,7 @@ import type {
 import type { FinancialTransaction, RateType, RentalAgreement } from "./types";
 import { affectsRentalObligation, isDepositHeldEvent } from "./deposit";
 import { isObligationLate } from "./lateEvaluator";
-import {
-  zonedDateTimeParts,
-  startOfDayInTz,
-  getOrgTimezone,
-} from "./timezone";
+import { zonedDateTimeParts, startOfDayInTz, getOrgTimezone } from "./timezone";
 
 const DAY = 86_400_000;
 

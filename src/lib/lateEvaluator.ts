@@ -18,11 +18,7 @@
 // wall-clock convention. When omitted the org timezone is resolved through
 // `getOrgTimezone` (→ UTC), the documented safe path — never the machine clock.
 
-import {
-  startOfDayInTz,
-  endOfDayInTz,
-  getOrgTimezone,
-} from "./timezone";
+import { startOfDayInTz, endOfDayInTz, getOrgTimezone } from "./timezone";
 
 export interface ObligationLateInput {
   /** ISO date ("YYYY-MM-DD") the obligation is due. */

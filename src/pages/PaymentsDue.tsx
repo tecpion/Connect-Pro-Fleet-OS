@@ -99,7 +99,14 @@ export default function PaymentsDue() {
   }, []);
 
   const obligations = useMemo(
-    () => getPaymentObligations(rentals, billingPeriods, transactions, tz),
+    () =>
+      getPaymentObligations(
+        rentals,
+        billingPeriods,
+        transactions,
+        new Date(),
+        tz,
+      ),
     [rentals, billingPeriods, transactions, tz],
   );
 

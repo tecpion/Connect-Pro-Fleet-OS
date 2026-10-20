@@ -32,7 +32,11 @@ const DAY = 86_400_000;
  *  time-of-day are interpreted in the organization's configured timezone
  *  (`tz`, resolved through `getOrgTimezone` → UTC safe default) so a reminder
  *  for "Friday at 9am" means the org's Friday at 9am, not the server's. */
-function parseRelativeDue(query: string, asOf: Date, tz?: string): string | null {
+function parseRelativeDue(
+  query: string,
+  asOf: Date,
+  tz?: string,
+): string | null {
   const z = getOrgTimezone(tz);
   const p = zonedDateTimeParts(asOf, z);
   const q = query.toLowerCase();

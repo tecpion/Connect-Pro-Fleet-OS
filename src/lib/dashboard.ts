@@ -283,7 +283,8 @@ export function collectionsSeriesForInterval(
     return buckets;
   }
 
-  const start = interval === "week" ? startOfWeek(now, z) : startOfMonth(now, z);
+  const start =
+    interval === "week" ? startOfWeek(now, z) : startOfMonth(now, z);
   const end = interval === "week" ? endOfWeek(now, z) : endOfMonth(now, z);
   const last = end > now ? now : end;
   const buckets: CollectionPoint[] = [];

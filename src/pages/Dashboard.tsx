@@ -86,7 +86,14 @@ export default function Dashboard() {
   );
   const activeCount = useMemo(() => activeRentalCount(rentals), [rentals]);
   const obligations = useMemo(
-    () => getPaymentObligations(rentals, billingPeriods, transactions, tz),
+    () =>
+      getPaymentObligations(
+        rentals,
+        billingPeriods,
+        transactions,
+        new Date(),
+        tz,
+      ),
     [rentals, billingPeriods, transactions, tz],
   );
   const dueToday = obligations.filter((p) => p.bucket === "due_today");

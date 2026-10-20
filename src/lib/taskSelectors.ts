@@ -9,11 +9,7 @@
 
 import type { Task, TaskEvent, TaskNote, TaskStatus } from "./taskTypes";
 import { TASK_PRIORITY_RANK } from "./taskTypes";
-import {
-  startOfDayInTz,
-  endOfDayInTz,
-  getOrgTimezone,
-} from "./timezone";
+import { startOfDayInTz, endOfDayInTz, getOrgTimezone } from "./timezone";
 
 const DAY = 86_400_000;
 
