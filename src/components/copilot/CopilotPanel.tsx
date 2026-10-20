@@ -117,7 +117,7 @@ function CopilotPanelInner({
   onClose,
   embedded,
 }: CopilotPanelProps) {
-  const { sources, perms, staffId, tenantId, allowedLocationIds } =
+  const { sources, perms, staffId, tenantId, allowedLocationIds, tz } =
     useCopilotSources();
   // Build #53 — INTERNAL debug flag (localStorage, default OFF). When ON the
   // resolvers return a routing-debug trace alongside the (unchanged) answer.
@@ -232,8 +232,9 @@ function CopilotPanelInner({
       staffId,
       tenantId,
       allowedLocationIds,
+      tz,
     }),
-    [sources, perms, staffId, tenantId, allowedLocationIds],
+    [sources, perms, staffId, tenantId, allowedLocationIds, tz],
   );
 
   const runQuery = useCallback(

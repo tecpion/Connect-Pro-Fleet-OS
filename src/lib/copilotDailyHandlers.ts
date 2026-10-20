@@ -38,16 +38,16 @@ import {
   resolveDomainRange,
   domainRangeLabel,
 } from "./copilotDomainRouter";
+import { startOfDayInTz, zonedDateTimeParts, getOrgTimezone } from "./timezone";
 
 const DAY = 86_400_000;
 
-/** The start of the tenant's calendar day containing `asOf`, in local wall-clock
- *  time (the same timezone the cutoff is expressed in). The day-over-day delta
- *  compares lateness at this instant against lateness at `asOf`. */
-function startOfDayLocal(asOf: Date): Date {
-  const d = new Date(asOf);
-  d.setHours(0, 0, 0, 0);
-  return d;
+/** The start of the tenant's calendar day containing `asOf`, evaluated in the
+ *  organization's configured timezone (`tz`, resolved through `getOrgTimezone`
+ *  → UTC safe default). The day-over-day delta compares lateness at this
+ *  instant against lateness at `asOf`. Returns a real UTC instant. */
+function startOfDayLocal(asOf: Date, tz?: string): Date {
+  return startOfDayInTz(asOf, getOrgTimezone(tz));
 }
 
 /** Authoritative lateness of a single obligation at an instant. Returns the
@@ -80,17 +80,20 @@ function obligationLateAt(
 function deriveOverdueDelta(
   src: CopilotSources,
   asOf: Date,
+  tz?: string,
 ): { newOverdue: number; resolvedOverdue: number } {
+  const z = getOrgTimezone(tz);
   const s = src.briefing.store;
   const obligations = getPaymentObligations(
     s.rentals,
     src.briefing.billingPeriods ?? [],
     s.transactions,
     asOf,
+    z,
   );
   // Only outstanding obligations can be late (a paid period can never be overdue).
   const outstanding = obligations.filter((o) => o.amountDue > 0);
-  const dayStart = startOfDayLocal(asOf);
+  const dayStart = startOfDayLocal(asOf, z);
   let newOverdue = 0;
   let resolvedOverdue = 0;
   for (const o of outstanding) {
@@ -261,16 +264,18 @@ export function answerRecentChanges(
   perms: CopilotViewerPermissions,
   allowedLocationIds: string[] = [],
   query = "",
+  tz?: string,
 ): CopilotAnswer {
+  const z = getOrgTimezone(tz);
   const rangeKey = detectDomainTimeRange(query);
   let start: Date;
   let rangeLabel: string;
   if (rangeKey) {
-    const r = resolveDomainRange(rangeKey, asOf);
+    const r = resolveDomainRange(rangeKey, asOf, z);
     start = r.start;
     rangeLabel = domainRangeLabel(rangeKey);
   } else {
-    start = recentChangesWindowStart(asOf, 1);
+    start = recentChangesWindowStart(asOf, 1, z);
     rangeLabel = "since yesterday";
   }
   const recent = getCompanyRecentChanges(src, {
@@ -489,10 +494,17 @@ export function buildEndOfDayContext(
   src: CopilotSources,
   asOf: Date,
   perms: CopilotViewerPermissions,
+  tz?: string,
 ): EndOfDayContext {
+  const z = getOrgTimezone(tz);
   const s = src.briefing.store;
-  const today = asOf.toISOString().slice(0, 10);
-  const startTs = asOf.getTime() - DAY;
+  // "Today" as a YYYY-MM-DD date-only string in the org timezone, so the
+  // effective_date / checkout_date / actual_return_date comparisons are
+  // org-local business-day comparisons, not UTC/machine slices.
+  const parts = zonedDateTimeParts(asOf, z);
+  const today = `${parts.year}-${String(parts.month).padStart(2, "0")}-${String(parts.day).padStart(2, "0")}`;
+  // The compliance-changes window is the org-local day [dayStart, asOf].
+  const dayStart = startOfDayInTz(asOf, z);
 
   let paymentsCount = 0;
   let paymentsAmount = 0;
@@ -513,7 +525,7 @@ export function buildEndOfDayContext(
 
   // Truthful day-over-day overdue delta (Build #29 closure). Derived from the
   // authoritative late evaluator comparing day-start vs asOf — never a stub.
-  const { newOverdue, resolvedOverdue } = deriveOverdueDelta(src, asOf);
+  const { newOverdue, resolvedOverdue } = deriveOverdueDelta(src, asOf, z);
 
   let woCompleted = 0;
   for (const w of s.workOrders) {
@@ -530,7 +542,7 @@ export function buildEndOfDayContext(
 
   const complianceChanges = (src.customer360.documents ?? []).filter((d) => {
     const ts = new Date(d.created_at).getTime();
-    return !isNaN(ts) && ts >= startTs && ts <= asOf.getTime();
+    return !isNaN(ts) && ts >= dayStart.getTime() && ts <= asOf.getTime();
   }).length;
 
   const tasksCompleted = s.tasks.filter(
@@ -563,8 +575,9 @@ export function answerEndOfDayRecap(
   src: CopilotSources,
   asOf: Date,
   perms: CopilotViewerPermissions,
+  tz?: string,
 ): CopilotAnswer {
-  const ctx = buildEndOfDayContext(src, asOf, perms);
+  const ctx = buildEndOfDayContext(src, asOf, perms, tz);
   const base = baseAnswer("end_of_day_recap", asOf, perms, "derived");
   const money =
     perms.canViewFinancials && ctx.payments_received_amount != null

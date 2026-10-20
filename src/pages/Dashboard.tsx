@@ -72,28 +72,30 @@ export default function Dashboard() {
     arrangementInstallments,
     tasks,
     rentalFinancials,
+    companyInfo,
   } = useStore();
   const navigate = useNavigate();
   const { billingPeriods } = useBilling();
   const { companyPolicies } = useCompanyPolicies();
   const verificationEnabled = isVerificationEnabled(companyPolicies);
+  const tz = companyInfo.timezone;
 
   const fleet = useMemo(
-    () => fleetStatusCounts(vehicles, reservations),
-    [vehicles, reservations],
+    () => fleetStatusCounts(vehicles, reservations, tz),
+    [vehicles, reservations, tz],
   );
   const activeCount = useMemo(() => activeRentalCount(rentals), [rentals]);
   const obligations = useMemo(
-    () => getPaymentObligations(rentals, billingPeriods, transactions),
-    [rentals, billingPeriods, transactions],
+    () => getPaymentObligations(rentals, billingPeriods, transactions, tz),
+    [rentals, billingPeriods, transactions, tz],
   );
   const dueToday = obligations.filter((p) => p.bucket === "due_today");
   const late = obligations.filter((p) => p.bucket === "late");
-  const returns = useMemo(() => returnsToday(rentals), [rentals]);
-  const overdue = useMemo(() => overdueRentals(rentals), [rentals]);
+  const returns = useMemo(() => returnsToday(rentals, tz), [rentals, tz]);
+  const overdue = useMemo(() => overdueRentals(rentals, tz), [rentals, tz]);
   const pickups = useMemo(
-    () => pickupsToday(reservations, rentals),
-    [reservations, rentals],
+    () => pickupsToday(reservations, rentals, tz),
+    [reservations, rentals, tz],
   );
   const maintAttention = useMemo(
     () => maintenanceAttention(maintenance, vehicles),

@@ -39,6 +39,7 @@ import {
 import type { Customer, RentalAgreement } from "./types";
 import { baseAnswer, plural } from "./copilotShared";
 import { fmtDateShort, fmtDateTime } from "./format";
+import { startOfMonthInTz, getOrgTimezone } from "./timezone";
 
 // ---------------------------------------------------------------------------
 // Verification Copilot sources (optional on CopilotSources).
@@ -271,6 +272,7 @@ export function answerVerificationUsage(
   src: CopilotSources,
   asOf: Date,
   perms: CopilotViewerPermissions,
+  tz?: string,
 ): CopilotAnswer {
   const base = baseAnswer("verification_usage", asOf, perms, "derived");
   const vs = verSrc(src);
@@ -282,7 +284,7 @@ export function answerVerificationUsage(
         "Customer Verification usage is available in the full workspace.",
     };
   }
-  const monthStart = new Date(asOf.getFullYear(), asOf.getMonth(), 1);
+  const monthStart = startOfMonthInTz(asOf, getOrgTimezone(tz));
   const monthCharges = vs.usageCharges.filter(
     (u) => new Date(u.created_at) >= monthStart,
   );

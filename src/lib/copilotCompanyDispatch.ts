@@ -145,9 +145,16 @@ export function dispatchCompanyIntent(
         ctx.asOf,
         ctx.perms,
         ctx.allowedLocationIds ?? [],
+        (ctx as { rawQuery?: string }).rawQuery ?? "",
+        (ctx as { tz?: string }).tz,
       );
     case "end_of_day_recap":
-      return answerEndOfDayRecap(ctx.src, ctx.asOf, ctx.perms);
+      return answerEndOfDayRecap(
+        ctx.src,
+        ctx.asOf,
+        ctx.perms,
+        (ctx as { tz?: string }).tz,
+      );
     case "morning_ops_briefing":
       return answerMorningOpsBriefing(
         ctx.src,
@@ -340,7 +347,12 @@ export function dispatchCompanyIntent(
     case "verification_expired_licenses":
       return answerVerificationExpiredLicenses(ctx.src, ctx.asOf, ctx.perms);
     case "verification_usage":
-      return answerVerificationUsage(ctx.src, ctx.asOf, ctx.perms);
+      return answerVerificationUsage(
+        ctx.src,
+        ctx.asOf,
+        ctx.perms,
+        (ctx as { tz?: string }).tz,
+      );
     case "verification_no_history":
       return answerVerificationNoHistory(ctx.src, ctx.asOf, ctx.perms);
     case "verification_customer_summary":
@@ -377,7 +389,12 @@ export function dispatchCompanyIntent(
     case "tolls_unrecovered":
       return answerTollsUnrecovered(ctx.src, ctx.asOf, ctx.perms);
     case "tolls_paid_this_month":
-      return answerTollsPaidThisMonth(ctx.src, ctx.asOf, ctx.perms);
+      return answerTollsPaidThisMonth(
+        ctx.src,
+        ctx.asOf,
+        ctx.perms,
+        (ctx as { tz?: string }).tz,
+      );
     case "tolls_recovered_amount":
       return answerTollsRecoveredAmount(ctx.src, ctx.asOf, ctx.perms);
     case "violations_due_this_week":

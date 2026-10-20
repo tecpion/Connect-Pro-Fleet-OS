@@ -37,6 +37,8 @@ export function useCopilotSources(): {
   tenantId: string;
   /** Location ids the viewer may see (empty = all locations). */
   allowedLocationIds: string[];
+  /** The organization's configured IANA timezone (CompanyInfo.timezone). */
+  tz: string;
 } {
   const store = useStore();
   const { billingPeriods } = useBilling();
@@ -287,5 +289,6 @@ export function useCopilotSources(): {
     staffId: store.currentStaffId,
     tenantId: store.tenant.id,
     allowedLocationIds,
+    tz: store.companyInfo.timezone,
   };
 }

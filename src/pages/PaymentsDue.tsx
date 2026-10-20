@@ -71,9 +71,11 @@ export default function PaymentsDue() {
     activeArrangementForRental,
     installmentsForArrangement,
     rentalFinancials,
+    companyInfo,
   } = useStore();
   const { billingPeriods, rentalAllocation, processRentalBilling } =
     useBilling();
+  const tz = companyInfo.timezone;
 
   useEffect(() => {
     processRentalBilling();
@@ -97,8 +99,8 @@ export default function PaymentsDue() {
   }, []);
 
   const obligations = useMemo(
-    () => getPaymentObligations(rentals, billingPeriods, transactions),
-    [rentals, billingPeriods, transactions],
+    () => getPaymentObligations(rentals, billingPeriods, transactions, tz),
+    [rentals, billingPeriods, transactions, tz],
   );
 
   const rows = useMemo<PaymentRow[]>(() => {

@@ -32,6 +32,7 @@ import type { RentalVehicleExchange } from "./store/rentalVehicleExchange";
 import { resolveVehiclePossessionAt } from "./violationPossession";
 import { baseAnswer, plural } from "./copilotShared";
 import { fmtMoney, fmtDateShort } from "./format";
+import { startOfMonthInTz, getOrgTimezone } from "./timezone";
 
 // ---------------------------------------------------------------------------
 // Tolls Copilot sources (optional on CopilotSources).
@@ -415,11 +416,12 @@ export function answerTollsPaidThisMonth(
   src: CopilotSources,
   asOf: Date,
   perms: CopilotViewerPermissions,
+  tz?: string,
 ): CopilotAnswer {
   const base = baseAnswer("tolls_paid_this_month", asOf, perms, "derived");
   const vs = tollSrc(src);
   if (!vs) return tollFallback("tolls_paid_this_month", asOf, perms);
-  const monthStart = new Date(asOf.getFullYear(), asOf.getMonth(), 1).getTime();
+  const monthStart = startOfMonthInTz(asOf, getOrgTimezone(tz)).getTime();
   const paid = vs.violations.filter(
     (v) =>
       v.violation_type === "toll" &&

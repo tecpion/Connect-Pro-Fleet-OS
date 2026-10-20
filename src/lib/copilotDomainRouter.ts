@@ -27,6 +27,16 @@
 //   5. unsupported
 
 import type { CopilotIntent } from "./copilotTypes";
+import {
+  startOfDayInTz,
+  endOfDayInTz,
+  startOfWeekInTz,
+  startOfMonthInTz,
+  startOfYearInTz,
+  endOfMonthInTz,
+  zonedDateTimeParts,
+  getOrgTimezone,
+} from "./timezone";
 
 /** A domain anchor: a strong keyword/phrase that pins a query to a domain.
  *  Anchors are intentionally NARROW so a weak overlap (e.g. "have" alone) can
@@ -335,23 +345,18 @@ export function detectDomainTimeRange(query: string): DomainTimeRange | null {
 
 /** Resolve a DomainTimeRange to an absolute {start, end} window anchored on
  *  `asOf`. Handles the past ranges the profitability helper does not
- *  (yesterday, last_week) using the same local wall-clock day boundaries the
- *  cutoffs are expressed in. Pure + deterministic. */
+ *  (yesterday, last_week) using the organization's configured timezone (`tz`,
+ *  resolved through `getOrgTimezone` → UTC safe default) for day/week/month/
+ *  year boundaries. Pure + deterministic. */
 export function resolveDomainRange(
   range: DomainTimeRange,
   asOf: Date,
+  tz?: string,
 ): { start: Date; end: Date } {
   const DAY = 86_400_000;
-  const sod = (d: Date) => {
-    const x = new Date(d);
-    x.setHours(0, 0, 0, 0);
-    return x;
-  };
-  const eod = (d: Date) => {
-    const x = new Date(d);
-    x.setHours(23, 59, 59, 999);
-    return x;
-  };
+  const z = getOrgTimezone(tz);
+  const sod = (d: Date) => startOfDayInTz(d, z);
+  const eod = (d: Date) => endOfDayInTz(d, z);
   switch (range) {
     case "today":
       return { start: sod(asOf), end: eod(asOf) };
@@ -360,32 +365,33 @@ export function resolveDomainRange(
       return { start: sod(y), end: eod(y) };
     }
     case "this_week": {
-      const day = (asOf.getDay() + 6) % 7; // Monday=0
       return {
-        start: sod(new Date(asOf.getTime() - day * DAY)),
+        start: startOfWeekInTz(asOf, z),
         end: eod(asOf),
       };
     }
     case "last_week": {
-      const day = (asOf.getDay() + 6) % 7; // Monday=0
-      const thisWeekStart = new Date(asOf.getTime() - day * DAY);
+      const thisWeekStart = startOfWeekInTz(asOf, z);
       const lastWeekStart = new Date(thisWeekStart.getTime() - 7 * DAY);
       const lastWeekEnd = new Date(thisWeekStart.getTime() - DAY);
       return { start: sod(lastWeekStart), end: eod(lastWeekEnd) };
     }
     case "this_month":
       return {
-        start: sod(new Date(asOf.getFullYear(), asOf.getMonth(), 1)),
+        start: startOfMonthInTz(asOf, z),
         end: eod(asOf),
       };
     case "last_month": {
-      const start = new Date(asOf.getFullYear(), asOf.getMonth() - 1, 1);
-      const end = new Date(asOf.getFullYear(), asOf.getMonth(), 0);
-      return { start: sod(start), end: eod(end) };
+      const thisMonthStart = startOfMonthInTz(asOf, z);
+      const start = startOfMonthInTz(
+        new Date(thisMonthStart.getTime() - DAY),
+        z,
+      );
+      return { start, end: endOfMonthInTz(start, z) };
     }
     case "this_year":
       return {
-        start: sod(new Date(asOf.getFullYear(), 0, 1)),
+        start: startOfYearInTz(asOf, z),
         end: eod(asOf),
       };
   }
