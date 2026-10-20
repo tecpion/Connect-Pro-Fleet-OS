@@ -147,12 +147,17 @@ export interface VehicleClassRow {
   id: string;
   organization_id: string;
   name: string;
+  description: string;
   vehicle_type: string;
   daily_rate: number;
   weekly_rate: number;
   deposit_amount: number;
   minimum_rental_duration: number;
+  minimum_rental_unit: string;
+  default_deposit_policy_id: string | null;
   active: boolean;
+  display_order: number;
+  created_by: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -380,4 +385,96 @@ export interface AgreementInstanceRow {
   rate: number;
   pdf_path: string | null;
   generated_at: string;
+}
+
+// ── Phase 8A: operational & configuration rows ────────────────────────
+
+export interface StaffRow {
+  id: string;
+  organization_id: string;
+  full_name: string;
+  email: string;
+  role: string;
+  permission_overrides: Json | null;
+  phone: string | null;
+  display_role: string | null;
+  role_id: string | null;
+  location_ids: Json;
+  status: string;
+  last_activity_at: string | null;
+  theme: string;
+  brand_color: string | null;
+  responsibilities: Json;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OperationalStaffAssignmentRow {
+  id: string;
+  organization_id: string;
+  staff_id: string;
+  assignment_type: string;
+  entity_type: string;
+  entity_id: string;
+  entity_label: string | null;
+  status: string;
+  assigned_by: string | null;
+  assigned_at: string;
+  due_at: string | null;
+  priority: string | null;
+  notes: string | null;
+  completed_at: string | null;
+  reassigned_to: string | null;
+  reassign_reason: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DriverRow {
+  id: string;
+  organization_id: string;
+  reservation_id: string | null;
+  full_name: string;
+  license_number: string;
+  license_state: string;
+  license_expiry: string | null;
+  verification_status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CompanySettingsRow {
+  id: string;
+  organization_id: string;
+  company_info: Json;
+  settings_config: Json;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AddonCategoryRow {
+  id: string;
+  organization_id: string;
+  name: string;
+  description: string;
+  active: boolean;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AddonCatalogItemRow {
+  id: string;
+  organization_id: string;
+  category_id: string | null;
+  name: string;
+  description: string;
+  price: number;
+  pricing_type: string;
+  taxable: boolean;
+  required: boolean;
+  active: boolean;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
 }

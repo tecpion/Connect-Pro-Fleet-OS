@@ -104,6 +104,110 @@ export type Database = {
           },
         ]
       }
+      addon_catalog_items: {
+        Row: {
+          active: boolean
+          category_id: string | null
+          created_at: string
+          description: string
+          display_order: number
+          id: string
+          name: string
+          organization_id: string
+          price: number
+          pricing_type: string
+          required: boolean
+          taxable: boolean
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category_id?: string | null
+          created_at?: string
+          description?: string
+          display_order?: number
+          id?: string
+          name: string
+          organization_id: string
+          price?: number
+          pricing_type?: string
+          required?: boolean
+          taxable?: boolean
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category_id?: string | null
+          created_at?: string
+          description?: string
+          display_order?: number
+          id?: string
+          name?: string
+          organization_id?: string
+          price?: number
+          pricing_type?: string
+          required?: boolean
+          taxable?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "addon_catalog_items_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "addon_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "addon_catalog_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      addon_categories: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string
+          display_order: number
+          id: string
+          name: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string
+          display_order?: number
+          id?: string
+          name: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string
+          display_order?: number
+          id?: string
+          name?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "addon_categories_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agreement_instances: {
         Row: {
           generated_at: string
@@ -695,6 +799,41 @@ export type Database = {
           },
           {
             foreignKeyName: "cash_entries_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_settings: {
+        Row: {
+          company_info: Json
+          created_at: string
+          id: string
+          organization_id: string
+          settings_config: Json
+          updated_at: string
+        }
+        Insert: {
+          company_info?: Json
+          created_at?: string
+          id?: string
+          organization_id: string
+          settings_config?: Json
+          updated_at?: string
+        }
+        Update: {
+          company_info?: Json
+          created_at?: string
+          id?: string
+          organization_id?: string
+          settings_config?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_settings_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -1649,6 +1788,60 @@ export type Database = {
           year?: number
         }
         Relationships: []
+      }
+      drivers: {
+        Row: {
+          created_at: string
+          full_name: string
+          id: string
+          license_expiry: string | null
+          license_number: string
+          license_state: string
+          organization_id: string
+          reservation_id: string | null
+          updated_at: string
+          verification_status: string
+        }
+        Insert: {
+          created_at?: string
+          full_name: string
+          id?: string
+          license_expiry?: string | null
+          license_number?: string
+          license_state?: string
+          organization_id: string
+          reservation_id?: string | null
+          updated_at?: string
+          verification_status?: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string
+          id?: string
+          license_expiry?: string | null
+          license_number?: string
+          license_state?: string
+          organization_id?: string
+          reservation_id?: string | null
+          updated_at?: string
+          verification_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drivers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "drivers_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       expense_categories: {
         Row: {
@@ -3612,6 +3805,98 @@ export type Database = {
           },
         ]
       }
+      operational_staff_assignments: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          assignment_type: string
+          completed_at: string | null
+          created_at: string
+          due_at: string | null
+          entity_id: string
+          entity_label: string | null
+          entity_type: string
+          id: string
+          notes: string | null
+          organization_id: string
+          priority: string | null
+          reassign_reason: string | null
+          reassigned_to: string | null
+          staff_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          assignment_type: string
+          completed_at?: string | null
+          created_at?: string
+          due_at?: string | null
+          entity_id: string
+          entity_label?: string | null
+          entity_type: string
+          id?: string
+          notes?: string | null
+          organization_id: string
+          priority?: string | null
+          reassign_reason?: string | null
+          reassigned_to?: string | null
+          staff_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          assignment_type?: string
+          completed_at?: string | null
+          created_at?: string
+          due_at?: string | null
+          entity_id?: string
+          entity_label?: string | null
+          entity_type?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          priority?: string | null
+          reassign_reason?: string | null
+          reassigned_to?: string | null
+          staff_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operational_staff_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "operational_staff_assignments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "operational_staff_assignments_reassigned_to_fkey"
+            columns: ["reassigned_to"]
+            isOneToOne: false
+            referencedRelation: "operational_staff_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "operational_staff_assignments_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_invitations: {
         Row: {
           accepted_at: string | null
@@ -4655,6 +4940,81 @@ export type Database = {
           },
         ]
       }
+      staff: {
+        Row: {
+          brand_color: string | null
+          created_at: string
+          display_role: string | null
+          email: string
+          full_name: string
+          id: string
+          last_activity_at: string | null
+          location_ids: Json
+          organization_id: string
+          permission_overrides: Json | null
+          phone: string | null
+          responsibilities: Json
+          role: string
+          role_id: string | null
+          status: string
+          theme: string
+          updated_at: string
+        }
+        Insert: {
+          brand_color?: string | null
+          created_at?: string
+          display_role?: string | null
+          email?: string
+          full_name: string
+          id?: string
+          last_activity_at?: string | null
+          location_ids?: Json
+          organization_id: string
+          permission_overrides?: Json | null
+          phone?: string | null
+          responsibilities?: Json
+          role?: string
+          role_id?: string | null
+          status?: string
+          theme?: string
+          updated_at?: string
+        }
+        Update: {
+          brand_color?: string | null
+          created_at?: string
+          display_role?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          last_activity_at?: string | null
+          location_ids?: Json
+          organization_id?: string
+          permission_overrides?: Json | null
+          phone?: string | null
+          responsibilities?: Json
+          role?: string
+          role_id?: string | null
+          status?: string
+          theme?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_events: {
         Row: {
           actor_is_system: boolean
@@ -5255,10 +5615,15 @@ export type Database = {
         Row: {
           active: boolean
           created_at: string
+          created_by: string | null
           daily_rate: number
+          default_deposit_policy_id: string | null
           deposit_amount: number
+          description: string
+          display_order: number
           id: string
           minimum_rental_duration: number
+          minimum_rental_unit: string
           name: string
           organization_id: string
           updated_at: string
@@ -5268,10 +5633,15 @@ export type Database = {
         Insert: {
           active?: boolean
           created_at?: string
+          created_by?: string | null
           daily_rate?: number
+          default_deposit_policy_id?: string | null
           deposit_amount?: number
+          description?: string
+          display_order?: number
           id?: string
           minimum_rental_duration?: number
+          minimum_rental_unit?: string
           name: string
           organization_id: string
           updated_at?: string
@@ -5281,10 +5651,15 @@ export type Database = {
         Update: {
           active?: boolean
           created_at?: string
+          created_by?: string | null
           daily_rate?: number
+          default_deposit_policy_id?: string | null
           deposit_amount?: number
+          description?: string
+          display_order?: number
           id?: string
           minimum_rental_duration?: number
+          minimum_rental_unit?: string
           name?: string
           organization_id?: string
           updated_at?: string
