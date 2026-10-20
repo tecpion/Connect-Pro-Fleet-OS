@@ -186,7 +186,13 @@ export function getArrangementMetrics(
     (a) =>
       deriveArrangementStatus(a, byArr(a.id), transactions, tz) === "active",
   );
-  const broken = getBrokenArrangements(arrangements, byArr, transactions, undefined, tz);
+  const broken = getBrokenArrangements(
+    arrangements,
+    byArr,
+    transactions,
+    undefined,
+    tz,
+  );
   let balance = 0;
   for (const a of active) {
     const insts = byArr(a.id);

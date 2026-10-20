@@ -135,7 +135,13 @@ export function getArrangementAttention(
   // resolved through the org-timezone helpers so the briefing's due-today /
   // broken verdicts match the dashboard regardless of the runtime's TZ.
   const tz = getOrgTimezone(s.companyInfo?.timezone);
-  const promisesDue = getPromisesDueToday(arrangements, byArr, s.transactions, undefined, tz);
+  const promisesDue = getPromisesDueToday(
+    arrangements,
+    byArr,
+    s.transactions,
+    undefined,
+    tz,
+  );
   for (const ins of promisesDue) {
     const a = arrangements.find((x) => x.id === ins.arrangement_id);
     items.push({
