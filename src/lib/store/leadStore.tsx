@@ -19,9 +19,7 @@ import {
   type ReactNode,
 } from "react";
 import type { FleetStore } from "./storeContext";
-import type {
-  BookingRequestStore,
-} from "./bookingRequestStore";
+import type { BookingRequestStore } from "./bookingRequestStore";
 import type { Lead, LeadStatus } from "../leadTypes";
 import { CONVERTIBLE_LEAD_STATUSES } from "../leadTypes";
 import type { BookingCrmInboundEvent } from "../bookingRequestTypes";
@@ -41,9 +39,7 @@ import {
   canConvertLead,
   getMissingConversionFields,
 } from "../leadConversion";
-import {
-  useBookingRequestsOptional,
-} from "./bookingRequestStore";
+import { useBookingRequestsOptional } from "./bookingRequestStore";
 
 const uid = (p: string) => `${p}_${Math.random().toString(36).slice(2, 8)}`;
 
@@ -157,11 +153,16 @@ export function LeadProvider({
               crm_pipeline_stage:
                 input.crm_pipeline_stage ?? existing.crm_pipeline_stage,
               lead_source: input.lead_source ?? existing.lead_source,
-              intake_data: { ...existing.intake_data, ...(input.intake_data ?? {}) },
+              intake_data: {
+                ...existing.intake_data,
+                ...(input.intake_data ?? {}),
+              },
               notes: input.notes ?? existing.notes,
               updated_at: at,
             };
-            setLeads((ls) => ls.map((l) => (l.id === existing.id ? updated : l)));
+            setLeads((ls) =>
+              ls.map((l) => (l.id === existing.id ? updated : l)),
+            );
             persistLeadUpdate(updated.organization_id, existing.id, updated);
             return { id: existing.id, created: false };
           }
@@ -196,24 +197,21 @@ export function LeadProvider({
 
       updateLead: (id, patch) => {
         const at = nowISO();
-        let updated: Lead | null = null;
-        setLeads((ls) =>
-          ls.map((l) => {
-            if (l.id !== id) return l;
-            const next: Lead = { ...l, ...patch, updated_at: at };
-            updated = next;
-            return next;
-          }),
-        );
-        if (updated) {
-          persistLeadUpdate(updated.organization_id, id, patch);
-        }
+        const existing = leads.find((l) => l.id === id);
+        if (!existing) return;
+        const next: Lead = { ...existing, ...patch, updated_at: at };
+        setLeads((ls) => ls.map((l) => (l.id === id ? next : l)));
+        persistLeadUpdate(next.organization_id, id, patch);
       },
 
       convertToBookingRequest: ({ lead_id, customers, actor_id }) => {
         const target = leads.find((l) => l.id === lead_id) ?? null;
         if (!target) {
-          return { ok: false, booking_request_id: null, reason: "Lead not found" };
+          return {
+            ok: false,
+            booking_request_id: null,
+            reason: "Lead not found",
+          };
         }
         // Idempotent replay: already converted -> return existing id, no dup.
         if (
@@ -273,9 +271,7 @@ export function LeadProvider({
     [leads, bookingStore],
   );
 
-  return (
-    <LeadContext.Provider value={store}>{children}</LeadContext.Provider>
-  );
+  return <LeadContext.Provider value={store}>{children}</LeadContext.Provider>;
 }
 
 export function useLeads(): LeadStore {

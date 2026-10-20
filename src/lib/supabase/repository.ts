@@ -101,10 +101,7 @@ import {
   type AgreementsRepository,
   type ActivityAuditRepository,
 } from "./phase9Adapters";
-import {
-  SupabaseLeadRepository,
-  type LeadRepository,
-} from "./phase10Adapters";
+import { SupabaseLeadRepository, type LeadRepository } from "./phase10Adapters";
 
 // ---------------------------------------------------------------------------
 // Repository interfaces

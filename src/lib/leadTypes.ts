@@ -43,11 +43,7 @@ export const LEAD_STATUS_ORDER: LeadStatus[] = [
 ];
 
 /** Where the Lead originated. Mirrors BookingRequestSource vocabulary. */
-export type LeadSource =
-  | "connect_pro_crm"
-  | "website"
-  | "manual"
-  | "other";
+export type LeadSource = "connect_pro_crm" | "website" | "manual" | "other";
 
 export const LEAD_SOURCE_LABELS: Record<LeadSource, string> = {
   connect_pro_crm: "Connect Pro CRM",

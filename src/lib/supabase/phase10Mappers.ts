@@ -7,6 +7,7 @@
 
 import type { Lead, LeadSource, LeadStatus } from "../leadTypes";
 import type { LeadRow } from "./dbTypesPhase10";
+import type { Json } from "./dbTypesCore";
 
 function toStringArray(v: unknown): string[] {
   if (!Array.isArray(v)) return [];

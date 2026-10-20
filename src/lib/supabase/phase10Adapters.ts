@@ -8,6 +8,7 @@
 
 import type { Lead } from "../leadTypes";
 import { rowToLead, leadToRow, leadPatchToRow } from "./phase10Mappers";
+import type { LeadRow } from "./dbTypesPhase10";
 import { normalizeError } from "./repository";
 import { normalizePhone, normalizeEmail } from "../bookingRequestCustomerMatch";
 import type { getSupabase } from "./client";
@@ -53,33 +54,42 @@ export class SupabaseLeadRepository implements LeadRepository {
   }
 
   async insert(l: Lead): Promise<Lead> {
-    const res = await (this.db.from("leads") as unknown as {
-      insert: (r: LeadRow) => {
-        select: () => {
-          single: () => Promise<{ data: LeadRow | null; error: unknown }>;
+    const res = await (
+      this.db.from("leads") as unknown as {
+        insert: (r: LeadRow) => {
+          select: () => {
+            single: () => Promise<{ data: LeadRow | null; error: unknown }>;
+          };
         };
-      };
-    }).insert(leadToRow(l)).select().single();
+      }
+    )
+      .insert(leadToRow(l))
+      .select()
+      .single();
     if (res.error) throw normalizeError(res.error);
     return rowToLead(res.data as LeadRow);
   }
 
-  async update(
-    orgId: string,
-    id: string,
-    patch: Partial<Lead>,
-  ): Promise<Lead> {
-    const res = await (this.db.from("leads") as unknown as {
-      update: (r: Partial<LeadRow>) => {
-        eq: (col: string, val: string) => {
-          eq: (col: string, val: string) => {
-            select: () => {
-              single: () => Promise<{ data: LeadRow | null; error: unknown }>;
+  async update(orgId: string, id: string, patch: Partial<Lead>): Promise<Lead> {
+    const res = await (
+      this.db.from("leads") as unknown as {
+        update: (r: Partial<LeadRow>) => {
+          eq: (
+            col: string,
+            val: string,
+          ) => {
+            eq: (
+              col: string,
+              val: string,
+            ) => {
+              select: () => {
+                single: () => Promise<{ data: LeadRow | null; error: unknown }>;
+              };
             };
           };
         };
-      };
-    })
+      }
+    )
       .update(leadPatchToRow(patch))
       .eq("organization_id", orgId)
       .eq("id", id)
@@ -96,10 +106,7 @@ export class SupabaseLeadRepository implements LeadRepository {
   ): Promise<Lead[]> {
     const phoneN = normalizePhone(phone);
     const emailN = normalizeEmail(email);
-    let q = this.db
-      .from("leads")
-      .select("*")
-      .eq("organization_id", orgId);
+    let q = this.db.from("leads").select("*").eq("organization_id", orgId);
     // OR across phone/email. PostgREST or-filter via separate conditions.
     const orParts: string[] = [];
     if (phoneN) orParts.push(`phone.eq.${phone}`);

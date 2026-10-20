@@ -11,10 +11,7 @@
 
 import { describe, it, expect } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import {
-  LeadProvider,
-  useLeads,
-} from "@/lib/store/leadStore";
+import { LeadProvider, useLeads } from "@/lib/store/leadStore";
 import type { BookingRequestStore } from "@/lib/store/bookingRequestStore";
 import type { Lead } from "@/lib/leadTypes";
 import {
@@ -28,9 +25,7 @@ import {
   getMissingConversionFields,
   leadToBookingRequestInput,
 } from "@/lib/leadConversion";
-import {
-  resolveLeadMatchByPhoneOrEmail,
-} from "@/lib/leadMatch";
+import { resolveLeadMatchByPhoneOrEmail } from "@/lib/leadMatch";
 import { PHASE_10B_LEAD_TABLE } from "@/lib/supabase/dbTypesPhase10";
 
 // A mock booking store that records createBookingRequest calls and returns a
@@ -146,7 +141,10 @@ describe("Phase 10B Lead row/domain mapping", () => {
     expect(lead.id).toBe("lead_1");
     expect(lead.organization_id).toBe("tnt_connectpro");
     expect(lead.source).toBe("connect_pro_crm");
-    expect(lead.intake_data).toEqual({ rental_type: "weekly", employer: "Acme" });
+    expect(lead.intake_data).toEqual({
+      rental_type: "weekly",
+      employer: "Acme",
+    });
     expect(lead.tags).toEqual(["a", "b"]);
   });
 
@@ -167,7 +165,10 @@ describe("Phase 10B Lead row/domain mapping", () => {
 
   it("rowToLead tolerates missing/odd tags + intake_data shapes", () => {
     const lead = rowToLead(
-      makeLeadRow({ tags: undefined as unknown as string[], intake_data: "nope" }),
+      makeLeadRow({
+        tags: undefined as unknown as string[],
+        intake_data: "nope",
+      }),
     );
     expect(lead.tags).toEqual([]);
     expect(lead.intake_data).toEqual({});
@@ -191,9 +192,7 @@ describe("Phase 10B Lead conversion eligibility", () => {
     expect(canConvertLead(makeLead()).ok).toBe(true);
   });
   it("a Lead with no phone AND no email is not convertible", () => {
-    const m = getMissingConversionFields(
-      makeLead({ phone: "", email: "" }),
-    );
+    const m = getMissingConversionFields(makeLead({ phone: "", email: "" }));
     expect(m).toContain("phone_or_email");
     expect(canConvertLead(makeLead({ phone: "", email: "" })).ok).toBe(false);
   });
@@ -226,22 +225,41 @@ describe("Phase 10B leadToBookingRequestInput", () => {
 
 describe("Phase 10B Lead phone/email fallback matching", () => {
   it("clear phone match resolves to one Lead", () => {
-    const leads = [makeLead(), makeLead({ id: "lead_2", phone: "+15559990000", email: "x@y.com" })];
-    const r = resolveLeadMatchByPhoneOrEmail({ leads, phone: "+1555-123-4567", email: "" });
+    const leads = [
+      makeLead(),
+      makeLead({ id: "lead_2", phone: "+15559990000", email: "x@y.com" }),
+    ];
+    const r = resolveLeadMatchByPhoneOrEmail({
+      leads,
+      phone: "+1555-123-4567",
+      email: "",
+    });
     expect(r.kind).toBe("matched");
     if (r.kind === "matched") expect(r.lead_id).toBe("lead_1");
   });
   it("ambiguous phone/email match does not auto-merge", () => {
     const leads = [
       makeLead(),
-      makeLead({ id: "lead_2", phone: "+15551234567", email: "other@example.com" }),
+      makeLead({
+        id: "lead_2",
+        phone: "+15551234567",
+        email: "other@example.com",
+      }),
     ];
-    const r = resolveLeadMatchByPhoneOrEmail({ leads, phone: "+15551234567", email: "jane@example.com" });
+    const r = resolveLeadMatchByPhoneOrEmail({
+      leads,
+      phone: "+15551234567",
+      email: "jane@example.com",
+    });
     expect(r.kind).toBe("ambiguous");
   });
   it("no match returns none", () => {
     expect(
-      resolveLeadMatchByPhoneOrEmail({ leads: [makeLead()], phone: "+1999", email: "nope@nope.com" }),
+      resolveLeadMatchByPhoneOrEmail({
+        leads: [makeLead()],
+        phone: "+1999",
+        email: "nope@nope.com",
+      }),
     ).toEqual({ kind: "none" });
   });
 });
@@ -280,10 +298,21 @@ describe("Phase 10B Lead store", () => {
       ),
     });
     act(() => {
-      result.current.createLead({ first_name: "Jane", last_name: "Doe", phone: "+15551234567", email: "jane@example.com" });
+      result.current.createLead({
+        first_name: "Jane",
+        last_name: "Doe",
+        phone: "+15551234567",
+        email: "jane@example.com",
+      });
     });
     act(() => {
-      result.current.createLead({ first_name: "Jane", last_name: "Doe", phone: "+15551234567", email: "jane@example.com", intake_data: { employer: "Acme" } });
+      result.current.createLead({
+        first_name: "Jane",
+        last_name: "Doe",
+        phone: "+15551234567",
+        email: "jane@example.com",
+        intake_data: { employer: "Acme" },
+      });
     });
     expect(result.current.leads).toHaveLength(1);
     expect(result.current.leads[0].intake_data.employer).toBe("Acme");
@@ -300,15 +329,30 @@ describe("Phase 10B Lead store", () => {
     });
     // Seed two leads with disjoint identity (clean creates).
     act(() => {
-      result.current.createLead({ first_name: "A", last_name: "Z", phone: "111", email: "a@x.com" });
+      result.current.createLead({
+        first_name: "A",
+        last_name: "Z",
+        phone: "111",
+        email: "a@x.com",
+      });
     });
     act(() => {
-      result.current.createLead({ first_name: "B", last_name: "Y", phone: "222", email: "b@x.com" });
+      result.current.createLead({
+        first_name: "B",
+        last_name: "Y",
+        phone: "222",
+        email: "b@x.com",
+      });
     });
     // A third contact whose phone matches lead1 and email matches lead2 is
     // ambiguous across two distinct people => must NOT merge => new Lead.
     act(() => {
-      result.current.createLead({ first_name: "C", last_name: "W", phone: "111", email: "b@x.com" });
+      result.current.createLead({
+        first_name: "C",
+        last_name: "W",
+        phone: "111",
+        email: "b@x.com",
+      });
     });
     expect(result.current.leads).toHaveLength(3);
   });
@@ -324,7 +368,12 @@ describe("Phase 10B Lead store", () => {
     });
     let id = "";
     act(() => {
-      id = result.current.createLead({ first_name: "Jane", last_name: "Doe", phone: "+1", email: "j@x.com" }).id;
+      id = result.current.createLead({
+        first_name: "Jane",
+        last_name: "Doe",
+        phone: "+1",
+        email: "j@x.com",
+      }).id;
     });
     act(() => {
       result.current.updateLead(id, { status: "qualified" });
@@ -343,16 +392,30 @@ describe("Phase 10B Lead store", () => {
     });
     let id = "";
     act(() => {
-      id = result.current.createLead({ first_name: "Jane", last_name: "Doe", phone: "+15551234567", email: "jane@example.com" }).id;
+      id = result.current.createLead({
+        first_name: "Jane",
+        last_name: "Doe",
+        phone: "+15551234567",
+        email: "jane@example.com",
+      }).id;
     });
-    let conv: { ok: boolean; booking_request_id: string | null } = { ok: false, booking_request_id: null };
+    let conv: { ok: boolean; booking_request_id: string | null } = {
+      ok: false,
+      booking_request_id: null,
+    };
     act(() => {
-      conv = result.current.convertToBookingRequest({ lead_id: id, customers: [], actor_id: "staff_9" });
+      conv = result.current.convertToBookingRequest({
+        lead_id: id,
+        customers: [],
+        actor_id: "staff_9",
+      });
     });
     expect(conv.ok).toBe(true);
     expect(conv.booking_request_id).toBeTruthy();
     expect(result.current.leadById(id)?.status).toBe("converted");
-    expect(result.current.leadById(id)?.converted_booking_request_id).toBe(conv.booking_request_id);
+    expect(result.current.leadById(id)?.converted_booking_request_id).toBe(
+      conv.booking_request_id,
+    );
     expect(booking.createCalls).toBe(1); // booking store called exactly once (no dup)
     expect(booking.lastActorId).toBe("staff_9");
   });
@@ -368,15 +431,28 @@ describe("Phase 10B Lead store", () => {
     });
     let id = "";
     act(() => {
-      id = result.current.createLead({ first_name: "Jane", last_name: "Doe", phone: "+15551234567", email: "jane@example.com" }).id;
+      id = result.current.createLead({
+        first_name: "Jane",
+        last_name: "Doe",
+        phone: "+15551234567",
+        email: "jane@example.com",
+      }).id;
     });
     let first = { ok: false, booking_request_id: null as string | null };
     act(() => {
-      first = result.current.convertToBookingRequest({ lead_id: id, customers: [], actor_id: "s1" });
+      first = result.current.convertToBookingRequest({
+        lead_id: id,
+        customers: [],
+        actor_id: "s1",
+      });
     });
     let second = { ok: false, booking_request_id: null as string | null };
     act(() => {
-      second = result.current.convertToBookingRequest({ lead_id: id, customers: [], actor_id: "s2" });
+      second = result.current.convertToBookingRequest({
+        lead_id: id,
+        customers: [],
+        actor_id: "s2",
+      });
     });
     expect(second.ok).toBe(true);
     expect(second.booking_request_id).toBe(first.booking_request_id);
@@ -393,11 +469,24 @@ describe("Phase 10B Lead store", () => {
     });
     let id = "";
     act(() => {
-      id = result.current.createLead({ first_name: "Jane", last_name: "Doe", phone: "", email: "" }).id;
+      id = result.current.createLead({
+        first_name: "Jane",
+        last_name: "Doe",
+        phone: "",
+        email: "",
+      }).id;
     });
-    let conv: { ok: boolean; booking_request_id: string | null; reason?: string } = { ok: false, booking_request_id: null };
+    let conv: {
+      ok: boolean;
+      booking_request_id: string | null;
+      reason?: string;
+    } = { ok: false, booking_request_id: null };
     act(() => {
-      conv = result.current.convertToBookingRequest({ lead_id: id, customers: [], actor_id: "s1" });
+      conv = result.current.convertToBookingRequest({
+        lead_id: id,
+        customers: [],
+        actor_id: "s1",
+      });
     });
     expect(conv.ok).toBe(false);
     expect(conv.booking_request_id).toBeNull();
@@ -414,10 +503,17 @@ describe("Phase 10B Lead store", () => {
       ),
     });
     act(() => {
-      result.current.createLead({ first_name: "Jane", last_name: "Doe", phone: "+15551234567", email: "jane@example.com" });
+      result.current.createLead({
+        first_name: "Jane",
+        last_name: "Doe",
+        phone: "+15551234567",
+        email: "jane@example.com",
+      });
     });
     // The Lead store exposes no Customer list and never surfaces Leads as Customers.
-    expect((result.current as unknown as { customers?: unknown }).customers).toBeUndefined();
+    expect(
+      (result.current as unknown as { customers?: unknown }).customers,
+    ).toBeUndefined();
     expect(result.current.leads).toHaveLength(1);
   });
 });

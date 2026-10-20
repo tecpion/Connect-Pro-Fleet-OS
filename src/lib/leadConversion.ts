@@ -111,7 +111,10 @@ export function leadToBookingRequestInput(
     requested_vehicle_class_id: intake(d, "requested_vehicle_class_id"),
     requested_start_date: intake(d, "requested_start_date"),
     requested_end_date: intake(d, "requested_end_date"),
-    rental_duration_type: (intake(d, "rental_duration_type") as RentalDurationType | null),
+    rental_duration_type: intake(
+      d,
+      "rental_duration_type",
+    ) as RentalDurationType | null,
     notes: lead.notes?.trim() ? lead.notes : null,
     // Source of truth for lead origin: CRM owns CRM-origin lead/contact fields.
     source: lead.source,
