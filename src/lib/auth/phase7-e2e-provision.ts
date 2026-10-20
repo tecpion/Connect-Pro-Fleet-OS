@@ -126,6 +126,7 @@ export async function provisionAndSetup(
     userAId: pa.userId,
     userBId: pb.userId,
     emailA,
+    emailB,
     password,
     stamp,
     ctx,

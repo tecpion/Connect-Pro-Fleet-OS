@@ -49,6 +49,31 @@ export interface Phase7Fixtures {
   receipt: MaintenanceReceipt;
 }
 
+/**
+ * Non-secret metadata persisted between staged Phase 7 runs.
+ * No credentials live here — only the ids/fixture rows a later stage needs to
+ * rebuild a fresh authenticated runtime and re-assert the same Cloud rows.
+ */
+export interface Phase7RunMeta {
+  runId: string;
+  orgA: string;
+  orgB: string;
+  userAId: string;
+  userBId: string;
+  emailA: string;
+  emailB: string;
+  password: string;
+  stamp: string;
+  ctx: Phase4Context;
+  now: string;
+  date: string;
+  emailB: string;
+  recordIds: Record<string, string>;
+  phase7: Phase7Fixtures;
+  users: string[];
+  orgs: string[];
+}
+
 export interface Phase7Runtime {
   a: Phase7Client;
   b: Phase7Client;
@@ -58,6 +83,7 @@ export interface Phase7Runtime {
   userAId: string;
   userBId: string;
   emailA: string;
+  emailB: string;
   password: string;
   stamp: string;
   ctx: Phase4Context;
@@ -107,4 +133,104 @@ export function errorDetail(error: unknown): string {
   )
     return (error as { message: string }).message;
   return String(error);
+}
+
+/**
+ * In-memory run store for the staged Phase 7 E2E runner. A setup stage
+ * provisions + persists fixtures and stores the non-secret run meta here;
+ * later stages look it up by runId and rebuild a fresh authenticated runtime.
+ *
+ * Entries expire so a dropped run does not leak fixtures forever: a later
+ * cleanup stage (or a fresh setup) can still find the meta until it ages out.
+ */
+const RUN_TTL_MS = 1000 * 60 * 10;
+interface RunEntry {
+  meta: Phase7RunMeta;
+  expiresAt: number;
+}
+const runs = new Map<string, RunEntry>();
+
+export function saveRun(meta: Phase7RunMeta): void {
+  pruneRuns();
+  runs.set(meta.runId, { meta, expiresAt: Date.now() + RUN_TTL_MS });
+}
+
+export function loadRun(runId: string): Phase7RunMeta | undefined {
+  pruneRuns();
+  return runs.get(runId)?.meta;
+}
+
+function pruneRuns(): void {
+  const now = Date.now();
+  for (const [id, entry] of runs) if (entry.expiresAt <= now) runs.delete(id);
+}
+
+export type Phase7ClientFactory = (apiKey: string) => Phase7Client;
+
+/**
+ * Rebuild a full Phase7Runtime from persisted run meta + fresh authenticated
+ * clients. The publishable-key `a`/`b` clients are signed in as Org A / Org B
+ * so every later-stage assertion uses the SAME authenticated repository path
+ * the app uses — never the service-role admin. Admin is confined to cleanup.
+ */
+export async function deriveRuntime(
+  meta: Phase7RunMeta,
+  client: Phase7ClientFactory,
+): Promise<Phase7Runtime> {
+  const a = client("publishable") as Phase7Client;
+  const b = client("publishable") as Phase7Client;
+  const admin = client("service") as Phase7Client;
+
+  // Re-authenticate the publishable clients as Org A / Org B so RLS is the
+  // real gate for every read/update/forged-insert probe in this stage.
+  const sa = await a.auth.signInWithPassword({
+    email: meta.emailA,
+    password: meta.password,
+  });
+  if (sa.error || sa.data.user?.id !== meta.userAId)
+    throw new Error(
+      `Org A re-auth failed: ${sa.error?.message ?? "user mismatch"}`,
+    );
+  const sb = await b.auth.signInWithPassword({
+    email: meta.emailB,
+    password: meta.password,
+  });
+  if (sb.error || sb.data.user?.id !== meta.userBId)
+    throw new Error(
+      `Org B re-auth failed: ${sb.error?.message ?? "user mismatch"}`,
+    );
+
+  const rentals = new SupabaseRentalRepository(a as never);
+  const ledger = new SupabaseLedgerRepository(a as never);
+  const deposits = new SupabaseDepositRepository(a as never);
+  const bookingRequests = new SupabaseBookingRequestRepository(a as never);
+  const inspections = new SupabaseInspectionRepository(a as never);
+  const maintenance = new SupabaseMaintenanceRepository(a as never);
+
+  return {
+    a,
+    b,
+    admin,
+    orgA: meta.orgA,
+    orgB: meta.orgB,
+    userAId: meta.userAId,
+    userBId: meta.userBId,
+    emailA: meta.emailA,
+    emailB: meta.emailB,
+    password: meta.password,
+    stamp: meta.stamp,
+    ctx: meta.ctx,
+    now: meta.now,
+    date: meta.date,
+    rentals,
+    ledger,
+    deposits,
+    bookingRequests,
+    inspections,
+    maintenance,
+    recordIds: meta.recordIds,
+    phase7: meta.phase7,
+    users: meta.users,
+    orgs: meta.orgs,
+  };
 }
