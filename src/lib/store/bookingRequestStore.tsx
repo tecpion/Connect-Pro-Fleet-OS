@@ -30,6 +30,10 @@ import type {
   RentalDurationType,
 } from "../bookingRequestTypes";
 import { TENANT_ID } from "./ids";
+import {
+  persistBookingRequestInsert,
+  persistBookingRequestUpdate,
+} from "../supabase/phase2StoreSync";
 import { resolveCustomerMatch } from "../bookingRequestCustomerMatch";
 import {
   seedBookingRequests,
@@ -251,6 +255,7 @@ export function BookingRequestProvider({ children }: { children: ReactNode }) {
           created_by: null,
         };
         setRequests((rs) => [created, ...rs]);
+        persistBookingRequestInsert(created);
         return { booking_request_id: id, created: true, duplicate: false };
       },
 
@@ -303,6 +308,7 @@ export function BookingRequestProvider({ children }: { children: ReactNode }) {
           created_by: input.actor_id,
         };
         setRequests((rs) => [created, ...rs]);
+        persistBookingRequestInsert(created);
         return id;
       },
 
@@ -328,6 +334,11 @@ export function BookingRequestProvider({ children }: { children: ReactNode }) {
               ...os,
             ]);
           }
+          persistBookingRequestUpdate(
+            target.organization_id,
+            id,
+            { status, updated_at: at },
+          );
         }
       },
 

@@ -11,6 +11,12 @@ import type {
   ReceiptType,
 } from "../maintenanceTypes";
 import { TENANT_ID, uid } from "./ids";
+import {
+  persistMaintenanceVendorInsert,
+  persistMaintenanceVendorUpdate,
+  persistMaintenanceReceiptInsert,
+  persistMaintenanceReceiptUpdate,
+} from "../supabase/maintenanceAdapters";
 import type { StoreState } from "./storeState";
 import type { MaintenanceShared } from "./maintenanceShared";
 
@@ -84,6 +90,7 @@ export function buildMaintenanceAux(s: StoreState, h: MaintenanceShared) {
         voided_at: null,
       };
       s.setMaintenanceReceipts((rs) => [receipt, ...rs]);
+      persistMaintenanceReceiptInsert(receipt);
       h.logEvent(
         input.work_order_id,
         "receipt_added",
@@ -92,13 +99,17 @@ export function buildMaintenanceAux(s: StoreState, h: MaintenanceShared) {
       return id;
     },
 
-    voidReceipt: (receiptId: string, reason?: string) => {
+    voidReceipt: (receiptId, reason?: string) => {
       const receipt = s.maintenanceReceipts.find((r) => r.id === receiptId);
       if (!receipt || receipt.voided_at) return;
       const now = new Date().toISOString();
+      const voided: MaintenanceReceipt = { ...receipt, voided_at: now };
       s.setMaintenanceReceipts((rs) =>
-        rs.map((r) => (r.id === receiptId ? { ...r, voided_at: now } : r)),
+        rs.map((r) => (r.id === receiptId ? voided : r)),
       );
+      persistMaintenanceReceiptUpdate(voided.tenant_id, receiptId, {
+        voided_at: now,
+      });
       h.logEvent(
         receipt.work_order_id,
         "receipt_voided",
@@ -139,10 +150,12 @@ export function buildMaintenanceAux(s: StoreState, h: MaintenanceShared) {
         updated_at: now,
       };
       s.setMaintenanceVendors((vs) => [vendor, ...vs]);
+      persistMaintenanceVendorInsert(vendor);
       return id;
     },
 
     updateVendor: (id: string, patch: Partial<MaintenanceVendor>) => {
+      const existing = s.maintenanceVendors.find((v) => v.id === id);
       s.setMaintenanceVendors((vs) =>
         vs.map((v) =>
           v.id === id
@@ -150,9 +163,12 @@ export function buildMaintenanceAux(s: StoreState, h: MaintenanceShared) {
             : v,
         ),
       );
+      if (existing)
+        persistMaintenanceVendorUpdate(existing.tenant_id, id, patch);
     },
 
     deactivateVendor: (id: string) => {
+      const existing = s.maintenanceVendors.find((v) => v.id === id);
       s.setMaintenanceVendors((vs) =>
         vs.map((v) =>
           v.id === id
@@ -160,6 +176,10 @@ export function buildMaintenanceAux(s: StoreState, h: MaintenanceShared) {
             : v,
         ),
       );
+      if (existing)
+        persistMaintenanceVendorUpdate(existing.tenant_id, id, {
+          active: false,
+        });
     },
 
     addWorkOrderNote: (id: string, text: string) => {

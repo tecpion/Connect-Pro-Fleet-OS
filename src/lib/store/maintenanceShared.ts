@@ -10,6 +10,10 @@ import type {
   WorkOrderEventType,
 } from "../maintenanceTypes";
 import { isWorkOrderActive } from "../maintenanceSelectors";
+import {
+  persistWorkOrderUpdate,
+  persistWorkOrderEventInsert,
+} from "../supabase/maintenanceAdapters";
 import { TENANT_ID, uid } from "./ids";
 import type { StoreState } from "./storeState";
 
@@ -71,6 +75,7 @@ export function buildMaintenanceShared(s: StoreState): MaintenanceShared {
       created_at: new Date().toISOString(),
     };
     s.setWorkOrderEvents((es) => [ev, ...es]);
+    persistWorkOrderEventInsert(ev);
   }
 
   function logAct(
@@ -86,6 +91,7 @@ export function buildMaintenanceShared(s: StoreState): MaintenanceShared {
   }
 
   function patchWO(id: string, patch: Partial<MaintenanceWorkOrder>) {
+    const existing = s.workOrders.find((w) => w.id === id);
     s.setWorkOrders((ws) =>
       ws.map((w) =>
         w.id === id
@@ -93,6 +99,8 @@ export function buildMaintenanceShared(s: StoreState): MaintenanceShared {
           : w,
       ),
     );
+    if (existing)
+      persistWorkOrderUpdate(existing.tenant_id, id, patch);
   }
 
   function staffName(id: string | null): string {

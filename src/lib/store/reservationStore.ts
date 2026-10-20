@@ -20,6 +20,7 @@ import {
   persistReservationInsert,
   persistReservationUpdate,
 } from "../supabase/storeSync";
+import { persistInspectionInsert } from "../supabase/phase2StoreSync";
 
 export function buildReservationMethods(s: StoreState) {
   return {
@@ -68,7 +69,10 @@ export function buildReservationMethods(s: StoreState) {
       s.setDrivers((ds) =>
         ds.map((d) => (d.id === id ? { ...d, ...patch } : d)),
       ),
-    addInspection: (i: Inspection) => s.setInspections((is) => [i, ...is]),
+    addInspection: (i: Inspection) => {
+      s.setInspections((is) => [i, ...is]);
+      persistInspectionInsert(i);
+    },
     addMaintenance: (m: import("../types").MaintenanceRecord) =>
       s.setMaintenance((ms) => [m, ...ms]),
     updateMaintenance: (

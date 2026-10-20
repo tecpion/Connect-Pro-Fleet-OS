@@ -16,6 +16,7 @@ import {
   canTransition,
   isWorkOrderActive,
 } from "../maintenanceSelectors";
+import { persistWorkOrderInsert } from "../supabase/maintenanceAdapters";
 import { TENANT_ID, uid } from "./ids";
 import type { StoreState } from "./storeState";
 import type { CreateNotificationInput } from "./notificationContext";
@@ -104,6 +105,7 @@ export function buildWorkOrderLifecycle(
         updated_at: now,
       };
       s.setWorkOrders((ws) => [wo, ...ws]);
+      persistWorkOrderInsert(wo);
       h.logEvent(id, "created", "Work order created");
       if (input.assigned_user_id)
         h.logEvent(

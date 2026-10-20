@@ -163,9 +163,9 @@ export async function hydrateInspections(
 // ── Persistence hooks (fire-and-forget; local state already updated) ────
 
 export function persistRentalInsert(r: RentalAgreement): void {
-  const repos = repos();
-  if (!repos?.rentals) return;
-  void repos.rentals
+  const repo = repos();
+  if (!repo?.rentals) return;
+  void repo.rentals
     .insert(r)
     .catch((e: unknown) =>
       console.error("[phase2Sync] rental insert failed", e),
