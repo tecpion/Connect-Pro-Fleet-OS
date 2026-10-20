@@ -33,12 +33,11 @@ export function buildSettingsCoreMethods(s: StoreState) {
         // Persist the authoritative company settings record. CompanyInfo
         // (incl. timezone) is the authoritative org timezone source (Phase 6);
         // the structured config is read from the current store slices so the
-        // upsert never accumulates a second settings row.
-        persistCompanySettings(
-          c.tenant_id ? c.tenant_id : TENANT_ID,
-          next,
-          buildSettingsConfig(s),
-        );
+        // upsert never accumulates a second settings row. CompanyInfo itself
+        // carries no tenant_id, so the active organization id is resolved from
+        // the tenant context (TENANT_ID) — the authoritative org id is owned
+        // by the auth/session layer and applied at hydration time.
+        persistCompanySettings(TENANT_ID, next, buildSettingsConfig(s));
         return next;
       }),
 
@@ -159,10 +158,6 @@ export function buildSettingsConfig(
 ): CompanySettingsConfig {
   // companyPolicies live in CompanyPolicyProvider; read the module-level ref
   // so the persisted config matches what domain methods freeze at checkout.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { getCompanyPoliciesRef } = require("./companyPolicyRef") as {
-    getCompanyPoliciesRef: () => import("../companyPolicyTypes").CompanyPolicies;
-  };
   return {
     companyPolicies: getCompanyPoliciesRef(),
     agreementRules: s.agreementRules,

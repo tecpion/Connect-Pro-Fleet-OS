@@ -83,7 +83,12 @@ function repos(): Phase8Repositories | null {
 export interface Phase8SyncHandles {
   setLocations: (updater: (prev: Location[]) => Location[]) => void;
   setStaff: (updater: (prev: Staff[]) => Staff[]) => void;
-  setAssignments: (
+  /** Operational staff assignments live in the standalone
+   *  StaffAssignmentProvider (its own useState), separate from the legacy
+   *  reservation-slot StaffAssignment[] in the core store. Optional so the
+   *  core StoreProvider — which only owns the legacy slot assignments — can
+   *  hydrate the other Phase 8 slices without a type clash. */
+  setAssignments?: (
     updater: (prev: OperationalStaffAssignment[]) => OperationalStaffAssignment[],
   ) => void;
   setDrivers: (updater: (prev: Driver[]) => Driver[]) => void;
@@ -141,7 +146,9 @@ export async function hydratePhase8Slices(
         r.staffAssignments.listDrivers(orgId),
       ]);
       handles.setStaff(() => staff);
-      handles.setAssignments(() => assignments);
+      // Operational assignments are owned by StaffAssignmentProvider; only
+      // apply them when the caller wired a setter for them.
+      if (handles.setAssignments) handles.setAssignments(() => assignments);
       handles.setDrivers(() => drivers);
     } catch (e) {
       console.error("[phase8Sync] staff/assignments/drivers hydration failed", e);
