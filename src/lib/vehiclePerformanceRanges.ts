@@ -72,7 +72,9 @@ export function resolvePerformanceRange(
         new Date(curMonthStart.getTime() - DAY),
         z,
       );
-      return { start, end: endOfMonthInTz(start, z) };
+      // Inclusive end-of-month (23:59:59.999 of the last day), preserving the
+      // frozen V1 convention where the range end stays within the prior month.
+      return { start, end: new Date(endOfMonthInTz(start, z).getTime() - 1) };
     }
     case "ytd":
       return {
@@ -90,12 +92,11 @@ export function resolvePerformanceRange(
         end: endOfDay(now, z),
       };
     case "last_12_months": {
-      const p = zonedDateTimeParts(now, z);
+      // Rolling 12-month window ending today (inclusive), matching the frozen
+      // V1 convention: start-of-day ~365 days back through end-of-day today.
+      // Span is TZ-independent, so this stays 365/366 under any process TZ.
       return {
-        start: startOfMonthInTz(
-          new Date(Date.UTC(p.year - 1, p.month - 1, 15)),
-          z,
-        ),
+        start: startOfDay(new Date(now.getTime() - 365 * DAY), z),
         end: endOfDay(now, z),
       };
     }

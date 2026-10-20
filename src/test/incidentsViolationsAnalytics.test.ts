@@ -511,10 +511,12 @@ describe("Incidents & Violations — source, match, billing, due, reports", () =
     expect(r.totalViolations).toBe(1);
   });
   it("33. tenant timezone boundaries (window uses passed now)", () => {
-    const local = new Date(2026, 8, 10, 12, 0, 0); // Sep 10 2026 local
+    // Anchored to UTC so the month-start boundary holds under any process TZ
+    // (omitted tz → the analytics range resolves to UTC).
+    const local = new Date("2026-09-10T12:00:00Z");
     const w = resolveAnalyticsRange("this_month", local);
-    expect(w.start.getMonth()).toBe(8);
-    expect(w.start.getFullYear()).toBe(2026);
+    expect(w.start.getUTCMonth()).toBe(8);
+    expect(w.start.getUTCFullYear()).toBe(2026);
   });
   it("34. tenant scoping — selectors ignore other-tenant records via caller filter", () => {
     // Selectors operate on the array passed in; the store is tenant-scoped.

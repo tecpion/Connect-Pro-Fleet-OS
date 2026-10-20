@@ -13,9 +13,11 @@ import { isObligationLate, obligationDueInstant } from "@/lib/lateEvaluator";
 import type { Customer } from "@/lib/types";
 
 /** A fixed "now" for deterministic exact-time late tests. Returns a Date at the
- *  given local wall-clock time on Aug 31, 2026. */
+ *  given local wall-clock time on Aug 31, 2026. Anchored to UTC so the frozen
+ *  V1 wall-clock rule (1:59 not late / 2:00 not late / 2:01 late) holds under
+ *  ANY process TZ — the evaluator's omitted-tz path resolves to UTC. */
 function atAug31(h: number, m: number): Date {
-  return new Date(2026, 7, 31, h, m, 0, 0); // month is 0-indexed
+  return new Date(Date.UTC(2026, 7, 31, h, m, 0, 0));
 }
 
 function newCustomer(id: string, first: string, phone = "555-0100"): Customer {

@@ -37,15 +37,15 @@ describe("VP — What Changed prior-period ranges", () => {
   it("This Month resolves the previous calendar month", () => {
     const prior = resolvePriorPerformanceRange("this_month", NOW);
     expect(prior).not.toBeNull();
-    expect(prior!.start.getMonth()).toBe(6); // July (Aug is month 7)
-    expect(prior!.end.getMonth()).toBe(6);
+    expect(prior!.start.getUTCMonth()).toBe(6); // July (Aug is month 7)
+    expect(prior!.end.getUTCMonth()).toBe(6);
   });
 
   it("Last Month resolves the month before Last Month", () => {
     const prior = resolvePriorPerformanceRange("last_month", NOW);
     expect(prior).not.toBeNull();
     // Last Month = July; prior = June (month 5).
-    expect(prior!.start.getMonth()).toBe(5);
+    expect(prior!.start.getUTCMonth()).toBe(5);
   });
 
   it("Last 30 Days resolves a preceding 30-day window", () => {
@@ -72,8 +72,8 @@ describe("VP — What Changed prior-period ranges", () => {
   it("YTD resolves the equivalent elapsed period in the prior year", () => {
     const prior = resolvePriorPerformanceRange("ytd", NOW);
     expect(prior).not.toBeNull();
-    expect(prior!.start.getFullYear()).toBe(2025);
-    expect(prior!.start.getMonth()).toBe(0); // Jan 1 prior year
+    expect(prior!.start.getUTCFullYear()).toBe(2025);
+    expect(prior!.start.getUTCMonth()).toBe(0); // Jan 1 prior year
   });
 
   it("Lifetime does NOT fabricate a prior period", () => {

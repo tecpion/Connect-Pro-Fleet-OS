@@ -59,16 +59,20 @@ export function resolvePriorPerformanceRange(
       return { start: priorStart, end: priorEnd };
     }
     case "this_month": {
-      // Previous calendar month in the org zone.
+      // Previous calendar month in the org zone, INCLUSIVE end-of-month.
       const curMonthStart = startOfMonthInTz(now, z);
       const start = startOfMonthInTz(
         new Date(curMonthStart.getTime() - DAY),
         z,
       );
-      return { start, end: endOfMonthInTz(start, z) };
+      return {
+        start,
+        end: new Date(endOfMonthInTz(start, z).getTime() - 1),
+      };
     }
     case "last_month": {
-      // Calendar month immediately before Last Month (i.e. two months ago).
+      // Calendar month immediately before Last Month (i.e. two months ago),
+      // INCLUSIVE end-of-month.
       const thisMonthStart = startOfMonthInTz(now, z);
       const lastMonthStart = startOfMonthInTz(
         new Date(thisMonthStart.getTime() - DAY),
@@ -78,7 +82,10 @@ export function resolvePriorPerformanceRange(
         new Date(lastMonthStart.getTime() - DAY),
         z,
       );
-      return { start, end: endOfMonthInTz(start, z) };
+      return {
+        start,
+        end: new Date(endOfMonthInTz(start, z).getTime() - 1),
+      };
     }
     case "last_30_days": {
       // Current = [now-29 .. now]. Prior = [now-59 .. now-30].

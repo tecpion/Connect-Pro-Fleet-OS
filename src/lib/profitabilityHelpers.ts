@@ -89,14 +89,17 @@ export function resolveProfitabilityRange(
     case "this_month":
       return { start: startOfMonthInTz(now, z), end: endOfDay(now, z) };
     case "last_month": {
-      // Previous calendar month in the org zone: [start of last month,
-      // end of last month) using the org-aware month helpers.
+      // Previous calendar month in the org zone, INCLUSIVE end-of-month
+      // (23:59:59.999 of the last day), preserving the frozen V1 convention
+      // where the range end stays within the prior month.
       const curMonthStart = startOfMonthInTz(now, z);
       const prevMonthStart = startOfMonthInTz(
         new Date(curMonthStart.getTime() - DAY),
         z,
       );
-      const lastMonthEnd = endOfMonthInTz(prevMonthStart, z);
+      const lastMonthEnd = new Date(
+        endOfMonthInTz(prevMonthStart, z).getTime() - 1,
+      );
       return { start: prevMonthStart, end: lastMonthEnd };
     }
     case "last_30_days": {

@@ -28,9 +28,11 @@ import {
 } from "@/lib/billing";
 import { makeRental, makePeriod, charge } from "./billingFixtures";
 
-/** A fixed "now" on Aug 31, 2026 at the given local wall-clock time. */
+/** A fixed "now" on Aug 31, 2026 at the given wall-clock time. Anchored to UTC
+ *  so the frozen V1 cutoff rule holds under any process TZ (the evaluator's
+ *  omitted-tz path resolves to UTC, so `now` must share that zone). */
 function atAug31(h: number, m: number): Date {
-  return new Date(2026, 7, 31, h, m, 0, 0);
+  return new Date(Date.UTC(2026, 7, 31, h, m, 0, 0));
 }
 
 // --- exact-time lateness: 1:59 / 2:00 / 2:01 ------------------------------

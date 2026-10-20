@@ -175,15 +175,17 @@ describe("Phase 6 — org timezone is authoritative for business-calendar logic"
     expect(isObligationLate(input, at17, "UTC").late).toBe(true);
   });
 
-  it("no-cutoff end-of-day due uses the org-local end of the due day", () => {
-    // No cutoff → end-of-day 23:59:59.999 local. In New York (EDT) the due
-    // day 2026-09-02 ends at 2026-09-03T03:59:59.999Z.
+  it("no-cutoff end-of-day due uses the org-local 23:59 of the due day", () => {
+    // No cutoff → legacy end-of-business-day at 23:59:00 local (the frozen V1
+    // date-only due-at rule: payable through end of business day, late AT OR
+    // AFTER 23:59 + grace). In New York (EDT -4) 2026-09-02 23:59 local =
+    // 2026-09-03T03:59:00.000Z; in Los_Angeles (PDT -7) = 2026-09-03T06:59:00Z.
     const input = { due_at: "2026-09-02", cutoff_time: null, grace_period: 0 };
     expect(obligationDueInstant(input, "America/New_York")).toBe(
-      new Date("2026-09-03T03:59:59.999Z").getTime(),
+      new Date("2026-09-03T03:59:00.000Z").getTime(),
     );
     expect(obligationDueInstant(input, "America/Los_Angeles")).toBe(
-      new Date("2026-09-03T06:59:59.999Z").getTime(),
+      new Date("2026-09-03T06:59:00.000Z").getTime(),
     );
   });
 

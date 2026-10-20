@@ -93,7 +93,9 @@ describe("Build #23 — payment policy + exact-time cutoff", () => {
   });
 
   it("1:59 PM is NOT late", () => {
-    const now = new Date("2026-09-02T13:59:00");
+    // Anchored to UTC so the frozen V1 wall-clock rule holds under any process
+    // TZ (omitted tz → evaluator resolves to UTC, so `now` shares that zone).
+    const now = new Date("2026-09-02T13:59:00Z");
     const r = isObligationLate(
       { due_at: "2026-09-02", cutoff_time: "14:00", grace_period: 0 },
       now,
@@ -102,7 +104,7 @@ describe("Build #23 — payment policy + exact-time cutoff", () => {
   });
 
   it("2:00 PM is NOT late (payable THROUGH the cutoff)", () => {
-    const now = new Date("2026-09-02T14:00:00");
+    const now = new Date("2026-09-02T14:00:00Z");
     const r = isObligationLate(
       { due_at: "2026-09-02", cutoff_time: "14:00", grace_period: 0 },
       now,
@@ -111,7 +113,7 @@ describe("Build #23 — payment policy + exact-time cutoff", () => {
   });
 
   it("2:01 PM IS late", () => {
-    const now = new Date("2026-09-02T14:01:00");
+    const now = new Date("2026-09-02T14:01:00Z");
     const r = isObligationLate(
       { due_at: "2026-09-02", cutoff_time: "14:00", grace_period: 0 },
       now,
@@ -125,13 +127,13 @@ describe("Build #23 — payment policy + exact-time cutoff", () => {
       cutoff_time: "14:00",
       grace_period: 0.5, // 30 minutes
     };
-    expect(isObligationLate(input, new Date("2026-09-02T14:15:00")).late).toBe(
+    expect(isObligationLate(input, new Date("2026-09-02T14:15:00Z")).late).toBe(
       false,
     );
-    expect(isObligationLate(input, new Date("2026-09-02T14:30:00")).late).toBe(
+    expect(isObligationLate(input, new Date("2026-09-02T14:30:00Z")).late).toBe(
       false,
     );
-    expect(isObligationLate(input, new Date("2026-09-02T14:31:00")).late).toBe(
+    expect(isObligationLate(input, new Date("2026-09-02T14:31:00Z")).late).toBe(
       true,
     );
   });
@@ -143,8 +145,8 @@ describe("Build #23 — payment policy + exact-time cutoff", () => {
       grace_period: 0,
     });
     const d = new Date(ms);
-    expect(d.getHours()).toBe(14);
-    expect(d.getMinutes()).toBe(0);
+    expect(d.getUTCHours()).toBe(14);
+    expect(d.getUTCMinutes()).toBe(0);
   });
 
   it("no cutoff configured → end-of-day fallback (23:59)", () => {
@@ -154,8 +156,8 @@ describe("Build #23 — payment policy + exact-time cutoff", () => {
       grace_period: 0,
     });
     const d = new Date(ms);
-    expect(d.getHours()).toBe(23);
-    expect(d.getMinutes()).toBe(59);
+    expect(d.getUTCHours()).toBe(23);
+    expect(d.getUTCMinutes()).toBe(59);
   });
 });
 

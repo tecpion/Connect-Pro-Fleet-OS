@@ -175,7 +175,8 @@ describe("Build #29 closure — Truthful day-over-day overdue delta", () => {
 
   it("4. due today before cutoff is not newly overdue", () => {
     // Due today 2:00 PM, evaluated at 9:00 AM → not late at start, not late now.
-    const asOf = new Date("2026-09-02T09:00:00");
+    // Anchored to UTC so the frozen V1 cutoff rule holds under any process TZ.
+    const asOf = new Date("2026-09-02T09:00:00Z");
     const { eod } = deltaFor(asOf, {
       dueAt: "2026-09-02",
       cutoff: "14:00",
@@ -186,7 +187,7 @@ describe("Build #29 closure — Truthful day-over-day overdue delta", () => {
   });
 
   it("5. exactly at cutoff is not newly overdue (payable THROUGH cutoff)", () => {
-    const asOf = new Date("2026-09-02T14:00:00");
+    const asOf = new Date("2026-09-02T14:00:00Z");
     const { eod } = deltaFor(asOf, {
       dueAt: "2026-09-02",
       cutoff: "14:00",
@@ -197,7 +198,7 @@ describe("Build #29 closure — Truthful day-over-day overdue delta", () => {
   });
 
   it("6. one minute after cutoff is newly overdue", () => {
-    const asOf = new Date("2026-09-02T14:01:00");
+    const asOf = new Date("2026-09-02T14:01:00Z");
     const { eod } = deltaFor(asOf, {
       dueAt: "2026-09-02",
       cutoff: "14:00",
@@ -209,7 +210,7 @@ describe("Build #29 closure — Truthful day-over-day overdue delta", () => {
 
   it("7. grace boundary respected (2:30 not late, 2:31 late with 30m grace)", () => {
     // 30-minute grace → 2:30 not late
-    const at230 = new Date("2026-09-02T14:30:00");
+    const at230 = new Date("2026-09-02T14:30:00Z");
     const { eod: e230 } = deltaFor(at230, {
       dueAt: "2026-09-02",
       cutoff: "14:00",
@@ -218,7 +219,7 @@ describe("Build #29 closure — Truthful day-over-day overdue delta", () => {
     });
     expect(e230.new_overdue_count).toBe(0);
     // 2:31 late
-    const at231 = new Date("2026-09-02T14:31:00");
+    const at231 = new Date("2026-09-02T14:31:00Z");
     const { eod: e231 } = deltaFor(at231, {
       dueAt: "2026-09-02",
       cutoff: "14:00",

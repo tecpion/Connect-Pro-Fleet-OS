@@ -550,23 +550,24 @@ describe("Build #16 — reversals", () => {
 
 describe("Build #16 — date ranges", () => {
   it("this month resolves correctly", () => {
+    // Anchored to UTC so the month-start boundary holds under any process TZ.
     const r = resolveProfitabilityRange(
       "this_month",
       undefined,
-      new Date(2026, 7, 15, 12, 0, 0),
+      new Date(Date.UTC(2026, 7, 15, 12, 0, 0)),
     );
-    expect(r.start.getDate()).toBe(1);
-    expect(r.start.getMonth()).toBe(7);
+    expect(r.start.getUTCDate()).toBe(1);
+    expect(r.start.getUTCMonth()).toBe(7);
   });
 
   it("last month resolves correctly", () => {
     const r = resolveProfitabilityRange(
       "last_month",
       undefined,
-      new Date(2026, 7, 15, 12, 0, 0),
+      new Date(Date.UTC(2026, 7, 15, 12, 0, 0)),
     );
-    expect(r.start.getMonth()).toBe(6);
-    expect(r.end.getMonth()).toBe(6);
+    expect(r.start.getUTCMonth()).toBe(6);
+    expect(r.end.getUTCMonth()).toBe(6);
   });
 
   it("custom range resolves correctly", () => {
@@ -574,8 +575,8 @@ describe("Build #16 — date ranges", () => {
       start: "2026-01-01",
       end: "2026-01-31",
     });
-    expect(r.start.getMonth()).toBe(0);
-    expect(r.end.getDate()).toBe(31);
+    expect(r.start.getUTCMonth()).toBe(0);
+    expect(r.end.getUTCDate()).toBe(31);
   });
 });
 

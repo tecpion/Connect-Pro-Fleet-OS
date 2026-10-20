@@ -60,7 +60,12 @@ export function obligationDueInstant(
     const [h, m] = input.cutoff_time.split(":").map(Number);
     return midnight + (h ?? 0) * 3600_000 + (m ?? 0) * 60_000;
   }
-  return endOfDayInTz(new Date(input.due_at + "T12:00:00Z"), z).getTime();
+  // No cutoff → legacy end-of-business-day at 23:59:00 local (NOT 23:59:59.999):
+  // the obligation is payable through the end of the business day and is late
+  // AT OR AFTER 23:59 + grace. 23:59 is never inside a DST gap (US gaps are at
+  // 2am) and shares the day's offset, so midnight + 23h59m is the exact local
+  // 23:59 instant. Preserves the frozen V1 date-only due-at rule.
+  return midnight + 23 * 3600_000 + 59 * 60_000;
 }
 
 /**
