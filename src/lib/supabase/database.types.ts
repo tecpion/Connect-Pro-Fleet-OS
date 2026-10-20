@@ -109,6 +109,14 @@ import type {
   ActivityLogRow,
   FileObjectRow,
 } from "./dbTypesIntegrations";
+import type {
+  RentalEventRow,
+  InvoiceRow,
+  ReceiptRow,
+  PaymentArrangementRow,
+  PaymentArrangementInstallmentRow,
+  PaymentArrangementEventRow,
+} from "./dbTypesPhase9";
 
 // Supabase's generated schema requires each table entity to carry
 // Relationships (even when empty) or the typed client falls back to `never`
@@ -220,6 +228,13 @@ export interface Database {
       company_settings: Entity<CompanySettingsRow>;
       addon_categories: Entity<AddonCategoryRow>;
       addon_catalog_items: Entity<AddonCatalogItemRow>;
+      // ── Phase 9: financial/agreement/audit persistence ────────────────
+      rental_events: Entity<RentalEventRow>;
+      invoices: Entity<InvoiceRow>;
+      receipts: Entity<ReceiptRow>;
+      payment_arrangements: Entity<PaymentArrangementRow>;
+      payment_arrangement_installments: Entity<PaymentArrangementInstallmentRow>;
+      payment_arrangement_events: Entity<PaymentArrangementEventRow>;
     };
     Views: Record<string, never>;
     Functions: {

@@ -87,6 +87,20 @@ import {
   type VehicleClassesRepository,
   type AddonsRepository,
 } from "./phase8ConfigAdapters";
+import {
+  SupabaseRentalEventsRepository,
+  SupabaseInvoicesRepository,
+  SupabaseReceiptsRepository,
+  SupabasePaymentArrangementsRepository,
+  SupabaseAgreementsRepository,
+  SupabaseActivityAuditRepository,
+  type RentalEventsRepository,
+  type InvoicesRepository,
+  type ReceiptsRepository,
+  type PaymentArrangementsRepository,
+  type AgreementsRepository,
+  type ActivityAuditRepository,
+} from "./phase9Adapters";
 
 // ---------------------------------------------------------------------------
 // Repository interfaces
@@ -385,6 +399,12 @@ export function createRepositories(): {
   companySettings: CompanySettingsRepository | null;
   vehicleClasses: VehicleClassesRepository | null;
   addons: AddonsRepository | null;
+  rentalEvents: RentalEventsRepository | null;
+  invoices: InvoicesRepository | null;
+  receipts: ReceiptsRepository | null;
+  paymentArrangements: PaymentArrangementsRepository | null;
+  agreements: AgreementsRepository | null;
+  activityAudit: ActivityAuditRepository | null;
 } {
   const db = getSupabase();
   if (!db)
@@ -413,6 +433,12 @@ export function createRepositories(): {
       companySettings: null,
       vehicleClasses: null,
       addons: null,
+      rentalEvents: null,
+      invoices: null,
+      receipts: null,
+      paymentArrangements: null,
+      agreements: null,
+      activityAudit: null,
     };
   return {
     customers: new SupabaseCustomerRepository(db),
@@ -439,5 +465,11 @@ export function createRepositories(): {
     companySettings: new SupabaseCompanySettingsRepository(db),
     vehicleClasses: new SupabaseVehicleClassesRepository(db),
     addons: new SupabaseAddonsRepository(db),
+    rentalEvents: new SupabaseRentalEventsRepository(db),
+    invoices: new SupabaseInvoicesRepository(db),
+    receipts: new SupabaseReceiptsRepository(db),
+    paymentArrangements: new SupabasePaymentArrangementsRepository(db),
+    agreements: new SupabaseAgreementsRepository(db),
+    activityAudit: new SupabaseActivityAuditRepository(db),
   };
 }

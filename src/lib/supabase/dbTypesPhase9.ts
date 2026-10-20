@@ -8,6 +8,11 @@
 //   arrangement  = customer promise (not a payment, not P&L)
 // The rental_ledger_transactions table remains the authoritative financial
 // source of truth.
+//
+// NOTE: the existing agreement/audit row types — AgreementTemplateRow,
+// MasterAgreementRow, AgreementInstanceRow (dbTypesCore) and ActivityLogRow
+// (dbTypesIntegrations) — are REUSED and NOT redefined here to avoid duplicate
+// export conflicts. This module only declares the six NEW Phase 9 tables.
 
 import type { Json } from "./dbTypesCore";
 
@@ -131,59 +136,4 @@ export interface PaymentArrangementEventRow {
   installment_id: string | null;
   notes: string | null;
   created_at: string;
-}
-
-// ── existing agreement/audit tables (confirmed org-scoped, reused) ──────────
-
-export interface ActivityLogRow {
-  id: string;
-  organization_id: string;
-  at: string;
-  label: string;
-  tone: string;
-  staff_id: string | null;
-}
-
-export interface AgreementTemplateRow {
-  id: string;
-  organization_id: string;
-  name: string;
-  agreement_type: string;
-  description: string;
-  file_path: string | null;
-  file_name: string | null;
-  version: number;
-  effective_date: string | null;
-  status: string;
-  is_default: boolean;
-  created_by: string | null;
-  created_at: string;
-}
-
-export interface AgreementInstanceRow {
-  id: string;
-  organization_id: string;
-  master_agreement_id: string | null;
-  reservation_id: string | null;
-  period_start: string | null;
-  period_end: string | null;
-  vehicle_id: string | null;
-  mileage_start: number;
-  mileage_end: number | null;
-  rate: number;
-  pdf_path: string | null;
-  generated_at: string;
-}
-
-export interface MasterAgreementRow {
-  id: string;
-  organization_id: string;
-  driver_id: string | null;
-  signature_path: string;
-  signed_at: string;
-  terms_version: string;
-  expires_at: string | null;
-  status: string;
-  rate_at_signing: number;
-  vehicle_id_at_signing: string | null;
 }
