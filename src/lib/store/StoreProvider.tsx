@@ -38,6 +38,8 @@ import {
 } from "../supabase/phase2StoreSync";
 import { hydrateMaintenance } from "../supabase/maintenanceAdapters";
 import { hydrateExpenses, hydrateBanking } from "../supabase/phase5StoreSync";
+import { hydratePhase8Slices } from "../supabase/phase8StoreSync";
+import { setCompanyPoliciesRef } from "./companyPolicyRef";
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const s = useStoreState();
@@ -389,6 +391,59 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setReconciliationMatches: s.setReconciliationMatches,
       setAccountTransfers: s.setAccountTransfers,
       setReconciliationEvents: s.setReconciliationEvents,
+    })
+      .then((ran) => {
+        if (!ran || !active) return;
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeOrgId]);
+
+  // Phase 8: hydrate the remaining V1 operational/configuration domains from
+  // Cloud on auth/org change — locations, staff, operational assignments,
+  // drivers, tasks (+ events/notes), notifications (+ deliveries/preferences),
+  // company settings (authoritative org timezone), vehicle classes/pricing,
+  // and add-ons. In memory mode hydratePhase8Slices is a no-op and the seeded
+  // demo data stays. The stale-closure `active` guard cancels async work after
+  // an org switch so a slow org-A read never overwrites org-B's cache.
+  //
+  // Company settings hydration restores CompanyInfo.timezone verbatim (Phase 6
+  // org-timezone remains authoritative) and applies the structured config
+  // (companyPolicies/agreementRules/taxRules/feeRules) to the store + the
+  // module-level companyPolicyRef so domain methods freeze the hydrated
+  // policies at checkout.
+  useEffect(() => {
+    if (!activeOrgId) return;
+    let active = true;
+    void hydratePhase8Slices(activeOrgId, {
+      setLocations: s.setLocations,
+      setStaff: s.setStaff,
+      setAssignments: s.setAssignments,
+      setDrivers: s.setDrivers,
+      setTasks: s.setTasks,
+      setTaskEvents: s.setTaskEvents,
+      setTaskNotes: s.setTaskNotes,
+      setNotifications: s.setNotifications,
+      setNotificationDeliveries: s.setNotificationDeliveries,
+      setNotificationPreferences: s.setNotificationPreferences,
+      setCompanyInfo: s.setCompanyInfo,
+      setVehicleClasses: s.setVehicleClasses,
+      setAddonCategories: s.setAddonCategories,
+      setAddonCatalog: s.setAddonCatalog,
+      applySettingsConfig: (cfg) => {
+        if (!active) return;
+        // Apply the hydrated structured config to the authoritative store
+        // slices. CompanyPolicies live in the CompanyPolicyProvider, so we
+        // also push them into the module-level ref so domain methods that
+        // freeze policy snapshots at checkout read the hydrated values.
+        if (cfg.companyPolicies) setCompanyPoliciesRef(cfg.companyPolicies);
+        if (cfg.agreementRules) s.setAgreementRules(() => cfg.agreementRules);
+        if (cfg.taxRules) s.setTaxRules(() => cfg.taxRules);
+        if (cfg.feeRules) s.setFeeRules(() => cfg.feeRules);
+      },
     })
       .then((ran) => {
         if (!ran || !active) return;

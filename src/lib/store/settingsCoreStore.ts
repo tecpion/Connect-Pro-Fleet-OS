@@ -17,21 +17,51 @@ import { SYSTEM_ROLE_PERMISSIONS } from "../permissions";
 import { TENANT_ID, uid } from "./ids";
 import type { StoreState } from "./storeState";
 import { guardRoleUpdate, guardPermissionOverride } from "./staffGuard";
+import {
+  persistLocationInsert,
+  persistLocationUpdate,
+  persistCompanySettings,
+} from "../supabase/phase8StoreSync";
+import type { CompanySettingsConfig } from "../supabase/phase8Mappers";
+import { getCompanyPoliciesRef } from "./companyPolicyRef";
 
 export function buildSettingsCoreMethods(s: StoreState) {
   return {
     updateCompanyInfo: (patch: Partial<CompanyInfo>) =>
-      s.setCompanyInfo((c) => ({ ...c, ...patch })),
+      s.setCompanyInfo((c) => {
+        const next = { ...c, ...patch };
+        // Persist the authoritative company settings record. CompanyInfo
+        // (incl. timezone) is the authoritative org timezone source (Phase 6);
+        // the structured config is read from the current store slices so the
+        // upsert never accumulates a second settings row.
+        persistCompanySettings(
+          c.tenant_id ? c.tenant_id : TENANT_ID,
+          next,
+          buildSettingsConfig(s),
+        );
+        return next;
+      }),
 
-    addLocation: (loc: Location) => s.setLocations((ls) => [...ls, loc]),
-    updateLocation: (id: string, patch: Partial<Location>) =>
+    addLocation: (loc: Location) => {
+      s.setLocations((ls) => [...ls, loc]);
+      persistLocationInsert(loc);
+    },
+    updateLocation: (id: string, patch: Partial<Location>) => {
+      const existing = s.locations.find((l) => l.id === id);
       s.setLocations((ls) =>
         ls.map((l) => (l.id === id ? { ...l, ...patch } : l)),
-      ),
-    setDefaultLocation: (id: string) =>
+      );
+      if (existing)
+        persistLocationUpdate(existing.tenant_id, id, patch);
+    },
+    setDefaultLocation: (id: string) => {
+      const existing = s.locations.find((l) => l.id === id);
       s.setLocations((ls) =>
         ls.map((l) => ({ ...l, is_default: l.id === id })),
-      ),
+      );
+      if (existing)
+        persistLocationUpdate(existing.tenant_id, id, { is_default: true });
+    },
 
     addRole: (r: Role) => s.setRoles((rs) => [...rs, r]),
     updateRole: (id: string, patch: Partial<Role>) => {
@@ -117,6 +147,27 @@ export function buildSettingsCoreMethods(s: StoreState) {
       };
       s.setSettingsAudit((a) => [entry, ...a].slice(0, 100));
     },
+  };
+}
+
+/** Build the structured settings config payload from the current store
+ *  slices. Used when persisting the authoritative company_settings record so
+ *  the upsert carries the full structured config (companyPolicies via the
+ *  module-level ref, agreementRules, taxRules, feeRules). */
+export function buildSettingsConfig(
+  s: StoreState,
+): CompanySettingsConfig {
+  // companyPolicies live in CompanyPolicyProvider; read the module-level ref
+  // so the persisted config matches what domain methods freeze at checkout.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { getCompanyPoliciesRef } = require("./companyPolicyRef") as {
+    getCompanyPoliciesRef: () => import("../companyPolicyTypes").CompanyPolicies;
+  };
+  return {
+    companyPolicies: getCompanyPoliciesRef(),
+    agreementRules: s.agreementRules,
+    taxRules: s.taxRules,
+    feeRules: s.feeRules,
   };
 }
 
