@@ -32,6 +32,11 @@ import { buildExpenseMethods } from "./expenseStore";
 import { buildBankingMethods } from "./bankingStore";
 import { useAuth } from "../supabase/authContext";
 import { hydratePhase1Slices } from "../supabase/storeSync";
+import {
+  hydratePhase2Slices,
+  hydrateInspections,
+} from "../supabase/phase2StoreSync";
+import { hydrateMaintenance } from "../supabase/maintenanceAdapters";
 import { hydrateExpenses, hydrateBanking } from "../supabase/phase5StoreSync";
 
 export function StoreProvider({ children }: { children: ReactNode }) {
@@ -286,6 +291,59 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       // Hydration must never crash the app — if the Cloud read fails (e.g. no
       // session/network in a test env) the seeded in-memory data stays as the
       // UI cache. Swallow the rejection so it does not leak as unhandled.
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeOrgId]);
+
+  // Phase 2: hydrate rentals + ledger transactions + security deposits +
+  // deposit history + inspections from Cloud on auth/org change. In memory
+  // mode hydratePhase2Slices / hydrateInspections are no-ops and the seeded
+  // demo data stays. The stale-closure `active` guard cancels async work after
+  // an org switch so a slow org-A read never overwrites org-B's cache.
+  useEffect(() => {
+    if (!activeOrgId) return;
+    let active = true;
+    void hydratePhase2Slices(activeOrgId, {
+      setRentals: s.setRentals,
+      setTransactions: s.setTransactions,
+      setRentalDeposits: s.setRentalDeposits,
+      setDepositHistory: s.setDepositHistory,
+    })
+      .then((ran) => {
+        if (!ran || !active) return;
+      })
+      .catch(() => {});
+    void hydrateInspections(activeOrgId, {
+      setInspections: s.setInspections,
+    })
+      .then((ran) => {
+        if (!ran || !active) return;
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeOrgId]);
+
+  // Phase 7: hydrate maintenance work orders + events + vendors + receipts
+  // from Cloud on auth/org change. In memory mode hydrateMaintenance is a
+  // no-op and the seeded demo data stays.
+  useEffect(() => {
+    if (!activeOrgId) return;
+    let active = true;
+    void hydrateMaintenance(activeOrgId, {
+      setWorkOrders: s.setWorkOrders,
+      setWorkOrderEvents: s.setWorkOrderEvents,
+      setMaintenanceVendors: s.setMaintenanceVendors,
+      setMaintenanceReceipts: s.setMaintenanceReceipts,
+    })
+      .then((ran) => {
+        if (!ran || !active) return;
+      })
       .catch(() => {});
     return () => {
       active = false;

@@ -15,6 +15,7 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -33,7 +34,9 @@ import { TENANT_ID } from "./ids";
 import {
   persistBookingRequestInsert,
   persistBookingRequestUpdate,
+  hydrateBookingRequests,
 } from "../supabase/phase2StoreSync";
+import { useAuth } from "../supabase/authContext";
 import { resolveCustomerMatch } from "../bookingRequestCustomerMatch";
 import {
   seedBookingRequests,
@@ -161,6 +164,28 @@ export function BookingRequestProvider({ children }: { children: ReactNode }) {
   const [outbound, setOutbound] = useState<BookingOutboundEvent[]>(
     seedBookingOutboundEvents,
   );
+  const { session } = useAuth();
+  const activeOrgId = session.activeOrganizationId;
+
+  // Phase 2: hydrate booking requests from Cloud on auth/org change. In
+  // memory mode hydrateBookingRequests is a no-op and the seeded demo data
+  // stays. The stale-closure `active` guard cancels async work after an org
+  // switch so a slow org-A read never overwrites org-B's cache.
+  useEffect(() => {
+    if (!activeOrgId) return;
+    let active = true;
+    void hydrateBookingRequests(activeOrgId, {
+      setBookingRequests: setRequests,
+    })
+      .then((ran) => {
+        if (!ran || !active) return;
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeOrgId]);
 
   const store = useMemo<BookingRequestStore>(
     () => ({
