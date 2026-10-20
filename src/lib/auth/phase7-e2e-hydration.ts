@@ -12,7 +12,10 @@ import {
   type BookingRequestSyncHandles,
   type InspectionSyncHandles,
 } from "@/lib/supabase/phase2StoreSync";
-import { hydrateMaintenance } from "@/lib/supabase/maintenanceAdapters";
+import {
+  hydrateMaintenance,
+  type MaintenanceSyncHandles,
+} from "@/lib/supabase/maintenanceAdapters";
 import { getRentalSettlement } from "@/lib/rentalSettlement";
 import { buildRental } from "./phase4-e2e-builders";
 import type { Phase7Step } from "./phase7-e2e.server";
@@ -85,17 +88,19 @@ export async function runHydration(
     setInspections:
       makeHandle<InspectionSyncHandles["setInspections"]>("inspections"),
   };
-  const maintenanceHandles = {
+  const maintenanceHandles: MaintenanceSyncHandles = {
     setWorkOrders:
-      makeHandle<(u: (p: unknown[]) => unknown[]) => void>("workOrders"),
+      makeHandle<MaintenanceSyncHandles["setWorkOrders"]>("workOrders"),
     setWorkOrderEvents:
-      makeHandle<(u: (p: unknown[]) => unknown[]) => void>("workOrderEvents"),
+      makeHandle<MaintenanceSyncHandles["setWorkOrderEvents"]>(
+        "workOrderEvents",
+      ),
     setMaintenanceVendors:
-      makeHandle<(u: (p: unknown[]) => unknown[]) => void>(
+      makeHandle<MaintenanceSyncHandles["setMaintenanceVendors"]>(
         "maintenanceVendors",
       ),
     setMaintenanceReceipts: makeHandle<
-      (u: (p: unknown[]) => unknown[]) => void
+      MaintenanceSyncHandles["setMaintenanceReceipts"]
     >("maintenanceReceipts"),
   };
 
