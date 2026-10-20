@@ -101,6 +101,10 @@ import {
   type AgreementsRepository,
   type ActivityAuditRepository,
 } from "./phase9Adapters";
+import {
+  SupabaseLeadRepository,
+  type LeadRepository,
+} from "./phase10Adapters";
 
 // ---------------------------------------------------------------------------
 // Repository interfaces
@@ -270,6 +274,7 @@ export {
   SupabaseCompanySettingsRepository,
   SupabaseVehicleClassesRepository,
   SupabaseAddonsRepository,
+  SupabaseLeadRepository,
 };
 export type {
   TelematicsRepository,
@@ -286,6 +291,7 @@ export type {
   CompanySettingsRepository,
   VehicleClassesRepository,
   AddonsRepository,
+  LeadRepository,
 };
 
 // ---------------------------------------------------------------------------
@@ -405,6 +411,7 @@ export function createRepositories(): {
   paymentArrangements: PaymentArrangementsRepository | null;
   agreements: AgreementsRepository | null;
   activityAudit: ActivityAuditRepository | null;
+  leads: LeadRepository | null;
 } {
   const db = getSupabase();
   if (!db)
@@ -439,6 +446,7 @@ export function createRepositories(): {
       paymentArrangements: null,
       agreements: null,
       activityAudit: null,
+      leads: null,
     };
   return {
     customers: new SupabaseCustomerRepository(db),
@@ -471,5 +479,6 @@ export function createRepositories(): {
     paymentArrangements: new SupabasePaymentArrangementsRepository(db),
     agreements: new SupabaseAgreementsRepository(db),
     activityAudit: new SupabaseActivityAuditRepository(db),
+    leads: new SupabaseLeadRepository(db),
   };
 }

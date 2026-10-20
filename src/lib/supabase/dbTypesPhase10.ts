@@ -1,15 +1,20 @@
-// Connect Pro Fleet — Phase 10A typed Database row types: CRM integration.
+// Connect Pro Fleet — Phase 10 typed Database row types: CRM integration +
+// Lead/Prospect domain.
 //
-// Mirrors the Phase 10A migration (20261020160000_phase_10a_crm_integration_schema_rls.sql).
+// Phase 10A mirrors migration
+// 20261020160000_phase_10a_crm_integration_schema_rls.sql: the five
+// organization-owned CRM integration tables. Phase 10B mirrors migration
+// 20261020170000_phase_10b_lead_prospect_domain_rls.sql: the Lead table.
+//
 // All tables are organization-scoped with is_org_member RLS, authenticated +
 // service_role grants, and no anon access. The future webhook resolves the
 // Fleet org server-side from the stored CRM location mapping — it must never
 // trust an incoming organization_id.
 //
 // These row types are deliberately agnostic about the internal Fleet
-// destination for a synced CRM contact (Customer vs. a future Lead model).
-// That is a Phase 10B product decision; external_entity_references.internal_entity_type
-// lets the registry point at whichever internal entity is chosen.
+// destination for a synced CRM contact (Customer vs. Lead). Phase 10B chose
+// Lead as the pre-rental destination; external_entity_references.internal_entity_type
+// points at "lead" until a Lead is qualified into a Booking Request.
 
 import type { Json } from "./dbTypesCore";
 
@@ -49,7 +54,7 @@ export interface ExternalEntityReferenceRow {
   external_entity_type: string;
   external_id: string;
   external_parent_id: string | null;
-  /** e.g. "customer" or a future "lead" — chosen in Phase 10B. */
+  /** e.g. "lead" (Phase 10B) or "customer" — chosen per lifecycle stage. */
   internal_entity_type: string | null;
   internal_entity_id: string | null;
   status: string;
@@ -122,6 +127,33 @@ export interface IdempotencyKeyRow {
   created_at: string;
 }
 
+// ── leads (Phase 10B) ─────────────────────────────────────────────────────
+// Pre-rental CRM contact. Organization-scoped, is_org_member RLS, no anon.
+// Phone/email normalized indexes support secondary fallback matching only;
+// the primary external CRM identity lives in external_entity_references.
+
+export interface LeadRow {
+  id: string;
+  organization_id: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  email: string;
+  source: string;
+  status: string;
+  tags: string[];
+  crm_opportunity_id: string | null;
+  crm_pipeline_stage: string | null;
+  lead_source: string | null;
+  intake_data: Json;
+  notes: string;
+  converted_booking_request_id: string | null;
+  converted_at: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 // ── Phase 10A table registry ────────────────────────────────────────────
 // The set of organization-owned CRM integration tables created by Phase 10A.
 // Used by isolation probes and cleanup in later phases.
@@ -136,3 +168,14 @@ export const PHASE_10A_INTEGRATION_TABLES = [
 
 export type Phase10aIntegrationTable =
   (typeof PHASE_10A_INTEGRATION_TABLES)[number];
+
+// ── Phase 10B table registry ────────────────────────────────────────────
+// The Lead table is the Phase 10B pre-rental CRM-contact destination.
+
+export const PHASE_10B_LEAD_TABLE = "leads" as const;
+
+// All organization-owned Phase 10 tables (integration + lead domain).
+export const PHASE_10_TABLES = [
+  ...PHASE_10A_INTEGRATION_TABLES,
+  PHASE_10B_LEAD_TABLE,
+] as const;
