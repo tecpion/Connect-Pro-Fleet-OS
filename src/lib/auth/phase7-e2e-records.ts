@@ -1,8 +1,13 @@
 // Phase 7 E2E — create Phase 7 domain records through the real repository/app
-// path (rentals, ledger, security deposits, deposit history, booking requests,
-// inspections, maintenance work orders/events/vendors/receipts) and confirm the
-// rows exist in Cloud. Every insert uses the authenticated Org A repository
+// path, split into resumable sub-stages so no single staged request exceeds
+// the platform deadline. Every insert uses the authenticated Org A repository
 // adapter; none uses the service-role admin. Test-harness only.
+//
+// Sub-stages (each mutates `runtime.recordIds` / `runtime.phase7` in place so
+// the orchestrator can persist the run meta between requests):
+//   runRentalCoreRecords   — ledger charge/payment, security deposit, history
+//   runBookingRecords      — booking request, inspection
+//   runMaintenanceRecords  — vendor, work order, event, receipt, balances
 
 import type { FinancialTransaction } from "@/lib/chargeTypes";
 import type { RentalDeposit, DepositHistoryEvent } from "@/lib/depositTypes";
@@ -19,28 +24,17 @@ import { buildRental } from "./phase4-e2e-builders";
 import type { Phase7Step } from "./phase7-e2e.server";
 import { step, requireOk, type Phase7Runtime } from "./phase7-e2e-runtime";
 
-export interface CreateRecordsResult {
+export interface RecordsStageResult {
   steps: Phase7Step[];
 }
 
-export async function runCreatePhase7Records(
+// ── Sub-stage 2a: rental ledger (charge + payment) + security deposit + history
+export async function runRentalCoreRecords(
   runtime: Phase7Runtime,
-): Promise<CreateRecordsResult> {
+): Promise<RecordsStageResult> {
   const steps: Phase7Step[] = [];
-  const {
-    ledger,
-    deposits,
-    bookingRequests,
-    inspections,
-    maintenance,
-    rentals,
-    orgA,
-    ctx,
-    now,
-    date,
-  } = runtime;
+  const { ledger, deposits, orgA, ctx, now, date } = runtime;
 
-  // ── Rental ledger: a charge + a payment ──────────────────────────────────
   const charge: FinancialTransaction = {
     id: crypto.randomUUID(),
     tenant_id: orgA,
@@ -81,7 +75,6 @@ export async function runCreatePhase7Records(
     }),
   );
 
-  // ── Security deposit + deposit history event ───────────────────────────
   const deposit: RentalDeposit = {
     id: crypto.randomUUID(),
     tenant_id: orgA,
@@ -142,7 +135,22 @@ export async function runCreatePhase7Records(
     }),
   );
 
-  // ── Booking request ─────────────────────────────────────────────────────
+  // Stash the fixtures created in this stage for the hydration step.
+  runtime.phase7.charge = charge;
+  runtime.phase7.payment = payment;
+  runtime.phase7.deposit = deposit;
+  runtime.phase7.depositHistory = depositHistory;
+
+  return { steps };
+}
+
+// ── Sub-stage 2b: booking request + inspection
+export async function runBookingRecords(
+  runtime: Phase7Runtime,
+): Promise<RecordsStageResult> {
+  const steps: Phase7Step[] = [];
+  const { bookingRequests, inspections, orgA, ctx, now, date } = runtime;
+
   const booking: BookingRequest = {
     id: crypto.randomUUID(),
     organization_id: orgA,
@@ -192,7 +200,6 @@ export async function runCreatePhase7Records(
     }),
   );
 
-  // ── Inspection ──────────────────────────────────────────────────────────
   const inspection: Inspection = {
     id: crypto.randomUUID(),
     reservation_id: ctx.rentalId,
@@ -223,7 +230,19 @@ export async function runCreatePhase7Records(
     }),
   );
 
-  // ── Maintenance: vendor → work order → event → receipt ──────────────────
+  runtime.phase7.booking = booking;
+  runtime.phase7.inspection = inspection;
+
+  return { steps };
+}
+
+// ── Sub-stage 2c: maintenance vendor → work order → event → receipt + balances
+export async function runMaintenanceRecords(
+  runtime: Phase7Runtime,
+): Promise<RecordsStageResult> {
+  const steps: Phase7Step[] = [];
+  const { ledger, deposits, maintenance, orgA, ctx, now } = runtime;
+
   const vendor: MaintenanceVendor = {
     id: crypto.randomUUID(),
     tenant_id: orgA,
@@ -353,11 +372,11 @@ export async function runCreatePhase7Records(
     }),
   );
 
-  // ── Balances/statuses + relationships remain correct ───────────────────
+  // ── Balances/statuses + relationships remain correct (all records present)
   await step(steps, "rental_balances_and_relationships_correct", async () => {
     const ledgerRows = await ledger.listForRental(orgA, ctx.rentalId);
     const depRows = await deposits.list(orgA);
-    const dep = depRows.find((d) => d.id === deposit.id);
+    const dep = depRows.find((d) => d.id === runtime.recordIds.deposit);
     const settlement = getRentalSettlement(
       buildRental(ctx),
       ledgerRows,
@@ -371,19 +390,26 @@ export async function runCreatePhase7Records(
     );
   });
 
-  // Stash the fixtures for the hydration step (not on the repo shape).
-  runtime.phase7 = {
-    charge,
-    payment,
-    deposit,
-    depositHistory,
-    booking,
-    inspection,
-    workOrder,
-    workOrderEvent,
-    vendor,
-    receipt,
-  };
+  runtime.phase7.workOrder = workOrder;
+  runtime.phase7.workOrderEvent = workOrderEvent;
+  runtime.phase7.vendor = vendor;
+  runtime.phase7.receipt = receipt;
 
+  return { steps };
+}
+
+// ── Legacy single-call entry kept for the un-staged POST path. Runs all three
+// sub-stages back-to-back against one runtime; the staged route uses the
+// individual sub-stages so no single request does all of this.
+export async function runCreatePhase7Records(
+  runtime: Phase7Runtime,
+): Promise<RecordsStageResult> {
+  const steps: Phase7Step[] = [];
+  const core = await runRentalCoreRecords(runtime);
+  steps.push(...core.steps);
+  const booking = await runBookingRecords(runtime);
+  steps.push(...booking.steps);
+  const maint = await runMaintenanceRecords(runtime);
+  steps.push(...maint.steps);
   return { steps };
 }

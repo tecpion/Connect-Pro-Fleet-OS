@@ -53,6 +53,8 @@ export interface Phase7Fixtures {
  * Non-secret metadata persisted between staged Phase 7 runs.
  * No credentials live here — only the ids/fixture rows a later stage needs to
  * rebuild a fresh authenticated runtime and re-assert the same Cloud rows.
+ * `stages` records which resumable sub-stages have completed so a dependent
+ * stage can refuse to run before its prerequisites are satisfied.
  */
 export interface Phase7RunMeta {
   runId: string;
@@ -71,6 +73,15 @@ export interface Phase7RunMeta {
   phase7: Phase7Fixtures;
   users: string[];
   orgs: string[];
+  stages: Phase7StageFlags;
+}
+
+/** Completion flags for the resumable setup sub-stages. */
+export interface Phase7StageFlags {
+  auth?: boolean;
+  "rental-core"?: boolean;
+  booking?: boolean;
+  maintenance?: boolean;
 }
 
 export interface Phase7Runtime {

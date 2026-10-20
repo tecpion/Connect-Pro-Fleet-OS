@@ -23,14 +23,30 @@ import {
   runPhase7Isolation,
   runPhase7Cleanup,
   runPhase7E2E,
+  runPhase7SetupAuth,
+  runPhase7SetupRentalCore,
+  runPhase7SetupBooking,
+  runPhase7SetupMaintenance,
   type Phase7StageResult,
 } from "@/lib/auth/phase7-e2e.server";
 
-type Stage = "setup" | "hydration" | "isolation" | "cleanup";
+type Stage =
+  | "setup"
+  | "setup-auth"
+  | "setup-rental-core"
+  | "setup-booking"
+  | "setup-maintenance"
+  | "hydration"
+  | "isolation"
+  | "cleanup";
 
 function isStage(value: string | null): value is Stage {
   return (
     value === "setup" ||
+    value === "setup-auth" ||
+    value === "setup-rental-core" ||
+    value === "setup-booking" ||
+    value === "setup-maintenance" ||
     value === "hydration" ||
     value === "isolation" ||
     value === "cleanup"
@@ -57,6 +73,14 @@ export const Route = createFileRoute("/api/phase7-e2e")({
               new URL(request.url).searchParams.get("runId") ?? undefined;
             if (stageParam === "setup")
               return jsonResponse(await runPhase7Setup());
+            if (stageParam === "setup-auth")
+              return jsonResponse(await runPhase7SetupAuth());
+            if (stageParam === "setup-rental-core")
+              return jsonResponse(await runPhase7SetupRentalCore(runId));
+            if (stageParam === "setup-booking")
+              return jsonResponse(await runPhase7SetupBooking(runId));
+            if (stageParam === "setup-maintenance")
+              return jsonResponse(await runPhase7SetupMaintenance(runId));
             if (stageParam === "hydration")
               return jsonResponse(await runPhase7Hydration(runId));
             if (stageParam === "isolation")

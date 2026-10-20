@@ -19,7 +19,12 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { provisionAndSetup } from "./phase7-e2e-provision";
-import { runCreatePhase7Records } from "./phase7-e2e-records";
+import {
+  runRentalCoreRecords,
+  runBookingRecords,
+  runMaintenanceRecords,
+  runCreatePhase7Records,
+} from "./phase7-e2e-records";
 import { runHydration } from "./phase7-e2e-hydration";
 import { runIsolation } from "./phase7-e2e-isolation";
 import { runCleanup } from "./phase7-e2e-cleanup";
@@ -32,6 +37,13 @@ import {
   type Phase7Runtime,
   type Phase7Client,
 } from "./phase7-e2e-runtime";
+// Re-export the resumable setup sub-stages so the route can dispatch to them.
+export {
+  runPhase7SetupAuth,
+  runPhase7SetupRentalCore,
+  runPhase7SetupBooking,
+  runPhase7SetupMaintenance,
+} from "./phase7-e2e-setup-stages";
 
 export interface Phase7Step {
   step: string;
@@ -179,9 +191,15 @@ export async function runPhase7Setup(): Promise<Phase7StageResult> {
       now: runtime.now,
       date: runtime.date,
       recordIds: { ...runtime.recordIds },
-      phase7: runtime.phase7,
+      phase7: { ...runtime.phase7 },
       users: [...runtime.users],
       orgs: [...runtime.orgs],
+      stages: {
+        auth: true,
+        "rental-core": true,
+        booking: true,
+        maintenance: true,
+      },
     };
     saveRun(meta);
     return okResult(steps, {
@@ -221,16 +239,18 @@ export async function runPhase7Hydration(
       MISSING_ENV_REASON,
     );
   const meta = runId ? loadRun(runId) : undefined;
-  if (!meta)
+  if (!meta || !meta.stages.maintenance)
     return failedResult(
       [
         {
           step: "hydration_no_run",
           ok: false,
-          detail: "No setup run; run setup first",
+          detail: !meta
+            ? "No setup run; run setup-auth first"
+            : "Setup record stages incomplete; run setup-maintenance first",
         },
       ],
-      "No setup run for hydration; run ?stage=setup first",
+      "No complete setup run for hydration; run ?stage=setup-auth …setup-maintenance first",
     );
   const url = process.env.SUPABASE_URL!;
   const client = clientFactory(url);
@@ -279,16 +299,18 @@ export async function runPhase7Isolation(
       MISSING_ENV_REASON,
     );
   const meta = runId ? loadRun(runId) : undefined;
-  if (!meta)
+  if (!meta || !meta.stages.maintenance)
     return failedResult(
       [
         {
           step: "isolation_no_run",
           ok: false,
-          detail: "No setup run; run setup first",
+          detail: !meta
+            ? "No setup run; run setup-auth first"
+            : "Setup record stages incomplete; run setup-maintenance first",
         },
       ],
-      "No setup run for isolation; run ?stage=setup first",
+      "No complete setup run for isolation; run ?stage=setup-auth …setup-maintenance first",
     );
   const url = process.env.SUPABASE_URL!;
   const client = clientFactory(url);
