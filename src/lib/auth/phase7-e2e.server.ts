@@ -39,6 +39,10 @@ import {
 } from "./phase7-e2e-runtime";
 // Re-export the resumable setup sub-stages so the route can dispatch to them.
 export {
+  runPhase7SetupInit,
+  runPhase7SetupOrgA,
+  runPhase7SetupOrgB,
+  runPhase7SetupBase,
   runPhase7SetupAuth,
   runPhase7SetupRentalCore,
   runPhase7SetupBooking,
@@ -99,22 +103,29 @@ function serverConfigured(): boolean {
  * service key → admin (auth-user creation + teardown only).
  */
 function clientFactory(url: string): (apiKey: string) => Phase7Client {
-  return (apiKey: string) =>
-    createClient(url, apiKey, {
+  return (apiKey: string) => {
+    const resolvedKey =
+      apiKey === "publishable"
+        ? process.env.SUPABASE_PUBLISHABLE_KEY!
+        : apiKey === "service"
+          ? process.env.SUPABASE_SERVICE_ROLE_KEY!
+          : apiKey;
+    return createClient(url, resolvedKey, {
       auth: { persistSession: false, autoRefreshToken: false },
       global: {
         fetch: (input, init) => {
           const headers = new Headers(init?.headers);
           if (
-            headers.get("Authorization") === `Bearer ${apiKey}` &&
-            apiKey.startsWith("sb_")
+            headers.get("Authorization") === `Bearer ${resolvedKey}` &&
+            resolvedKey.startsWith("sb_")
           )
             headers.delete("Authorization");
-          headers.set("apikey", apiKey);
+          headers.set("apikey", resolvedKey);
           return fetch(input, { ...init, headers });
         },
       },
     }) as unknown as Phase7Client;
+  };
 }
 
 function failedResult(
@@ -195,6 +206,10 @@ export async function runPhase7Setup(): Promise<Phase7StageResult> {
       users: [...runtime.users],
       orgs: [...runtime.orgs],
       stages: {
+        init: true,
+        "org-a": true,
+        "org-b": true,
+        base: true,
         auth: true,
         "rental-core": true,
         booking: true,

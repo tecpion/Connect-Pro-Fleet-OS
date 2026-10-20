@@ -6,10 +6,16 @@
 // dispatches the SAME verification across bounded `?stage=` stages that share
 // a server-side run-state map (non-secret fixture IDs only):
 //
-//   POST /api/phase7-e2e?stage=setup      — provision + create Phase 7 records
-//   POST /api/phase7-e2e?stage=hydration   — fresh Org A session + hydration
-//   POST /api/phase7-e2e?stage=isolation  — Org B cross-tenant probes
-//   POST /api/phase7-e2e?stage=cleanup     — best-effort teardown (rerunnable)
+//   POST /api/phase7-e2e?stage=setup-init       — generate runId, persist meta
+//   POST /api/phase7-e2e?stage=setup-org-a      — provision/authenticate Org A
+//   POST /api/phase7-e2e?stage=setup-org-b      — provision/authenticate Org B
+//   POST /api/phase7-e2e?stage=setup-base       — customer/vehicle/rental base rows
+//   POST /api/phase7-e2e?stage=setup-rental-core — ledger charge/payment, deposit
+//   POST /api/phase7-e2e?stage=setup-booking    — booking request, inspection
+//   POST /api/phase7-e2e?stage=setup-maintenance — vendor, work order, receipt
+//   POST /api/phase7-e2e?stage=hydration         — fresh Org A session + hydration
+//   POST /api/phase7-e2e?stage=isolation         — Org B cross-tenant probes
+//   POST /api/phase7-e2e?stage=cleanup           — best-effort teardown (rerunnable)
 //
 // Every stage uses the authenticated Org A / Org B publishable-key clients so
 // RLS is the real gate; the service-role admin is confined to auth-user
@@ -23,6 +29,10 @@ import {
   runPhase7Isolation,
   runPhase7Cleanup,
   runPhase7E2E,
+  runPhase7SetupInit,
+  runPhase7SetupOrgA,
+  runPhase7SetupOrgB,
+  runPhase7SetupBase,
   runPhase7SetupAuth,
   runPhase7SetupRentalCore,
   runPhase7SetupBooking,
@@ -32,6 +42,10 @@ import {
 
 type Stage =
   | "setup"
+  | "setup-init"
+  | "setup-org-a"
+  | "setup-org-b"
+  | "setup-base"
   | "setup-auth"
   | "setup-rental-core"
   | "setup-booking"
@@ -43,6 +57,10 @@ type Stage =
 function isStage(value: string | null): value is Stage {
   return (
     value === "setup" ||
+    value === "setup-init" ||
+    value === "setup-org-a" ||
+    value === "setup-org-b" ||
+    value === "setup-base" ||
     value === "setup-auth" ||
     value === "setup-rental-core" ||
     value === "setup-booking" ||
@@ -73,6 +91,14 @@ export const Route = createFileRoute("/api/phase7-e2e")({
               new URL(request.url).searchParams.get("runId") ?? undefined;
             if (stageParam === "setup")
               return jsonResponse(await runPhase7Setup());
+            if (stageParam === "setup-init")
+              return jsonResponse(await runPhase7SetupInit());
+            if (stageParam === "setup-org-a")
+              return jsonResponse(await runPhase7SetupOrgA(runId));
+            if (stageParam === "setup-org-b")
+              return jsonResponse(await runPhase7SetupOrgB(runId));
+            if (stageParam === "setup-base")
+              return jsonResponse(await runPhase7SetupBase(runId));
             if (stageParam === "setup-auth")
               return jsonResponse(await runPhase7SetupAuth());
             if (stageParam === "setup-rental-core")

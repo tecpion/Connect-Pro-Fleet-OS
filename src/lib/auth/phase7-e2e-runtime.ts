@@ -78,6 +78,10 @@ export interface Phase7RunMeta {
 
 /** Completion flags for the resumable setup sub-stages. */
 export interface Phase7StageFlags {
+  init?: boolean;
+  "org-a"?: boolean;
+  "org-b"?: boolean;
+  base?: boolean;
   auth?: boolean;
   "rental-core"?: boolean;
   booking?: boolean;
