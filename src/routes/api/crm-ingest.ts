@@ -63,7 +63,7 @@ export const Route = createFileRoute("/api/crm-ingest")({
         // 3. Verify the signature over the raw bytes.
         const verify = await verifyHighLevelSignature({
           rawBody: rawBytes,
-          signatureHex: signature,
+          signatureBase64: signature,
           publicKey,
         });
         if (!verify.ok) {

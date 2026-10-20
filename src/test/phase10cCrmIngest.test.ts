@@ -48,7 +48,7 @@ async function signRaw(privateKey: CryptoKey, body: Uint8Array) {
     privateKey,
     body,
   );
-  return Buffer.from(new Uint8Array(sig)).toString("hex");
+  return Buffer.from(new Uint8Array(sig)).toString("base64");
 }
 
 async function exportPublicKeyHex(kp: CryptoKeyPair) {
@@ -182,7 +182,7 @@ describe("Phase 10C HighLevel Ed25519 signature verification", () => {
     const sig = await signRaw(kp.privateKey, body);
     const r = await verifyHighLevelSignature({
       rawBody: body,
-      signatureHex: sig,
+      signatureBase64: sig,
       publicKey: pub,
     });
     expect(r.ok).toBe(true);
@@ -197,7 +197,7 @@ describe("Phase 10C HighLevel Ed25519 signature verification", () => {
       rawBody: new TextEncoder().encode(
         JSON.stringify(contactPayload({ email: "x@y.com" })),
       ),
-      signatureHex: sig,
+      signatureBase64: sig,
       publicKey: pub,
     });
     expect(r.ok).toBe(false);
@@ -209,7 +209,7 @@ describe("Phase 10C HighLevel Ed25519 signature verification", () => {
     const body = new TextEncoder().encode("x");
     const r = await verifyHighLevelSignature({
       rawBody: body,
-      signatureHex: null,
+      signatureBase64: null,
       publicKey: pub,
     });
     expect(r.ok).toBe(false);
@@ -220,7 +220,7 @@ describe("Phase 10C HighLevel Ed25519 signature verification", () => {
     const body = new TextEncoder().encode("x");
     const r = await verifyHighLevelSignature({
       rawBody: body,
-      signatureHex: "deadbeef",
+      signatureBase64: "deadbeef",
       publicKey: null,
     });
     expect(r.ok).toBe(false);
@@ -239,7 +239,7 @@ describe("Phase 10C HighLevel Ed25519 signature verification", () => {
     );
     const r = await verifyHighLevelSignature({
       rawBody: sameJsonDifferentBytes,
-      signatureHex: sig,
+      signatureBase64: sig,
       publicKey: pub,
     });
     expect(r.ok).toBe(false);
