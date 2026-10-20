@@ -35,11 +35,12 @@ import {
 import type { Lead } from "@/lib/leadTypes";
 
 // ── Ed25519 test fixtures ──────────────────────────────────────────────
-async function makeKeyPair() {
-  return webcrypto.subtle.generateKey({ name: "Ed25519" }, true, [
-    "sign",
-    "verify",
-  ]);
+async function makeKeyPair(): Promise<CryptoKeyPair> {
+  return (await webcrypto.subtle.generateKey(
+    { name: "Ed25519" },
+    true,
+    ["sign", "verify"],
+  )) as CryptoKeyPair;
 }
 
 async function signRaw(privateKey: CryptoKey, body: Uint8Array) {
