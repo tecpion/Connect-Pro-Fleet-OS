@@ -6,10 +6,7 @@
 // real gate. Test-harness only.
 
 import type { Phase8Client } from "./phase8-e2e-runtime";
-import {
-  provisionOneOrg,
-  createBaseFixtures,
-} from "./phase7-e2e-provision";
+import { provisionOneOrg, createBaseFixtures } from "./phase7-e2e-provision";
 import {
   SupabaseLocationsRepository,
   SupabaseStaffAssignmentsRepository,
@@ -21,8 +18,8 @@ import {
   SupabaseVehicleClassesRepository,
   SupabaseAddonsRepository,
 } from "@/lib/supabase/phase8ConfigAdapters";
-import type { Phase8Step } from "./phase8-e2e.server";
 import { step, requireOk, type Phase8Runtime } from "./phase8-e2e-runtime";
+import type { Phase8Step } from "./phase8-e2e.server";
 
 export interface Phase8ProvisionResult {
   steps: Phase8Step[];
@@ -88,9 +85,7 @@ export async function provisionAndSetupPhase8(
 
   // Base fixtures (customer/vehicle/rental) so drivers can reference a
   // reservation. Inserted as the signed-in Org A client (RLS gate).
-  requireOk(
-    (await createBaseFixtures(a, ctx)).steps.every((s) => s.ok),
-  );
+  requireOk((await createBaseFixtures(a, ctx)).steps.every((s) => s.ok));
   steps.push({ step: "phase8_base_fixtures", ok: true });
 
   const locations = new SupabaseLocationsRepository(a as never);

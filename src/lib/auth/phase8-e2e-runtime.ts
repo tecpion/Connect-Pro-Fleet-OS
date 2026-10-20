@@ -19,7 +19,11 @@ import type {
   NotificationDelivery,
   NotificationPreference,
 } from "@/lib/notificationTypes";
-import type { VehicleClass, AddonCategory, AddonCatalogItem } from "@/lib/settingsTypes";
+import type {
+  VehicleClass,
+  AddonCategory,
+  AddonCatalogItem,
+} from "@/lib/settingsTypes";
 import type { CompanyInfo } from "@/lib/settingsTypes";
 import {
   SupabaseLocationsRepository,

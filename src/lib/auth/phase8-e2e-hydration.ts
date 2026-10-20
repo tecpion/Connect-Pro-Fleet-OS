@@ -4,10 +4,13 @@
 // Also proves the Cloud-hydrated organization timezone continues to control
 // existing Phase 6 business-calendar logic (no fallback to browser/server tz).
 
-import { hydratePhase8Slices } from "@/lib/supabase/phase8StoreSync";
+import {
+  hydratePhase8Slices,
+  type Phase8SyncHandles,
+} from "@/lib/supabase/phase8StoreSync";
 import { resolveProfitabilityRange } from "@/lib/profitabilityHelpers";
-import type { Phase8Step } from "./phase8-e2e.server";
 import { step, type Phase8Runtime } from "./phase8-e2e-runtime";
+import type { Phase8Step } from "./phase8-e2e.server";
 
 export interface Phase8HydrationResult {
   steps: Phase8Step[];
@@ -38,7 +41,10 @@ export async function runPhase8Hydration(
     async () => {
       const out = await a.auth.signOut();
       if (out.error) throw out.error;
-      const login = await a.auth.signInWithPassword({ email: emailA, password });
+      const login = await a.auth.signInWithPassword({
+        email: emailA,
+        password,
+      });
       if (login.error) throw login.error;
       return login.data.user?.id === runtime.userAId;
     },
@@ -52,11 +58,16 @@ export async function runPhase8Hydration(
   // via getBackendMode() (which reads browser env and is not "supabase" inside a
   // server route). This mirrors the Phase 5/7 hydration pattern.
   const cache: Record<string, unknown> = {};
-  const makeHandle = <T>(key: string): T =>
-    ((updater: (prev: unknown) => unknown) =>
-      (cache[key] = updater(undefined))) as unknown as T;
+  // Build a setter matching Phase8SyncHandles' functional-updater contract:
+  //   (updater: (prev: T) => T) => void
+  // We capture the updater result into `cache[key]` with prev = undefined so
+  // hydration (which ignores prev and replaces the cache) lands here.
+  const makeHandle = <T>(key: string) =>
+    ((updater: (prev: T) => T) => {
+      cache[key] = updater(undefined as T);
+    }) as (updater: (prev: T) => T) => void;
 
-  const handles = {
+  const handles: Phase8SyncHandles = {
     setLocations: makeHandle("locations"),
     setStaff: makeHandle("staff"),
     setDrivers: makeHandle("drivers"),
@@ -70,7 +81,7 @@ export async function runPhase8Hydration(
     setVehicleClasses: makeHandle("vehicleClasses"),
     setAddonCategories: makeHandle("addonCategories"),
     setAddonCatalog: makeHandle("addonCatalog"),
-    applySettingsConfig: (cfg: unknown) => {
+    applySettingsConfig: (cfg) => {
       cache.settingsConfig = cfg;
     },
   };
@@ -99,7 +110,10 @@ export async function runPhase8Hydration(
   const tasksHyd = (cache.tasks ?? []) as { id: string; due_date: string }[];
   const evs = (cache.taskEvents ?? []) as { id: string; task_id: string }[];
   const nos = (cache.taskNotes ?? []) as { id: string; task_id: string }[];
-  const notifs = (cache.notifications ?? []) as { id: string; read_at: string | null }[];
+  const notifs = (cache.notifications ?? []) as {
+    id: string;
+    read_at: string | null;
+  }[];
   const dels = (cache.notificationDeliveries ?? []) as {
     id: string;
     notification_id: string;
@@ -109,7 +123,8 @@ export async function runPhase8Hydration(
     category: string;
     email_enabled: boolean;
   }[];
-  const ci = cache.companyInfo as { timezone: string; legal_name: string } | undefined;
+  const ci = cache.companyInfo as
+    { timezone: string; legal_name: string } | undefined;
   const vcs = (cache.vehicleClasses ?? []) as {
     id: string;
     description: string;
@@ -123,82 +138,122 @@ export async function runPhase8Hydration(
     pricing_type: string;
   }[];
 
-  await step(steps, "locations_hydrated", () =>
-    locs.length === 1 &&
-    locs[0].id === runtime.recordIds.location &&
-    locs[0].timezone === "America/New_York",
+  await step(
+    steps,
+    "locations_hydrated",
+    () =>
+      locs.length === 1 &&
+      locs[0].id === runtime.recordIds.location &&
+      locs[0].timezone === "America/New_York",
   );
-  await step(steps, "staff_hydrated", () =>
-    staff.length === 1 &&
-    staff[0].id === runtime.recordIds.staff &&
-    staff[0].status === "active",
+  await step(
+    steps,
+    "staff_hydrated",
+    () =>
+      staff.length === 1 &&
+      staff[0].id === runtime.recordIds.staff &&
+      staff[0].status === "active",
   );
   await step(steps, "drivers_hydrated", () =>
     drivers.some((d) => d.id === runtime.recordIds.driver),
   );
-  await step(steps, "tasks_hydrated", () =>
-    tasksHyd.length === 1 &&
-    tasksHyd[0].id === runtime.recordIds.task &&
-    tasksHyd[0].due_date === runtime.date,
+  await step(
+    steps,
+    "tasks_hydrated",
+    () =>
+      tasksHyd.length === 1 &&
+      tasksHyd[0].id === runtime.recordIds.task &&
+      tasksHyd[0].due_date === runtime.date,
   );
-  await step(steps, "task_events_hydrated", () =>
-    evs.length === 1 &&
-    evs[0].id === runtime.recordIds.taskEvent &&
-    evs[0].task_id === runtime.recordIds.task,
+  await step(
+    steps,
+    "task_events_hydrated",
+    () =>
+      evs.length === 1 &&
+      evs[0].id === runtime.recordIds.taskEvent &&
+      evs[0].task_id === runtime.recordIds.task,
   );
-  await step(steps, "task_notes_hydrated", () =>
-    nos.length === 1 &&
-    nos[0].id === runtime.recordIds.taskNote &&
-    nos[0].task_id === runtime.recordIds.task,
+  await step(
+    steps,
+    "task_notes_hydrated",
+    () =>
+      nos.length === 1 &&
+      nos[0].id === runtime.recordIds.taskNote &&
+      nos[0].task_id === runtime.recordIds.task,
   );
-  await step(steps, "notifications_hydrated", () =>
-    notifs.length === 1 && notifs[0].id === runtime.recordIds.notification,
+  await step(
+    steps,
+    "notifications_hydrated",
+    () =>
+      notifs.length === 1 && notifs[0].id === runtime.recordIds.notification,
   );
-  await step(steps, "notification_read_state_hydrated", () =>
-    notifs.length === 1 && notifs[0].read_at !== null,
+  await step(
+    steps,
+    "notification_read_state_hydrated",
+    () => notifs.length === 1 && notifs[0].read_at !== null,
   );
-  await step(steps, "notification_deliveries_hydrated", () =>
-    dels.length === 1 &&
-    dels[0].id === runtime.recordIds.notificationDelivery &&
-    dels[0].notification_id === runtime.recordIds.notification,
+  await step(
+    steps,
+    "notification_deliveries_hydrated",
+    () =>
+      dels.length === 1 &&
+      dels[0].id === runtime.recordIds.notificationDelivery &&
+      dels[0].notification_id === runtime.recordIds.notification,
   );
-  await step(steps, "notification_preferences_hydrated", () =>
-    prefs.length === 1 &&
-    prefs[0].user_id === runtime.userAId &&
-    prefs[0].category === "task" &&
-    prefs[0].email_enabled === false,
+  await step(
+    steps,
+    "notification_preferences_hydrated",
+    () =>
+      prefs.length === 1 &&
+      prefs[0].user_id === runtime.userAId &&
+      prefs[0].category === "task" &&
+      prefs[0].email_enabled === false,
   );
-  await step(steps, "company_info_hydrated", () =>
-    !!ci &&
-    ci.timezone === "America/New_York" &&
-    ci.legal_name === "Phase8 Fleet LLC",
+  await step(
+    steps,
+    "company_info_hydrated",
+    () =>
+      !!ci &&
+      ci.timezone === "America/New_York" &&
+      ci.legal_name === "Phase8 Fleet LLC",
   );
-  await step(steps, "settings_config_hydrated", () =>
-    cache.settingsConfig !== undefined,
+  await step(
+    steps,
+    "settings_config_hydrated",
+    () => cache.settingsConfig !== undefined,
   );
-  await step(steps, "vehicle_classes_hydrated", () =>
-    vcs.length === 1 &&
-    vcs[0].id === runtime.recordIds.vehicleClass &&
-    vcs[0].description === "Phase8 economy class" &&
-    vcs[0].minimum_rental_unit === "day" &&
-    vcs[0].display_order === 1,
+  await step(
+    steps,
+    "vehicle_classes_hydrated",
+    () =>
+      vcs.length === 1 &&
+      vcs[0].id === runtime.recordIds.vehicleClass &&
+      vcs[0].description === "Phase8 economy class" &&
+      vcs[0].minimum_rental_unit === "day" &&
+      vcs[0].display_order === 1,
   );
-  await step(steps, "addon_categories_hydrated", () =>
-    cats.length === 1 && cats[0].id === runtime.recordIds.addonCategory,
+  await step(
+    steps,
+    "addon_categories_hydrated",
+    () => cats.length === 1 && cats[0].id === runtime.recordIds.addonCategory,
   );
-  await step(steps, "addon_items_hydrated", () =>
-    items.length === 1 &&
-    items[0].id === runtime.recordIds.addonItem &&
-    items[0].category_id === runtime.recordIds.addonCategory &&
-    items[0].pricing_type === "per_day",
+  await step(
+    steps,
+    "addon_items_hydrated",
+    () =>
+      items.length === 1 &&
+      items[0].id === runtime.recordIds.addonItem &&
+      items[0].category_id === runtime.recordIds.addonCategory &&
+      items[0].pricing_type === "per_day",
   );
 
   // ── Idempotency: repeated hydration does not duplicate ───────────────────
   const cache2: Record<string, unknown> = {};
-  const makeHandle2 = <T>(key: string): T =>
-    ((updater: (prev: unknown) => unknown) =>
-      (cache2[key] = updater(undefined))) as unknown as T;
-  const handles2 = {
+  const makeHandle2 = <T>(key: string) =>
+    ((updater: (prev: T) => T) => {
+      cache2[key] = updater(undefined as T);
+    }) as (updater: (prev: T) => T) => void;
+  const handles2: Phase8SyncHandles = {
     setLocations: makeHandle2("locations"),
     setStaff: makeHandle2("staff"),
     setDrivers: makeHandle2("drivers"),
@@ -235,13 +290,20 @@ export async function runPhase8Hydration(
 
   // ── Settings upsert idempotency: one authoritative row ────────────────────
   await step(steps, "settings_single_authoritative_row", async () => {
-    const { data, error } = await (a as never as {
-      from: (t: string) => {
-        select: () => { eq: (c: string, v: string) => Promise<{ data: unknown[]; error: unknown }> };
-      };
-    })
+    const { data, error } = await (
+      a as never as {
+        from: (t: string) => {
+          select: () => {
+            eq: (
+              c: string,
+              v: string,
+            ) => Promise<{ data: unknown[]; error: unknown }>;
+          };
+        };
+      }
+    )
       .from("company_settings")
-      .select("id")
+      .select()
       .eq("organization_id", orgA);
     return !error && Array.isArray(data) && data.length === 1;
   });
@@ -271,38 +333,43 @@ export async function runPhase8Hydration(
   // second hydration while keeping the Org A repositories; the slices captured
   // under Org B must be EMPTY (Org B has no Phase 8 rows). This proves the
   // hydration result is scoped to the active org id, not the repositories.
-  await step(steps, "stale_org_a_hydration_does_not_contaminate_org_b", async () => {
-    const cacheB: Record<string, unknown> = {};
-    const makeB = <T>(key: string): T =>
-      ((updater: (prev: unknown) => unknown) =>
-        (cacheB[key] = updater(undefined))) as unknown as T;
-    const handlesB = {
-      setLocations: makeB("locations"),
-      setStaff: makeB("staff"),
-      setDrivers: makeB("drivers"),
-      setTasks: makeB("tasks"),
-      setTaskEvents: makeB("taskEvents"),
-      setTaskNotes: makeB("taskNotes"),
-      setNotifications: makeB("notifications"),
-      setNotificationDeliveries: makeB("notificationDeliveries"),
-      setNotificationPreferences: makeB("notificationPreferences"),
-      setCompanyInfo: makeB("companyInfo"),
-      setVehicleClasses: makeB("vehicleClasses"),
-      setAddonCategories: makeB("addonCategories"),
-      setAddonCatalog: makeB("addonCatalog"),
-      applySettingsConfig: () => {},
-    };
-    await hydratePhase8Slices(runtime.orgB, handlesB, repos);
-    const c = (k: string) => ((cacheB[k] ?? []) as unknown[]).length;
-    return (
-      c("locations") === 0 &&
-      c("staff") === 0 &&
-      c("tasks") === 0 &&
-      c("notifications") === 0 &&
-      c("vehicleClasses") === 0 &&
-      c("addonCategories") === 0
-    );
-  });
+  await step(
+    steps,
+    "stale_org_a_hydration_does_not_contaminate_org_b",
+    async () => {
+      const cacheB: Record<string, unknown> = {};
+      const makeB = <T>(key: string) =>
+        ((updater: (prev: T) => T) => {
+          cacheB[key] = updater(undefined as T);
+        }) as (updater: (prev: T) => T) => void;
+      const handlesB: Phase8SyncHandles = {
+        setLocations: makeB("locations"),
+        setStaff: makeB("staff"),
+        setDrivers: makeB("drivers"),
+        setTasks: makeB("tasks"),
+        setTaskEvents: makeB("taskEvents"),
+        setTaskNotes: makeB("taskNotes"),
+        setNotifications: makeB("notifications"),
+        setNotificationDeliveries: makeB("notificationDeliveries"),
+        setNotificationPreferences: makeB("notificationPreferences"),
+        setCompanyInfo: makeB("companyInfo"),
+        setVehicleClasses: makeB("vehicleClasses"),
+        setAddonCategories: makeB("addonCategories"),
+        setAddonCatalog: makeB("addonCatalog"),
+        applySettingsConfig: () => {},
+      };
+      await hydratePhase8Slices(runtime.orgB, handlesB, repos);
+      const c = (k: string) => ((cacheB[k] ?? []) as unknown[]).length;
+      return (
+        c("locations") === 0 &&
+        c("staff") === 0 &&
+        c("tasks") === 0 &&
+        c("notifications") === 0 &&
+        c("vehicleClasses") === 0 &&
+        c("addonCategories") === 0
+      );
+    },
+  );
 
   return { steps };
 }

@@ -25,8 +25,8 @@ import type {
   AddonCatalogItem,
 } from "@/lib/settingsTypes";
 import type { CompanySettingsConfig } from "@/lib/supabase/phase8Mappers";
-import type { Phase8Step } from "./phase8-e2e.server";
 import { step, requireOk, type Phase8Runtime } from "./phase8-e2e-runtime";
+import type { Phase8Step } from "./phase8-e2e.server";
 
 export interface Phase8RecordsStageResult {
   steps: Phase8Step[];
@@ -53,8 +53,11 @@ export async function runOperationalRecords(
   requireOk(
     await step(steps, "location_persistence", async () => {
       const rows = await locations.list(orgA);
-      return rows.length === 1 && rows[0].id === location.id &&
-        rows[0].timezone === "America/New_York";
+      return (
+        rows.length === 1 &&
+        rows[0].id === location.id &&
+        rows[0].timezone === "America/New_York"
+      );
     }),
   );
 
@@ -67,7 +70,7 @@ export async function runOperationalRecords(
     permission_overrides: null,
     created_at: now,
     phone: "555-0200",
-    display_role: "CSR",
+    display_role: "custom",
     role_id: null,
     location_ids: [location.id],
     status: "active",
@@ -81,8 +84,11 @@ export async function runOperationalRecords(
   requireOk(
     await step(steps, "staff_persistence", async () => {
       const rows = await staffAssignments.listStaff(orgA);
-      return rows.length === 1 && rows[0].id === staff.id &&
-        rows[0].status === "active";
+      return (
+        rows.length === 1 &&
+        rows[0].id === staff.id &&
+        rows[0].status === "active"
+      );
     }),
   );
 
@@ -196,8 +202,12 @@ export async function runTasksNotificationsRecords(
   requireOk(
     await step(steps, "task_persistence", async () => {
       const rows = await tasks.list(orgA);
-      return rows.length === 1 && rows[0].id === task.id &&
-        rows[0].status === "open" && rows[0].due_date === date;
+      return (
+        rows.length === 1 &&
+        rows[0].id === task.id &&
+        rows[0].status === "open" &&
+        rows[0].due_date === date
+      );
     }),
   );
 
@@ -270,8 +280,11 @@ export async function runTasksNotificationsRecords(
   requireOk(
     await step(steps, "notification_persistence", async () => {
       const rows = await notifications.list(orgA);
-      return rows.length === 1 && rows[0].id === notification.id &&
-        rows[0].read_at === null;
+      return (
+        rows.length === 1 &&
+        rows[0].id === notification.id &&
+        rows[0].read_at === null
+      );
     }),
   );
 
@@ -307,8 +320,11 @@ export async function runTasksNotificationsRecords(
   requireOk(
     await step(steps, "notification_delivery_persistence", async () => {
       const rows = await notifications.listDeliveries(orgA);
-      return rows.length === 1 && rows[0].id === delivery.id &&
-        rows[0].notification_id === notification.id;
+      return (
+        rows.length === 1 &&
+        rows[0].id === delivery.id &&
+        rows[0].notification_id === notification.id
+      );
     }),
   );
 
@@ -405,13 +421,20 @@ export async function runConfigRecords(
   await companySettings.upsert(orgA, companyInfo, settingsConfig);
   requireOk(
     await step(steps, "company_settings_upsert_no_duplicate", async () => {
-      const { data, error } = await (runtime.a as never as {
-        from: (t: string) => {
-          select: () => { eq: (c: string, v: string) => Promise<{ data: unknown[]; error: unknown }> };
-        };
-      })
+      const { data, error } = await (
+        runtime.a as never as {
+          from: (t: string) => {
+            select: () => {
+              eq: (
+                c: string,
+                v: string,
+              ) => Promise<{ data: unknown[]; error: unknown }>;
+            };
+          };
+        }
+      )
         .from("company_settings")
-        .select("id")
+        .select()
         .eq("organization_id", orgA);
       return !error && Array.isArray(data) && data.length === 1;
     }),

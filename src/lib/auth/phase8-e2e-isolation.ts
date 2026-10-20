@@ -5,8 +5,8 @@
 // mutation. Forged inserts (Org B writing Org A's organization_id) must be
 // denied by RLS. Test-harness only — no product/domain logic changed.
 
-import type { Phase8Step } from "./phase8-e2e.server";
 import { step, type Phase8Runtime } from "./phase8-e2e-runtime";
+import type { Phase8Step } from "./phase8-e2e.server";
 
 export interface Phase8IsolationResult {
   steps: Phase8Step[];
@@ -21,54 +21,72 @@ const PHASE8_TABLES = [
     label: "locations",
     table: "locations",
     id: (r: Phase8Runtime) => r.recordIds.location,
+    composite: false as const,
+    orgScoped: false as const,
     patch: { name: "TENANT BREACH" },
   },
   {
     label: "staff",
     table: "staff",
     id: (r: Phase8Runtime) => r.recordIds.staff,
+    composite: false as const,
+    orgScoped: false as const,
     patch: { full_name: "TENANT BREACH" },
   },
   {
     label: "operational_staff_assignments",
     table: "operational_staff_assignments",
     id: (r: Phase8Runtime) => r.recordIds.assignment,
+    composite: false as const,
+    orgScoped: false as const,
     patch: { notes: "TENANT BREACH" },
   },
   {
     label: "drivers",
     table: "drivers",
     id: (r: Phase8Runtime) => r.recordIds.driver,
+    composite: false as const,
+    orgScoped: false as const,
     patch: { full_name: "TENANT BREACH" },
   },
   {
     label: "tasks",
     table: "tasks",
     id: (r: Phase8Runtime) => r.recordIds.task,
+    composite: false as const,
+    orgScoped: false as const,
     patch: { title: "TENANT BREACH" },
   },
   {
     label: "task_events",
     table: "task_events",
     id: (r: Phase8Runtime) => r.recordIds.taskEvent,
+    composite: false as const,
+    orgScoped: false as const,
     patch: { note: "TENANT BREACH" },
   },
   {
     label: "task_notes",
     table: "task_notes",
     id: (r: Phase8Runtime) => r.recordIds.taskNote,
+    composite: false as const,
+    orgScoped: false as const,
     patch: { text: "TENANT BREACH" },
   },
   {
     label: "notifications",
     table: "notifications",
     id: (r: Phase8Runtime) => r.recordIds.notification,
+    composite: false as const,
+    orgScoped: false as const,
     patch: { title: "TENANT BREACH" },
   },
   {
     label: "notification_deliveries",
     table: "notification_deliveries",
     id: (r: Phase8Runtime) => r.recordIds.notificationDelivery,
+    composite: false as const,
+    orgScoped: false as const,
     patch: { status: "failed" },
   },
   {
@@ -78,7 +96,8 @@ const PHASE8_TABLES = [
     // notification_preferences has a composite PK (org, user, category); the
     // update probe targets Org A's org id + user id + category. There is no
     // single `id` column, so the read probe uses the composite key.
-    composite: true,
+    composite: true as const,
+    orgScoped: false as const,
     patch: { email_enabled: true },
   },
   {
@@ -87,25 +106,32 @@ const PHASE8_TABLES = [
     id: (r: Phase8Runtime) => r.recordIds.companySettings,
     // company_settings is keyed by organization_id; the row id is the settings
     // row id, but the isolation probe scopes by organization_id (Org A).
-    orgScoped: true,
+    composite: false as const,
+    orgScoped: true as const,
     patch: { company_info: { breached: true } },
   },
   {
     label: "vehicle_classes",
     table: "vehicle_classes",
     id: (r: Phase8Runtime) => r.recordIds.vehicleClass,
+    composite: false as const,
+    orgScoped: false as const,
     patch: { name: "TENANT BREACH" },
   },
   {
     label: "addon_categories",
     table: "addon_categories",
     id: (r: Phase8Runtime) => r.recordIds.addonCategory,
+    composite: false as const,
+    orgScoped: false as const,
     patch: { name: "TENANT BREACH" },
   },
   {
     label: "addon_catalog_items",
     table: "addon_catalog_items",
     id: (r: Phase8Runtime) => r.recordIds.addonItem,
+    composite: false as const,
+    orgScoped: false as const,
     patch: { name: "TENANT BREACH" },
   },
 ] as const;
@@ -131,10 +157,7 @@ export async function runPhase8Isolation(
           .eq("category", "task");
         return !r.error && (r.data?.length ?? 0) === 0;
       }
-      const r = await b
-        .from(table)
-        .select("*")
-        .eq("organization_id", orgA);
+      const r = await b.from(table).select("*").eq("organization_id", orgA);
       return !r.error && (r.data?.length ?? 0) === 0;
     });
 
@@ -176,7 +199,8 @@ export async function runPhase8Isolation(
       }
       return (
         !after.error &&
-        (r.error?.code === "42501" || (!r.error && (r.data?.length ?? 0) === 0)) &&
+        (r.error?.code === "42501" ||
+          (!r.error && (r.data?.length ?? 0) === 0)) &&
         JSON.stringify(before.data) === JSON.stringify(after.data)
       );
     });
@@ -208,10 +232,7 @@ export async function runPhase8Isolation(
         // intact the insert is denied before the unique constraint is checked.
         // (PostgREST checks RLS first.) We accept either a 42501 or a unique
         // violation only if no row was stored.
-        const r = await b
-          .from(table)
-          .insert(forged)
-          .select();
+        const r = await b.from(table).insert(forged).select();
         const read = await a.from(table).select("id").eq("id", forgedId);
         return (
           (r.error?.code === "42501" || !r.error) &&
@@ -222,7 +243,9 @@ export async function runPhase8Isolation(
       const r = await b.from(table).insert(forged).select();
       const read = await a.from(table).select("id").eq("id", forgedId);
       return (
-        r.error?.code === "42501" && !read.error && (read.data?.length ?? 0) === 0
+        r.error?.code === "42501" &&
+        !read.error &&
+        (read.data?.length ?? 0) === 0
       );
     });
   }
