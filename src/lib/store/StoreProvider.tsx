@@ -421,7 +421,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     void hydratePhase8Slices(activeOrgId, {
       setLocations: s.setLocations,
       setStaff: s.setStaff,
-      setAssignments: s.setAssignments,
+      // Operational staff assignments are owned by StaffAssignmentProvider
+      // (its own useState); the core store only owns legacy reservation-slot
+      // StaffAssignment[], which has a different shape, so it is intentionally
+      // not wired here.
       setDrivers: s.setDrivers,
       setTasks: s.setTasks,
       setTaskEvents: s.setTaskEvents,

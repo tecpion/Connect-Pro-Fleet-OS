@@ -50,8 +50,7 @@ export function buildSettingsCoreMethods(s: StoreState) {
       s.setLocations((ls) =>
         ls.map((l) => (l.id === id ? { ...l, ...patch } : l)),
       );
-      if (existing)
-        persistLocationUpdate(existing.tenant_id, id, patch);
+      if (existing) persistLocationUpdate(existing.tenant_id, id, patch);
     },
     setDefaultLocation: (id: string) => {
       const existing = s.locations.find((l) => l.id === id);
@@ -153,9 +152,7 @@ export function buildSettingsCoreMethods(s: StoreState) {
  *  slices. Used when persisting the authoritative company_settings record so
  *  the upsert carries the full structured config (companyPolicies via the
  *  module-level ref, agreementRules, taxRules, feeRules). */
-export function buildSettingsConfig(
-  s: StoreState,
-): CompanySettingsConfig {
+export function buildSettingsConfig(s: StoreState): CompanySettingsConfig {
   // companyPolicies live in CompanyPolicyProvider; read the module-level ref
   // so the persisted config matches what domain methods freeze at checkout.
   return {

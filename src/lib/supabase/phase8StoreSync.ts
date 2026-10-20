@@ -89,7 +89,9 @@ export interface Phase8SyncHandles {
    *  core StoreProvider — which only owns the legacy slot assignments — can
    *  hydrate the other Phase 8 slices without a type clash. */
   setAssignments?: (
-    updater: (prev: OperationalStaffAssignment[]) => OperationalStaffAssignment[],
+    updater: (
+      prev: OperationalStaffAssignment[],
+    ) => OperationalStaffAssignment[],
   ) => void;
   setDrivers: (updater: (prev: Driver[]) => Driver[]) => void;
   setTasks: (updater: (prev: Task[]) => Task[]) => void;
@@ -103,7 +105,9 @@ export interface Phase8SyncHandles {
     updater: (prev: NotificationPreference[]) => NotificationPreference[],
   ) => void;
   setCompanyInfo: (updater: (prev: CompanyInfo) => CompanyInfo) => void;
-  setVehicleClasses: (updater: (prev: VehicleClass[]) => VehicleClass[]) => void;
+  setVehicleClasses: (
+    updater: (prev: VehicleClass[]) => VehicleClass[],
+  ) => void;
   setAddonCategories: (
     updater: (prev: AddonCategory[]) => AddonCategory[],
   ) => void;
@@ -151,7 +155,10 @@ export async function hydratePhase8Slices(
       if (handles.setAssignments) handles.setAssignments(() => assignments);
       handles.setDrivers(() => drivers);
     } catch (e) {
-      console.error("[phase8Sync] staff/assignments/drivers hydration failed", e);
+      console.error(
+        "[phase8Sync] staff/assignments/drivers hydration failed",
+        e,
+      );
     }
   }
 
@@ -249,9 +256,7 @@ export function persistLocationInsert(l: Location): void {
   if (!r?.locations) return;
   void r.locations
     .insert(l)
-    .catch((e) =>
-      console.error("[phase8Sync] location insert failed", e),
-    );
+    .catch((e) => console.error("[phase8Sync] location insert failed", e));
 }
 
 export function persistLocationUpdate(
@@ -263,9 +268,7 @@ export function persistLocationUpdate(
   if (!r?.locations) return;
   void r.locations
     .update(orgId, id, patch)
-    .catch((e) =>
-      console.error("[phase8Sync] location update failed", e),
-    );
+    .catch((e) => console.error("[phase8Sync] location update failed", e));
 }
 
 // ── Staff persistence ───────────────────────────────────────────────────────
@@ -292,16 +295,12 @@ export function persistStaffUpdate(
 
 // ── Operational assignments persistence ─────────────────────────────────────
 
-export function persistAssignmentInsert(
-  a: OperationalStaffAssignment,
-): void {
+export function persistAssignmentInsert(a: OperationalStaffAssignment): void {
   const r = repos();
   if (!r?.staffAssignments) return;
   void r.staffAssignments
     .insertAssignment(a)
-    .catch((e) =>
-      console.error("[phase8Sync] assignment insert failed", e),
-    );
+    .catch((e) => console.error("[phase8Sync] assignment insert failed", e));
 }
 
 export function persistAssignmentUpdate(
@@ -313,9 +312,7 @@ export function persistAssignmentUpdate(
   if (!r?.staffAssignments) return;
   void r.staffAssignments
     .updateAssignment(orgId, id, patch)
-    .catch((e) =>
-      console.error("[phase8Sync] assignment update failed", e),
-    );
+    .catch((e) => console.error("[phase8Sync] assignment update failed", e));
 }
 
 // ── Drivers persistence ─────────────────────────────────────────────────────
@@ -377,9 +374,7 @@ export function persistTaskNoteInsert(n: TaskNote): void {
   if (!r?.tasks) return;
   void r.tasks
     .insertTaskNote(n)
-    .catch((err) =>
-      console.error("[phase8Sync] task note insert failed", err),
-    );
+    .catch((err) => console.error("[phase8Sync] task note insert failed", err));
 }
 
 // ── Notifications persistence (internal state only) ─────────────────────────
@@ -389,9 +384,7 @@ export function persistNotificationInsert(n: Notification): void {
   if (!r?.notifications) return;
   void r.notifications
     .insert(n)
-    .catch((e) =>
-      console.error("[phase8Sync] notification insert failed", e),
-    );
+    .catch((e) => console.error("[phase8Sync] notification insert failed", e));
 }
 
 export function persistNotificationUpdate(
@@ -403,9 +396,7 @@ export function persistNotificationUpdate(
   if (!r?.notifications) return;
   void r.notifications
     .update(orgId, id, patch)
-    .catch((e) =>
-      console.error("[phase8Sync] notification update failed", e),
-    );
+    .catch((e) => console.error("[phase8Sync] notification update failed", e));
 }
 
 export function persistNotificationDeliveryInsert(
@@ -457,9 +448,7 @@ export function persistVehicleClassInsert(c: VehicleClass): void {
   if (!r?.vehicleClasses) return;
   void r.vehicleClasses
     .insert(c)
-    .catch((e) =>
-      console.error("[phase8Sync] vehicle class insert failed", e),
-    );
+    .catch((e) => console.error("[phase8Sync] vehicle class insert failed", e));
 }
 
 export function persistVehicleClassUpdate(
@@ -471,9 +460,7 @@ export function persistVehicleClassUpdate(
   if (!r?.vehicleClasses) return;
   void r.vehicleClasses
     .update(orgId, id, patch)
-    .catch((e) =>
-      console.error("[phase8Sync] vehicle class update failed", e),
-    );
+    .catch((e) => console.error("[phase8Sync] vehicle class update failed", e));
 }
 
 // ── Add-ons persistence ─────────────────────────────────────────────────────
@@ -527,4 +514,10 @@ export function persistAddonCatalogItemUpdate(
 }
 
 // Re-export the structured config type for store wiring.
-export type { CompanySettingsConfig, CompanyPolicies, AgreementRules, TaxRule, FeeRule };
+export type {
+  CompanySettingsConfig,
+  CompanyPolicies,
+  AgreementRules,
+  TaxRule,
+  FeeRule,
+};
