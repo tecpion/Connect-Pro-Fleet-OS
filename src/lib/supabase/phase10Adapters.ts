@@ -53,13 +53,15 @@ export class SupabaseLeadRepository implements LeadRepository {
   }
 
   async insert(l: Lead): Promise<Lead> {
-    const { data, error } = await this.db
-      .from("leads")
-      .insert(leadToRow(l))
-      .select()
-      .single();
-    if (error) throw normalizeError(error);
-    return rowToLead(data);
+    const res = await (this.db.from("leads") as unknown as {
+      insert: (r: LeadRow) => {
+        select: () => {
+          single: () => Promise<{ data: LeadRow | null; error: unknown }>;
+        };
+      };
+    }).insert(leadToRow(l)).select().single();
+    if (res.error) throw normalizeError(res.error);
+    return rowToLead(res.data as LeadRow);
   }
 
   async update(
@@ -67,15 +69,24 @@ export class SupabaseLeadRepository implements LeadRepository {
     id: string,
     patch: Partial<Lead>,
   ): Promise<Lead> {
-    const { data, error } = await this.db
-      .from("leads")
+    const res = await (this.db.from("leads") as unknown as {
+      update: (r: Partial<LeadRow>) => {
+        eq: (col: string, val: string) => {
+          eq: (col: string, val: string) => {
+            select: () => {
+              single: () => Promise<{ data: LeadRow | null; error: unknown }>;
+            };
+          };
+        };
+      };
+    })
       .update(leadPatchToRow(patch))
       .eq("organization_id", orgId)
       .eq("id", id)
       .select()
       .single();
-    if (error) throw normalizeError(error);
-    return rowToLead(data);
+    if (res.error) throw normalizeError(res.error);
+    return rowToLead(res.data as LeadRow);
   }
 
   async lookupByPhoneOrEmail(

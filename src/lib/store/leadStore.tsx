@@ -200,8 +200,9 @@ export function LeadProvider({
         setLeads((ls) =>
           ls.map((l) => {
             if (l.id !== id) return l;
-            updated = { ...l, ...patch, updated_at: at };
-            return updated;
+            const next: Lead = { ...l, ...patch, updated_at: at };
+            updated = next;
+            return next;
           }),
         );
         if (updated) {

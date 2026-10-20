@@ -58,7 +58,7 @@ export function leadToRow(l: Lead): LeadRow {
     crm_opportunity_id: l.crm_opportunity_id,
     crm_pipeline_stage: l.crm_pipeline_stage,
     lead_source: l.lead_source,
-    intake_data: l.intake_data,
+    intake_data: l.intake_data as unknown as Json,
     notes: l.notes,
     converted_booking_request_id: l.converted_booking_request_id,
     converted_at: l.converted_at,
@@ -82,7 +82,8 @@ export function leadPatchToRow(patch: Partial<Lead>): Partial<LeadRow> {
   if (patch.crm_pipeline_stage !== undefined)
     row.crm_pipeline_stage = patch.crm_pipeline_stage;
   if (patch.lead_source !== undefined) row.lead_source = patch.lead_source;
-  if (patch.intake_data !== undefined) row.intake_data = patch.intake_data;
+  if (patch.intake_data !== undefined)
+    row.intake_data = patch.intake_data as unknown as Json;
   if (patch.notes !== undefined) row.notes = patch.notes;
   if (patch.converted_booking_request_id !== undefined)
     row.converted_booking_request_id = patch.converted_booking_request_id;
