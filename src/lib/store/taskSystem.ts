@@ -10,6 +10,7 @@
 // can create a new task.
 
 import { fmtMoney } from "../format";
+import { getOrgTimezone, startOfDayInTz } from "../timezone";
 import type { TaskSourceEvent } from "../taskTypes";
 import type { StoreState } from "./storeState";
 
@@ -32,8 +33,12 @@ export function generateSystemTasksPass(
   ensure: EnsureFn,
 ): { created: number } {
   let created = 0;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  // "Today" is the ORG's business day, resolved from the persisted
+  // companyInfo.timezone through the org-timezone helpers — not the server
+  // wall clock — so the same stored records produce the same due-today /
+  // overdue verdicts regardless of the runtime's TZ.
+  const tz = getOrgTimezone(s.companyInfo?.timezone);
+  const today = startOfDayInTz(new Date(), tz);
 
   // 1. Broken payment arrangements with collectible debt.
   for (const a of s.paymentArrangements) {

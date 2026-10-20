@@ -113,15 +113,17 @@ describe("Build #21 cleanup — exact-time late evaluator", () => {
     expect(late.late).toBe(true);
   });
 
-  it("obligationDueInstant applies the cutoff in local time", () => {
+  it("obligationDueInstant applies the cutoff in the resolved (UTC) zone", () => {
     const ms = obligationDueInstant({
       due_at: "2026-08-31",
       cutoff_time: "14:00",
       grace_period: 0,
     });
     const d = new Date(ms);
-    expect(d.getHours()).toBe(14);
-    expect(d.getMinutes()).toBe(0);
+    // tz omitted → UTC safe default, so the due instant is 14:00 UTC; assert
+    // via the UTC accessors so it holds under any process TZ.
+    expect(d.getUTCHours()).toBe(14);
+    expect(d.getUTCMinutes()).toBe(0);
   });
 });
 

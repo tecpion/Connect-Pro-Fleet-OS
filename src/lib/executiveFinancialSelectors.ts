@@ -170,6 +170,7 @@ export function getArrangementMetrics(
   arrangements: PaymentArrangement[],
   installments: PaymentArrangementInstallment[],
   transactions: FinancialTransaction[],
+  tz?: string,
 ): {
   active_count: number;
   broken_count: number;
@@ -179,11 +180,13 @@ export function getArrangementMetrics(
     installments.filter((i) => i.arrangement_id === id);
   // "Active" = arrangement not cancelled/completed/broken. Derived from the
   // authoritative installment/ledger state via deriveArrangementStatus — no
-  // separate persisted status is introduced.
+  // separate persisted status is introduced. `tz` is the org timezone; the
+  // broken/late boundary is org-local (omitted tz → UTC safe default).
   const active = arrangements.filter(
-    (a) => deriveArrangementStatus(a, byArr(a.id), transactions) === "active",
+    (a) =>
+      deriveArrangementStatus(a, byArr(a.id), transactions, tz) === "active",
   );
-  const broken = getBrokenArrangements(arrangements, byArr, transactions);
+  const broken = getBrokenArrangements(arrangements, byArr, transactions, undefined, tz);
   let balance = 0;
   for (const a of active) {
     const insts = byArr(a.id);

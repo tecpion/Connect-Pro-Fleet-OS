@@ -19,10 +19,14 @@
 // An arrangement is "effectively resolved" when collectibleRemaining = 0, even
 // if the customer never made a payment — so it stops surfacing as actionable.
 //
-// Date semantics use local-day comparison (consistent with the rest of the app)
-// so a Friday promise isn't "late" Thursday evening.
+// Date semantics use org-local-day comparison (consistent with the rest of the
+// app) so a Friday promise isn't "late" Thursday evening. "Today" is resolved
+// through the org-timezone helpers (getOrgTimezone → UTC safe default) — never
+// the server/browser wall clock — so the same stored due dates produce the same
+// installment/arrangement verdicts regardless of the runtime's TZ.
 
 import type { FinancialTransaction } from "./types";
+import { getOrgTimezone, startOfDayInTz } from "./timezone";
 import type {
   ArrangementStatus,
   InstallmentStatus,
@@ -35,15 +39,18 @@ export type { ScheduleFrequency };
 
 const DAY = 86_400_000;
 
-function todayStr(): string {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  return d.toISOString().slice(0, 10);
+function todayStr(tz?: string): string {
+  // Org-local "today" as a date-only string. Resolved through getOrgTimezone
+  // (UTC safe default) so a missing org timezone never silently follows the
+  // machine wall clock.
+  return startOfDayInTz(new Date(), getOrgTimezone(tz))
+    .toISOString()
+    .slice(0, 10);
 }
 
-function dayDiff(dueDate: string): number {
+function dayDiff(dueDate: string, tz?: string): number {
   const due = new Date(dueDate + "T00:00:00");
-  const today = new Date(todayStr() + "T00:00:00");
+  const today = new Date(todayStr(tz) + "T00:00:00");
   return Math.round((today.getTime() - due.getTime()) / DAY);
 }
 
@@ -72,16 +79,19 @@ export function installmentPaidAmount(
   return Math.min(total, installment.amount_due);
 }
 
-/** Derive an installment's operational status from due date + linked payments. */
+/** Derive an installment's operational status from due date + linked payments.
+ *  `tz` is the org timezone; the due/late boundary is org-local. Omitted `tz`
+ *  resolves to the UTC safe default (getOrgTimezone), never the machine clock. */
 export function installmentStatus(
   installment: PaymentArrangementInstallment,
   transactions: FinancialTransaction[],
   gracePeriodDays = 0,
+  tz?: string,
 ): InstallmentStatus {
   const paid = installmentPaidAmount(installment, transactions);
   if (paid >= installment.amount_due) return "paid";
   if (paid > 0) return "partially_paid";
-  const diff = dayDiff(installment.due_date);
+  const diff = dayDiff(installment.due_date, tz);
   if (diff < 0) return "upcoming";
   if (diff === 0) return "due_today";
   // Past due — late if within grace, missed if beyond it.
@@ -130,22 +140,27 @@ export function getNextInstallment(
   return unpaid[0] ?? null;
 }
 
-/** Is the arrangement broken? Deterministic: any installment missed beyond grace. */
+/** Is the arrangement broken? Deterministic: any installment missed beyond
+ *  grace. `tz` is the org timezone; see `installmentStatus`. */
 export function isArrangementBroken(
   installments: PaymentArrangementInstallment[],
   transactions: FinancialTransaction[],
   gracePeriodDays: number,
+  tz?: string,
 ): boolean {
   return installments.some(
-    (ins) => installmentStatus(ins, transactions, gracePeriodDays) === "missed",
+    (ins) =>
+      installmentStatus(ins, transactions, gracePeriodDays, tz) === "missed",
   );
 }
 
-/** Derive the arrangement's effective status from installments + ledger. */
+/** Derive the arrangement's effective status from installments + ledger.
+ *  `tz` is the org timezone; the broken check is org-local. */
 export function deriveArrangementStatus(
   arrangement: PaymentArrangement,
   installments: PaymentArrangementInstallment[],
   transactions: FinancialTransaction[],
+  tz?: string,
 ): ArrangementStatus {
   if (arrangement.status === "cancelled") return "cancelled";
   const paid = arrangementPaidAmount(installments, transactions);
@@ -155,6 +170,7 @@ export function deriveArrangementStatus(
       installments,
       transactions,
       arrangement.grace_period_days,
+      tz,
     )
   )
     return "broken";
@@ -170,6 +186,7 @@ export function getPromisesDueToday(
   installmentsByArrangement: (id: string) => PaymentArrangementInstallment[],
   transactions: FinancialTransaction[],
   outstandingFor?: (arrangement: PaymentArrangement) => number,
+  tz?: string,
 ): PaymentArrangementInstallment[] {
   const out: PaymentArrangementInstallment[] = [];
   for (const a of arrangements) {
@@ -186,7 +203,7 @@ export function getPromisesDueToday(
       continue;
     for (const ins of installmentsByArrangement(a.id)) {
       if (
-        installmentStatus(ins, transactions, a.grace_period_days) ===
+        installmentStatus(ins, transactions, a.grace_period_days, tz) ===
         "due_today"
       )
         out.push(ins);
@@ -202,6 +219,7 @@ export function getBrokenArrangements(
   installmentsByArrangement: (id: string) => PaymentArrangementInstallment[],
   transactions: FinancialTransaction[],
   outstandingFor?: (arrangement: PaymentArrangement) => number,
+  tz?: string,
 ): PaymentArrangement[] {
   return arrangements.filter((a) => {
     if (a.status === "cancelled" || a.status === "completed") return false;
@@ -219,6 +237,7 @@ export function getBrokenArrangements(
       installmentsByArrangement(a.id),
       transactions,
       a.grace_period_days,
+      tz,
     );
   });
 }

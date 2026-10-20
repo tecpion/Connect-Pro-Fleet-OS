@@ -279,7 +279,9 @@ describe("Build #33 — Last 30 Days rolling range", () => {
     const now = new Date("2026-01-30T14:00:00Z");
     const r = resolveProfitabilityRange("last_30_days", undefined, now);
     expect(r.end.toDateString()).toBe(now.toDateString());
-    expect(r.start.getDate()).toBe(1); // Jan 1 (30 - 29)
+    // tz omitted → UTC safe default, so the range start is a UTC instant;
+    // assert via the UTC calendar date so it holds under any process TZ.
+    expect(r.start.getUTCDate()).toBe(1); // Jan 1 (30 - 29)
   });
 
   it("last_30_days differs from this_month (mid-month)", () => {

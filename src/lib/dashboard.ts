@@ -343,6 +343,7 @@ export function arrangementAttentionItems(
   installments: PaymentArrangementInstallment[],
   transactions: FinancialTransaction[],
   outstandingFor?: (arrangement: PaymentArrangement) => number,
+  tz?: string,
 ): AttentionItem[] {
   const items: AttentionItem[] = [];
   const byArr = (id: string) =>
@@ -352,6 +353,7 @@ export function arrangementAttentionItems(
     byArr,
     transactions,
     outstandingFor,
+    tz,
   );
   if (promisesDue.length > 0)
     items.push({

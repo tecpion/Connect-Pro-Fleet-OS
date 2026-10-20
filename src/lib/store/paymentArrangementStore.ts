@@ -26,6 +26,7 @@ import {
   installmentPaidAmount,
   nextArrangementNumber,
 } from "../paymentArrangements";
+import { getOrgTimezone } from "../timezone";
 import { TENANT_ID, uid } from "./ids";
 import type { StoreState } from "./storeState";
 import { getIntegrationEmitter } from "../integrationEmitterRef";
@@ -88,7 +89,11 @@ export function buildPaymentArrangementMethods(s: StoreState) {
     if (!a) return;
     const installments = updatedInstallments ?? installmentsFor(arrangementId);
     const txns = mergedTxns ?? s.transactions;
-    const status = deriveArrangementStatus(a, installments, txns);
+    // Derive in the org's business timezone (persisted companyInfo.timezone,
+    // resolved through getOrgTimezone → UTC safe default) so the persisted
+    // broken/active verdict is independent of the runtime's TZ.
+    const tz = getOrgTimezone(s.companyInfo?.timezone);
+    const status = deriveArrangementStatus(a, installments, txns, tz);
     const wasBroken = a.status === "broken";
     const now = new Date().toISOString();
     s.setPaymentArrangements((arrs) =>

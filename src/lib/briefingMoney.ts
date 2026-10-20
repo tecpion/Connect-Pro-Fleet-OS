@@ -9,6 +9,7 @@
 // `asOf` is explicit and deterministic — no buried `new Date()`.
 
 import type { BriefingItem, BriefingSources } from "./briefingTypes";
+import { getOrgTimezone } from "./timezone";
 import { getPaymentObligations } from "./billingSelectors";
 import { isObligationLate } from "./lateEvaluator";
 import {
@@ -130,7 +131,11 @@ export function getArrangementAttention(
     installments.filter((i) => i.arrangement_id === id);
   const items: BriefingItem[] = [];
 
-  const promisesDue = getPromisesDueToday(arrangements, byArr, s.transactions);
+  // Same org timezone as the human-facing UI (persisted companyInfo.timezone),
+  // resolved through the org-timezone helpers so the briefing's due-today /
+  // broken verdicts match the dashboard regardless of the runtime's TZ.
+  const tz = getOrgTimezone(s.companyInfo?.timezone);
+  const promisesDue = getPromisesDueToday(arrangements, byArr, s.transactions, undefined, tz);
   for (const ins of promisesDue) {
     const a = arrangements.find((x) => x.id === ins.arrangement_id);
     items.push({

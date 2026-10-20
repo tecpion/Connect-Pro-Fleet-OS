@@ -4,17 +4,23 @@
 // unassigned system task. Idempotent via dedupe keys. No background scheduler —
 // called from a manual trigger. Runtime task-coverage suppression is applied
 // inside notify() itself, so the scan doesn't need to duplicate that logic.
+//
+// "Today" is the ORG's business day — resolved through the org-timezone
+// helpers from the persisted `companyInfo.timezone` — never the server/browser
+// wall clock. Stored `due_date` values are date-only strings (no time/tz); the
+// org-local day boundary decides whether a promise is due today or overdue.
 
 import type { StoreState } from "./storeState";
 import type { CreateNotificationInput } from "./notificationContext";
+import { getOrgTimezone, startOfDayInTz } from "../timezone";
 
 export function generateNotificationsPass(
   s: StoreState,
   notify: (input: CreateNotificationInput) => string | null,
 ): { created: number } {
   let created = 0;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const tz = getOrgTimezone(s.companyInfo?.timezone);
+  const today = startOfDayInTz(new Date(), tz);
 
   // Task due today / overdue (per assignee, once per occurrence).
   for (const t of s.tasks) {
