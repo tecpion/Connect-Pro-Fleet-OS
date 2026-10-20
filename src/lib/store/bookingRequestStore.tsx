@@ -314,31 +314,31 @@ export function BookingRequestProvider({ children }: { children: ReactNode }) {
 
       setStatus: (id, status, actor_id) => {
         const at = nowISO();
-        let target: BookingRequest | null = null;
+        const existing = requests.find((r) => r.id === id) ?? null;
         setRequests((rs) =>
-          rs.map((r) => {
-            if (r.id !== id) return r;
-            target = { ...r, status, updated_at: at };
-            return target;
-          }),
+          rs.map((r) => (r.id === id ? { ...r, status, updated_at: at } : r)),
         );
-        if (target) {
+        if (existing) {
+          const updated: BookingRequest = {
+            ...existing,
+            status,
+            updated_at: at,
+          };
           // Only "reviewing" emits an outbound CRM stage event. "approved" was
           // removed — conversion (booking_request.converted) is the approval
           // signal, emitted by convertToReservation.
           if (status === "reviewing") {
             setOutbound((os) => [
-              newOutbound("booking_request.reviewing", id, target, null, {
+              newOutbound("booking_request.reviewing", id, updated, null, {
                 actor_id,
               }),
               ...os,
             ]);
           }
-          persistBookingRequestUpdate(
-            target.organization_id,
-            id,
-            { status, updated_at: at },
-          );
+          persistBookingRequestUpdate(updated.organization_id, id, {
+            status,
+            updated_at: at,
+          });
         }
       },
 

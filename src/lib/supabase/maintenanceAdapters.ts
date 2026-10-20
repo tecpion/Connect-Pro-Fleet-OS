@@ -94,7 +94,9 @@ export class SupabaseMaintenanceRepository implements MaintenanceRepository {
       .eq("organization_id", orgId)
       .order("opened_at", { ascending: false });
     if (error) throw normalizeError(error);
-    return (data ?? []).map((r) => rowToWorkOrder(r as MaintenanceWorkOrderRow));
+    return (data ?? []).map((r) =>
+      rowToWorkOrder(r as MaintenanceWorkOrderRow),
+    );
   }
 
   async getWorkOrder(
@@ -108,12 +110,12 @@ export class SupabaseMaintenanceRepository implements MaintenanceRepository {
       .eq("id", id)
       .maybeSingle();
     if (error) throw normalizeError(error);
-    return data
-      ? rowToWorkOrder(data as MaintenanceWorkOrderRow)
-      : null;
+    return data ? rowToWorkOrder(data as MaintenanceWorkOrderRow) : null;
   }
 
-  async insertWorkOrder(w: MaintenanceWorkOrder): Promise<MaintenanceWorkOrder> {
+  async insertWorkOrder(
+    w: MaintenanceWorkOrder,
+  ): Promise<MaintenanceWorkOrder> {
     const { data, error } = await this.db
       .from("maintenance_work_orders")
       .insert(workOrderToRow(w))
@@ -196,7 +198,9 @@ export class SupabaseMaintenanceRepository implements MaintenanceRepository {
   ): Promise<MaintenanceVendor> {
     const { data, error } = await this.db
       .from("maintenance_vendors")
-      .update(maintenanceVendorToRow({ ...({} as MaintenanceVendor), ...patch }))
+      .update(
+        maintenanceVendorToRow({ ...({} as MaintenanceVendor), ...patch }),
+      )
       .eq("organization_id", orgId)
       .eq("id", id)
       .select()
@@ -232,7 +236,10 @@ export class SupabaseMaintenanceRepository implements MaintenanceRepository {
     id: string,
     patch: Partial<MaintenanceReceipt>,
   ): Promise<MaintenanceReceipt> {
-    const base = maintenanceReceiptToRow({ ...({} as MaintenanceReceipt), ...patch });
+    const base = maintenanceReceiptToRow({
+      ...({} as MaintenanceReceipt),
+      ...patch,
+    });
     const { data, error } = await this.db
       .from("maintenance_receipts")
       .update(base)
@@ -254,9 +261,7 @@ export interface MaintenanceSyncHandles {
     updater: (prev: MaintenanceWorkOrder[]) => MaintenanceWorkOrder[],
   ) => void;
   setWorkOrderEvents: (
-    updater: (
-      prev: MaintenanceWorkOrderEvent[],
-    ) => MaintenanceWorkOrderEvent[],
+    updater: (prev: MaintenanceWorkOrderEvent[]) => MaintenanceWorkOrderEvent[],
   ) => void;
   setMaintenanceVendors: (
     updater: (prev: MaintenanceVendor[]) => MaintenanceVendor[],

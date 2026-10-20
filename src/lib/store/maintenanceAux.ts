@@ -99,7 +99,7 @@ export function buildMaintenanceAux(s: StoreState, h: MaintenanceShared) {
       return id;
     },
 
-    voidReceipt: (receiptId, reason?: string) => {
+    voidReceipt: (receiptId: string, reason?: string) => {
       const receipt = s.maintenanceReceipts.find((r) => r.id === receiptId);
       if (!receipt || receipt.voided_at) return;
       const now = new Date().toISOString();

@@ -99,8 +99,7 @@ export function buildMaintenanceShared(s: StoreState): MaintenanceShared {
           : w,
       ),
     );
-    if (existing)
-      persistWorkOrderUpdate(existing.tenant_id, id, patch);
+    if (existing) persistWorkOrderUpdate(existing.tenant_id, id, patch);
   }
 
   function staffName(id: string | null): string {
