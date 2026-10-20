@@ -461,15 +461,15 @@ describe("Phase 9C-1 — stale-org protection", () => {
     const guard: StaleOrgGuard = { isActive: () => active };
     // Force listAll to resolve, then flip org before setters run.
     const orig = repos.rentalEvents!.listAll;
-    (repos.rentalEvents as unknown as { listAll: ReturnType<typeof vi.fn> }).listAll = vi
-      .fn()
-      .mockImplementation(async (...args: unknown[]) => {
-        const out = await (
-          orig as unknown as (...a: unknown[]) => Promise<unknown>
-        )(...args);
-        active = false; // org switched mid-flight
-        return out;
-      });
+    (
+      repos.rentalEvents as unknown as { listAll: ReturnType<typeof vi.fn> }
+    ).listAll = vi.fn().mockImplementation(async (...args: unknown[]) => {
+      const out = await (
+        orig as unknown as (...a: unknown[]) => Promise<unknown>
+      )(...args);
+      active = false; // org switched mid-flight
+      return out;
+    });
     await hydratePhase9Slices(ORG, h, repos, guard);
     expect(state.rentalEvents).toEqual([]); // Org A result discarded
   });

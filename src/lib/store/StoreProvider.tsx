@@ -486,10 +486,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         setArrangementInstallments: s.setArrangementInstallments,
         setArrangementEvents: s.setArrangementEvents,
         setAgreementTemplates: s.setAgreementTemplates,
-        setMasterAgreements: (updater) =>
-          s.setMasterAgreementsRef(updater),
-        setAgreementInstances: (updater) =>
-          s.setAgreementInstancesRef(updater),
+        setMasterAgreements: (updater) => s.setMasterAgreementsRef(updater),
+        setAgreementInstances: (updater) => s.setAgreementInstancesRef(updater),
         setActivityLog: s.setActivity,
       },
       undefined,

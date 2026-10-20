@@ -209,9 +209,7 @@ export interface StoreState {
   setAgreementTemplates: React.Dispatch<
     React.SetStateAction<AgreementTemplate[]>
   >;
-  setMasterAgreements: React.Dispatch<
-    React.SetStateAction<MasterAgreement[]>
-  >;
+  setMasterAgreements: React.Dispatch<React.SetStateAction<MasterAgreement[]>>;
   setAgreementInstances: React.Dispatch<
     React.SetStateAction<AgreementInstance[]>
   >;
