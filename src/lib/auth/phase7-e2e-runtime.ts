@@ -67,7 +67,6 @@ export interface Phase7RunMeta {
   ctx: Phase4Context;
   now: string;
   date: string;
-  emailB: string;
   recordIds: Record<string, string>;
   phase7: Phase7Fixtures;
   users: string[];

@@ -66,14 +66,16 @@ export interface Phase7StageResult {
   crashed?: boolean;
 }
 
-const REQUIRED_ENV = "Requires SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, SUPABASE_SERVICE_ROLE_KEY";
-const MISSING_ENV_REASON = "Cloud server configuration unavailable; execute POST /api/phase7-e2e?stage=… in AI Studio.";
+const REQUIRED_ENV =
+  "Requires SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, SUPABASE_SERVICE_ROLE_KEY";
+const MISSING_ENV_REASON =
+  "Cloud server configuration unavailable; execute POST /api/phase7-e2e?stage=… in AI Studio.";
 
 function serverConfigured(): boolean {
   return Boolean(
     process.env.SUPABASE_URL &&
-      process.env.SUPABASE_PUBLISHABLE_KEY &&
-      process.env.SUPABASE_SERVICE_ROLE_KEY,
+    process.env.SUPABASE_PUBLISHABLE_KEY &&
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
   );
 }
 
@@ -221,7 +223,13 @@ export async function runPhase7Hydration(
   const meta = runId ? loadRun(runId) : undefined;
   if (!meta)
     return failedResult(
-      [{ step: "hydration_no_run", ok: false, detail: "No setup run; run setup first" }],
+      [
+        {
+          step: "hydration_no_run",
+          ok: false,
+          detail: "No setup run; run setup first",
+        },
+      ],
       "No setup run for hydration; run ?stage=setup first",
     );
   const url = process.env.SUPABASE_URL!;
@@ -273,7 +281,13 @@ export async function runPhase7Isolation(
   const meta = runId ? loadRun(runId) : undefined;
   if (!meta)
     return failedResult(
-      [{ step: "isolation_no_run", ok: false, detail: "No setup run; run setup first" }],
+      [
+        {
+          step: "isolation_no_run",
+          ok: false,
+          detail: "No setup run; run setup first",
+        },
+      ],
       "No setup run for isolation; run ?stage=setup first",
     );
   const url = process.env.SUPABASE_URL!;
@@ -325,7 +339,13 @@ export async function runPhase7Cleanup(
   const meta = runId ? loadRun(runId) : undefined;
   if (!meta)
     return failedResult(
-      [{ step: "cleanup_no_run", ok: false, detail: "No setup run; run setup first" }],
+      [
+        {
+          step: "cleanup_no_run",
+          ok: false,
+          detail: "No setup run; run setup first",
+        },
+      ],
       "No setup run for cleanup; run ?stage=setup first",
     );
   const url = process.env.SUPABASE_URL!;
@@ -335,7 +355,9 @@ export async function runPhase7Cleanup(
     // Cleanup is admin-only: the admin client bypasses RLS to delete the rows
     // the setup stage created. Re-auth is not needed (service key), but we
     // still build the full runtime shape the cleanup module expects.
-    const admin = client(process.env.SUPABASE_SERVICE_ROLE_KEY!) as Phase7Client;
+    const admin = client(
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    ) as Phase7Client;
     const a = client(process.env.SUPABASE_PUBLISHABLE_KEY!) as Phase7Client;
     const b = client(process.env.SUPABASE_PUBLISHABLE_KEY!) as Phase7Client;
     const runtime: Phase7Runtime = {
@@ -347,6 +369,7 @@ export async function runPhase7Cleanup(
       userAId: meta.userAId,
       userBId: meta.userBId,
       emailA: meta.emailA,
+      emailB: meta.emailB,
       password: meta.password,
       stamp: meta.stamp,
       ctx: meta.ctx,

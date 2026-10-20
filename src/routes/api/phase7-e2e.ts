@@ -29,7 +29,12 @@ import {
 type Stage = "setup" | "hydration" | "isolation" | "cleanup";
 
 function isStage(value: string | null): value is Stage {
-  return value === "setup" || value === "hydration" || value === "isolation" || value === "cleanup";
+  return (
+    value === "setup" ||
+    value === "hydration" ||
+    value === "isolation" ||
+    value === "cleanup"
+  );
 }
 
 function jsonResponse(
@@ -48,10 +53,14 @@ export const Route = createFileRoute("/api/phase7-e2e")({
         const stageParam = new URL(request.url).searchParams.get("stage");
         try {
           if (isStage(stageParam)) {
-            const runId = new URL(request.url).searchParams.get("runId") ?? undefined;
-            if (stageParam === "setup") return jsonResponse(await runPhase7Setup());
-            if (stageParam === "hydration") return jsonResponse(await runPhase7Hydration(runId));
-            if (stageParam === "isolation") return jsonResponse(await runPhase7Isolation(runId));
+            const runId =
+              new URL(request.url).searchParams.get("runId") ?? undefined;
+            if (stageParam === "setup")
+              return jsonResponse(await runPhase7Setup());
+            if (stageParam === "hydration")
+              return jsonResponse(await runPhase7Hydration(runId));
+            if (stageParam === "isolation")
+              return jsonResponse(await runPhase7Isolation(runId));
             return jsonResponse(await runPhase7Cleanup(runId));
           }
           // No stage: fall back to the legacy un-staged run (may exceed deadline).
