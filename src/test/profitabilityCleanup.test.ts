@@ -37,10 +37,12 @@ import {
 } from "./profitabilityFixtures";
 import type { PartnershipExpenseRule } from "@/lib/partnershipTypes";
 
+// Build the pinned "as of" as a LOCAL calendar date (not a UTC-parsed
+// date-only string); see profitabilityDomain.test.ts for the rationale.
 const AUG = resolveProfitabilityRange(
   "this_month",
   undefined,
-  new Date("2026-08-15"),
+  new Date(2026, 7, 15, 12, 0, 0),
 );
 const AUG_FULL = resolveProfitabilityRange("custom", {
   start: "2026-08-01",

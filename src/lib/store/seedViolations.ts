@@ -245,7 +245,7 @@ export const seedViolations: {
       rental_id: "rnt_1",
       customer_id: "cus_1",
       occurred_at: "2026-08-26T16:45:00Z",
-      received_at: "2026-09-01T00:00:00Z",
+      received_at: "2026-09-01T14:00:00Z",
       due_at: "2026-10-01T00:00:00Z",
       issuing_authority: "Florida Highway Patrol",
       citation_number: "FHP-2026-118842",

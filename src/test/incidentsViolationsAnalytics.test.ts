@@ -529,11 +529,27 @@ describe("Incidents & Violations — source, match, billing, due, reports", () =
   });
   it("35b. incidentsInWindow / violationsInWindow respect boundaries", () => {
     const w = resolveAnalyticsRange("this_month", NOW);
+    // The boundary event is a date-only business date intended to fall on
+    // Sep 1 in the tenant's local calendar. `new Date("2026-09-01")` is
+    // parsed as UTC midnight, which under negative-offset timezones (e.g.
+    // America/New_York) lands on Aug 31 local and is correctly excluded
+    // from the local Sep window. Anchor the fixture to local midnight so
+    // the date-only intent ("Sep 1 local day") is preserved across
+    // timezones, keeping the assertion meaning: the in-month event is
+    // included and the Aug-31 event is excluded.
+    const sep1LocalMidnight = new Date(
+      NOW.getFullYear(),
+      NOW.getMonth(),
+      1,
+      0,
+      0,
+      0,
+    ).toISOString();
     expect(
       incidentsInWindow(
         [
           incident({ occurred_at: "2026-08-31" }),
-          incident({ id: "i2", occurred_at: "2026-09-01" }),
+          incident({ id: "i2", occurred_at: sep1LocalMidnight }),
         ],
         w,
       ).length,

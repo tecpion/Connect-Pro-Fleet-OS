@@ -32,10 +32,17 @@ import {
   makeCategory,
 } from "./profitabilityFixtures";
 
+// Build the pinned "as of" as a LOCAL calendar date (not a UTC-parsed
+// date-only string). `new Date("2026-08-15")` is parsed as UTC midnight,
+// which under negative-offset timezones (e.g. America/New_York) lands on the
+// previous local day and shifts `startOfDay`/`endOfDay` to Aug 14, dropping
+// the Aug-15 business-date fixtures out of range. Constructing a local
+// daytime keeps the "this month = August" business semantics identical
+// across timezones and preserves the existing UTC behavior.
 const AUG = resolveProfitabilityRange(
   "this_month",
   undefined,
-  new Date("2026-08-15"),
+  new Date(2026, 7, 15, 12, 0, 0),
 );
 
 describe("Build #16 — revenue recognition", () => {
@@ -546,7 +553,7 @@ describe("Build #16 — date ranges", () => {
     const r = resolveProfitabilityRange(
       "this_month",
       undefined,
-      new Date("2026-08-15"),
+      new Date(2026, 7, 15, 12, 0, 0),
     );
     expect(r.start.getDate()).toBe(1);
     expect(r.start.getMonth()).toBe(7);
@@ -556,7 +563,7 @@ describe("Build #16 — date ranges", () => {
     const r = resolveProfitabilityRange(
       "last_month",
       undefined,
-      new Date("2026-08-15"),
+      new Date(2026, 7, 15, 12, 0, 0),
     );
     expect(r.start.getMonth()).toBe(6);
     expect(r.end.getMonth()).toBe(6);
