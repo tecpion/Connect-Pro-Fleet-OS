@@ -37,11 +37,17 @@ function hexToBytes(hex: string): Uint8Array {
   for (let i = 0; i < out.length; i++) {
     const hi = hex.charCodeAt(i * 2);
     const lo = hex.charCodeAt(i * 2 + 1);
-    const hiV = hi <= 57 ? hi - 48 : (hi & 0xdf) - 55 + 10;
-    const loV = lo <= 57 ? lo - 48 : (lo & 0xdf) - 55 + 10;
-    out[i] = (hiV << 4) | loV;
+    out[i] = (nibble(hi) << 4) | nibble(lo);
   }
   return out;
+}
+
+/** Decode a single hex char (0-9, a-f, A-F) to its 0-15 value. */
+function nibble(c: number): number {
+  if (c >= 48 && c <= 57) return c - 48; // 0-9
+  if (c >= 97 && c <= 102) return c - 97 + 10; // a-f
+  if (c >= 65 && c <= 70) return c - 65 + 10; // A-F
+  throw new Error("invalid hex character");
 }
 
 /**
