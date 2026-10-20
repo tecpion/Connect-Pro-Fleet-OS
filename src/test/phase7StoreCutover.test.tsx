@@ -93,6 +93,9 @@ import {
   persistMaintenanceReceiptInsert,
 } from "@/lib/supabase/maintenanceAdapters";
 
+const mockHydratePhase2Slices = vi.mocked(hydratePhase2Slices);
+const mockHydrateMaintenance = vi.mocked(hydrateMaintenance);
+
 const wrapper = ({ children }: { children: ReactNode }) => (
   <AuthProvider>
     <StoreProvider>
@@ -113,7 +116,7 @@ describe("Phase 7 — StoreProvider hydration wiring", () => {
   it("calls hydratePhase2Slices on mount with the active org id", () => {
     useTestStore();
     expect(hydratePhase2Slices).toHaveBeenCalled();
-    const orgId = hydratePhase2Slices.mock.calls[0][0];
+    const orgId = mockHydratePhase2Slices.mock.calls[0][0];
     expect(typeof orgId).toBe("string");
   });
 
@@ -125,16 +128,14 @@ describe("Phase 7 — StoreProvider hydration wiring", () => {
   it("calls hydrateMaintenance on mount with the active org id", () => {
     useTestStore();
     expect(hydrateMaintenance).toHaveBeenCalled();
-    const orgId = hydrateMaintenance.mock.calls[0][0];
+    const orgId = mockHydrateMaintenance.mock.calls[0][0];
     expect(typeof orgId).toBe("string");
   });
 
   it("passes the Phase 2 setter handles to hydratePhase2Slices", () => {
     useTestStore();
-    const handles = hydratePhase2Slices.mock.calls[0][1] as Record<
-      string,
-      unknown
-    >;
+    const handles = mockHydratePhase2Slices.mock
+      .calls[0][1] as unknown as Record<string, unknown>;
     expect(typeof handles.setRentals).toBe("function");
     expect(typeof handles.setTransactions).toBe("function");
     expect(typeof handles.setRentalDeposits).toBe("function");
@@ -143,10 +144,8 @@ describe("Phase 7 — StoreProvider hydration wiring", () => {
 
   it("passes the Maintenance setter handles to hydrateMaintenance", () => {
     useTestStore();
-    const handles = hydrateMaintenance.mock.calls[0][1] as Record<
-      string,
-      unknown
-    >;
+    const handles = mockHydrateMaintenance.mock
+      .calls[0][1] as unknown as Record<string, unknown>;
     expect(typeof handles.setWorkOrders).toBe("function");
     expect(typeof handles.setWorkOrderEvents).toBe("function");
     expect(typeof handles.setMaintenanceVendors).toBe("function");
@@ -167,7 +166,7 @@ describe("Phase 7 — rental/ledger/deposit persistence wired", () => {
       result.current.createWorkOrder({
         vehicle_id: "veh_1",
         title: "Phase 7 test — brake pad",
-        maintenance_type: "preventive",
+        maintenance_type: "brakes",
         priority: "high",
         blocks_vehicle_use: true,
       });
@@ -182,7 +181,7 @@ describe("Phase 7 — rental/ledger/deposit persistence wired", () => {
       result.current.createWorkOrder({
         vehicle_id: "veh_1",
         title: "Phase 7 event test",
-        maintenance_type: "corrective",
+        maintenance_type: "other",
       });
     });
     expect(persistWorkOrderEventInsert).toHaveBeenCalled();
@@ -242,7 +241,7 @@ describe("Phase 7 — frozen maintenance business rules preserved", () => {
       woId = result.current.createWorkOrder({
         vehicle_id: "veh_1",
         title: "Idempotent complete test",
-        maintenance_type: "corrective",
+        maintenance_type: "other",
         blocks_vehicle_use: true,
       });
     });
@@ -275,7 +274,7 @@ describe("Phase 7 — frozen maintenance business rules preserved", () => {
       woId = result.current.createWorkOrder({
         vehicle_id: "veh_1",
         title: "Cancel after complete test",
-        maintenance_type: "corrective",
+        maintenance_type: "other",
         blocks_vehicle_use: true,
       });
     });
@@ -302,7 +301,7 @@ describe("Phase 7 — frozen maintenance business rules preserved", () => {
       woId = result.current.createWorkOrder({
         vehicle_id: "veh_1",
         title: "Update persistence test",
-        maintenance_type: "corrective",
+        maintenance_type: "other",
       });
     });
     act(() => {
