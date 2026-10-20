@@ -19,7 +19,11 @@
 //   - installment carries linked_payments only; amount_paid is derived, never
 //     stored (no amount_paid column on the installment row).
 
-import type { RentalEvent, MasterAgreement, AgreementInstance } from "@/lib/types";
+import type {
+  RentalEvent,
+  MasterAgreement,
+  AgreementInstance,
+} from "@/lib/types";
 import type { Invoice, Receipt } from "@/lib/invoiceTypes";
 import type {
   PaymentArrangement,
@@ -70,7 +74,9 @@ export async function runFinancialDocsRecords(
   requireOk(
     await step(steps, "rental_event_persistence", async () => {
       const rows = await rentalEvents.listAll(orgA);
-      return rows.some((r) => r.id === event.id && r.rental_id === ctx.rentalId);
+      return rows.some(
+        (r) => r.id === event.id && r.rental_id === ctx.rentalId,
+      );
     }),
   );
 
@@ -104,14 +110,21 @@ export async function runFinancialDocsRecords(
   requireOk(
     await step(steps, "invoice_persistence", async () => {
       const rows = await invoices.list(orgA);
-      return rows.some((r) => r.id === invoice.id && r.invoice_number === invoice.invoice_number);
+      return rows.some(
+        (r) =>
+          r.id === invoice.id && r.invoice_number === invoice.invoice_number,
+      );
     }),
   );
   requireOk(
-    await step(steps, "invoice_insert_creates_no_ledger_transaction", async () => {
-      const ledgerAfter = await ledger.listForRental(orgA, ctx.rentalId);
-      return ledgerAfter.length === ledgerBefore.length;
-    }),
+    await step(
+      steps,
+      "invoice_insert_creates_no_ledger_transaction",
+      async () => {
+        const ledgerAfter = await ledger.listForRental(orgA, ctx.rentalId);
+        return ledgerAfter.length === ledgerBefore.length;
+      },
+    ),
   );
 
   // ── Authoritative payment through the ledger repository (the only path that
@@ -166,15 +179,20 @@ export async function runFinancialDocsRecords(
     await step(steps, "receipt_persistence", async () => {
       const rows = await receipts.list(orgA);
       return rows.some(
-        (r) => r.id === receipt.id && r.payment_transaction_id === paymentTxn.id,
+        (r) =>
+          r.id === receipt.id && r.payment_transaction_id === paymentTxn.id,
       );
     }),
   );
   requireOk(
-    await step(steps, "receipt_insert_creates_no_ledger_transaction", async () => {
-      const ledgerAfter = await ledger.listForRental(orgA, ctx.rentalId);
-      return ledgerAfter.length === ledgerBeforeReceipt.length;
-    }),
+    await step(
+      steps,
+      "receipt_insert_creates_no_ledger_transaction",
+      async () => {
+        const ledgerAfter = await ledger.listForRental(orgA, ctx.rentalId);
+        return ledgerAfter.length === ledgerBeforeReceipt.length;
+      },
+    ),
   );
 
   return { steps };
@@ -251,7 +269,10 @@ export async function runArrangementsRecords(
   runtime.phase9.installment = installment;
   requireOk(
     await step(steps, "installment_persistence", async () => {
-      const rows = await paymentArrangements.listInstallments(orgA, arrangement.id);
+      const rows = await paymentArrangements.listInstallments(
+        orgA,
+        arrangement.id,
+      );
       const row = rows.find((r) => r.id === installment.id);
       return (
         !!row &&
@@ -364,7 +385,8 @@ export async function runAgreementsRecords(
       const rows = await agreements.listInstances(orgA);
       return (
         rows.some((r) => r.id === instance.id) &&
-        rows.find((r) => r.id === instance.id)?.master_agreement_id === master.id
+        rows.find((r) => r.id === instance.id)?.master_agreement_id ===
+          master.id
       );
     }),
   );
@@ -391,7 +413,9 @@ export async function runActivityRecords(
   requireOk(
     await step(steps, "activity_persistence", async () => {
       const rows = await activityAudit.list(orgA);
-      return rows.some((r) => r.id === activity.id && r.label === activity.label);
+      return rows.some(
+        (r) => r.id === activity.id && r.label === activity.label,
+      );
     }),
   );
 

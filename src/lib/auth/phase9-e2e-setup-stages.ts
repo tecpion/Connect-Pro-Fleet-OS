@@ -44,8 +44,8 @@ const MISSING_ENV_REASON =
 function serverConfigured(): boolean {
   return Boolean(
     process.env.SUPABASE_URL &&
-      process.env.SUPABASE_PUBLISHABLE_KEY &&
-      process.env.SUPABASE_SERVICE_ROLE_KEY,
+    process.env.SUPABASE_PUBLISHABLE_KEY &&
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
   );
 }
 

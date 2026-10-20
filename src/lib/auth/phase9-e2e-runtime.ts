@@ -11,7 +11,11 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Phase4Context } from "./phase4-e2e-builders";
-import type { RentalEvent, MasterAgreement, AgreementInstance } from "@/lib/types";
+import type {
+  RentalEvent,
+  MasterAgreement,
+  AgreementInstance,
+} from "@/lib/types";
 import type { Invoice, Receipt } from "@/lib/invoiceTypes";
 import type {
   PaymentArrangement,
@@ -185,8 +189,7 @@ export function loadRun(runId: string): Phase9RunMeta | undefined {
 
 function pruneRuns(): void {
   const now = Date.now();
-  for (const [id, entry] of runs)
-    if (entry.expiresAt <= now) runs.delete(id);
+  for (const [id, entry] of runs) if (entry.expiresAt <= now) runs.delete(id);
 }
 
 export type Phase9ClientFactory = (apiKey: string) => Phase9Client;
@@ -225,7 +228,9 @@ export async function deriveRuntime(
   const rentalEvents = new SupabaseRentalEventsRepository(a as never);
   const invoices = new SupabaseInvoicesRepository(a as never);
   const receipts = new SupabaseReceiptsRepository(a as never);
-  const paymentArrangements = new SupabasePaymentArrangementsRepository(a as never);
+  const paymentArrangements = new SupabasePaymentArrangementsRepository(
+    a as never,
+  );
   const agreements = new SupabaseAgreementsRepository(a as never);
   const activityAudit = new SupabaseActivityAuditRepository(a as never);
   const ledger = new SupabaseLedgerRepository(a as never);

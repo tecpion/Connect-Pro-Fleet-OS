@@ -90,8 +90,8 @@ const MISSING_ENV_REASON =
 function serverConfigured(): boolean {
   return Boolean(
     process.env.SUPABASE_URL &&
-      process.env.SUPABASE_PUBLISHABLE_KEY &&
-      process.env.SUPABASE_SERVICE_ROLE_KEY,
+    process.env.SUPABASE_PUBLISHABLE_KEY &&
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
   );
 }
 
@@ -128,7 +128,9 @@ function clientFactory(url: string): (apiKey: string) => Phase9Client {
   };
 }
 
-export function phase9ClientFactory(url: string): (apiKey: string) => Phase9Client {
+export function phase9ClientFactory(
+  url: string,
+): (apiKey: string) => Phase9Client {
   return clientFactory(url);
 }
 

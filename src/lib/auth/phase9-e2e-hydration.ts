@@ -9,7 +9,10 @@ import {
   hydratePhase9Slices,
   type Phase9SyncHandles,
 } from "@/lib/supabase/phase9StoreSync";
-import { installmentStatus, isArrangementBroken } from "@/lib/paymentArrangements";
+import {
+  installmentStatus,
+  isArrangementBroken,
+} from "@/lib/paymentArrangements";
 import { step, type Phase9Runtime } from "./phase9-e2e-runtime";
 import type { Phase9Step } from "./phase9-e2e.server";
 
@@ -21,8 +24,18 @@ export async function runPhase9Hydration(
   runtime: Phase9Runtime,
 ): Promise<Phase9HydrationResult> {
   const steps: Phase9Step[] = [];
-  const { a, orgA, emailA, password, rentalEvents, invoices, receipts, paymentArrangements, agreements, activityAudit } =
-    runtime;
+  const {
+    a,
+    orgA,
+    emailA,
+    password,
+    rentalEvents,
+    invoices,
+    receipts,
+    paymentArrangements,
+    agreements,
+    activityAudit,
+  } = runtime;
 
   // ── Fresh authenticated Org A session ────────────────────────────────────
   const reloginOk = await step(
@@ -31,7 +44,10 @@ export async function runPhase9Hydration(
     async () => {
       const out = await a.auth.signOut();
       if (out.error) throw out.error;
-      const login = await a.auth.signInWithPassword({ email: emailA, password });
+      const login = await a.auth.signInWithPassword({
+        email: emailA,
+        password,
+      });
       if (login.error) throw login.error;
       return login.data.user?.id === runtime.userAId;
     },
@@ -69,8 +85,14 @@ export async function runPhase9Hydration(
   if (!ranOk) return { steps };
 
   const evs = (cache.rentalEvents ?? []) as { id: string; rental_id: string }[];
-  const invs = (cache.invoices ?? []) as { id: string; invoice_number: string }[];
-  const rcs = (cache.receipts ?? []) as { id: string; payment_transaction_id: string }[];
+  const invs = (cache.invoices ?? []) as {
+    id: string;
+    invoice_number: string;
+  }[];
+  const rcs = (cache.receipts ?? []) as {
+    id: string;
+    payment_transaction_id: string;
+  }[];
   const arrs = (cache.paymentArrangements ?? []) as {
     id: string;
     status: string;
@@ -112,25 +134,19 @@ export async function runPhase9Hydration(
   await step(steps, "arrangements_hydrated", () =>
     arrs.some((r) => r.id === runtime.recordIds.arrangement),
   );
-  await step(
-    steps,
-    "installments_hydrated_relationship",
-    () =>
-      insts.some(
-        (i) =>
-          i.id === runtime.recordIds.installment &&
-          i.arrangement_id === runtime.recordIds.arrangement,
-      ),
+  await step(steps, "installments_hydrated_relationship", () =>
+    insts.some(
+      (i) =>
+        i.id === runtime.recordIds.installment &&
+        i.arrangement_id === runtime.recordIds.arrangement,
+    ),
   );
-  await step(
-    steps,
-    "arrangement_events_hydrated_relationship",
-    () =>
-      aevs.some(
-        (e) =>
-          e.id === runtime.recordIds.arrangementEvent &&
-          e.arrangement_id === runtime.recordIds.arrangement,
-      ),
+  await step(steps, "arrangement_events_hydrated_relationship", () =>
+    aevs.some(
+      (e) =>
+        e.id === runtime.recordIds.arrangementEvent &&
+        e.arrangement_id === runtime.recordIds.arrangement,
+    ),
   );
   await step(
     steps,
@@ -144,21 +160,18 @@ export async function runPhase9Hydration(
   );
   await step(steps, "master_agreement_terms_restored", () =>
     mas.some(
-      (m) => m.id === runtime.recordIds.masterAgreement && m.terms_version === "v3",
+      (m) =>
+        m.id === runtime.recordIds.masterAgreement && m.terms_version === "v3",
     ),
   );
-  await step(
-    steps,
-    "agreement_instance_master_ref_restored",
-    () => {
-      const ai = ais.find((i) => i.id === runtime.recordIds.agreementInstance);
-      return (
-        !!ai &&
-        ai.master_agreement_id === runtime.recordIds.masterAgreement &&
-        ai.pdf_url === "https://example.com/phase9-instance.pdf"
-      );
-    },
-  );
+  await step(steps, "agreement_instance_master_ref_restored", () => {
+    const ai = ais.find((i) => i.id === runtime.recordIds.agreementInstance);
+    return (
+      !!ai &&
+      ai.master_agreement_id === runtime.recordIds.masterAgreement &&
+      ai.pdf_url === "https://example.com/phase9-instance.pdf"
+    );
+  });
   await step(steps, "activity_hydrated", () =>
     acts.some((x) => x.id === runtime.recordIds.activity),
   );
@@ -170,20 +183,20 @@ export async function runPhase9Hydration(
   //    "due_today" under the org zone for that date — which it is by
   //    construction — so the same stored date yields the same due/broken result
   //    regardless of the machine clock. ──
-  await step(
-    steps,
-    "arrangement_timezone_controls_due_broken",
-    () => {
-      const inst = runtime.phase9.installment!;
-      const txn = runtime.phase9.paymentTransaction ? [runtime.phase9.paymentTransaction] : [];
-      const status = installmentStatus(inst, txn, 3, "America/New_York");
-      // Due date === today(org) → "due_today"; linked payment covers it → "paid".
-      return status === "due_today" || status === "paid";
-    },
-  );
+  await step(steps, "arrangement_timezone_controls_due_broken", () => {
+    const inst = runtime.phase9.installment!;
+    const txn = runtime.phase9.paymentTransaction
+      ? [runtime.phase9.paymentTransaction]
+      : [];
+    const status = installmentStatus(inst, txn, 3, "America/New_York");
+    // Due date === today(org) → "due_today"; linked payment covers it → "paid".
+    return status === "due_today" || status === "paid";
+  });
   await step(steps, "arrangement_not_broken_under_org_timezone", () => {
     const inst = runtime.phase9.installment!;
-    const txn = runtime.phase9.paymentTransaction ? [runtime.phase9.paymentTransaction] : [];
+    const txn = runtime.phase9.paymentTransaction
+      ? [runtime.phase9.paymentTransaction]
+      : [];
     return !isArrangementBroken([inst], txn, 3, "America/New_York");
   });
 

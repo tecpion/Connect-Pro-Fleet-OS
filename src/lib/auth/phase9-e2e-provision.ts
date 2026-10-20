@@ -86,7 +86,9 @@ export async function provisionAndSetupPhase9(
   const rentalEvents = new SupabaseRentalEventsRepository(a as never);
   const invoices = new SupabaseInvoicesRepository(a as never);
   const receipts = new SupabaseReceiptsRepository(a as never);
-  const paymentArrangements = new SupabasePaymentArrangementsRepository(a as never);
+  const paymentArrangements = new SupabasePaymentArrangementsRepository(
+    a as never,
+  );
   const agreements = new SupabaseAgreementsRepository(a as never);
   const activityAudit = new SupabaseActivityAuditRepository(a as never);
   const ledger = new SupabaseLedgerRepository(a as never);
