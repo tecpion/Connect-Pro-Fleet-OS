@@ -29,6 +29,7 @@ import {
   ingestCrmContactEvent,
   isSupportedEventType,
 } from "@/lib/supabase/phase10Ingest";
+import type { Lead } from "@/lib/leadTypes";
 
 const GHL_PUBLIC_KEY = () =>
   (typeof process !== "undefined"
@@ -85,7 +86,11 @@ export const Route = createFileRoute("/api/crm-ingest")({
           (envelope.type as string | undefined) ??
           null;
         if (!isSupportedEventType(eventType)) {
-          return json(202, { ok: true, ignored: true, reason: "unsupported_event" });
+          return json(202, {
+            ok: true,
+            ignored: true,
+            reason: "unsupported_event",
+          });
         }
         // 5–9. Resolve org, run the idempotent lead ingest pipeline.
         const deps = await buildIngestDeps();
@@ -105,7 +110,10 @@ export const Route = createFileRoute("/api/crm-ingest")({
           if (result.reason === "mapping_disabled") {
             return json(403, { ok: false, reason: result.reason });
           }
-          return json(202, { ok: false, reason: result.reason ?? "processing_failed" });
+          return json(202, {
+            ok: false,
+            reason: result.reason ?? "processing_failed",
+          });
         }
         return json(200, {
           ok: true,
@@ -131,34 +139,60 @@ async function buildIngestDeps() {
   const { getBackendMode } = await import("@/lib/supabase/client");
   const repos = getBackendMode() === "supabase" ? createRepositories() : null;
   const leadRepo = repos?.leads ?? null;
-  const admin = await import("@/integrations/supabase/client.server");
+  const { supabaseAdmin } =
+    await import("@/integrations/supabase/client.server");
+  // The Phase 10 CRM integration tables are not yet in the generated Database
+  // type (types.ts regenerates after migration). Route them through a loose
+  // permissive surface so the route compiles without modifying the read-only
+  // generated types. RLS remains the final data boundary; the admin client is
+  // only used for server-side tenant resolution + event evidence.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = supabaseAdmin as unknown as { from: (table: string) => any };
 
   async function resolveOrgByLocation(locationId: string) {
-    const { data, error } = await admin.supabaseAdmin
+    const res = await db
       .from("connect_pro_integration_config")
       .select("organization_id, enabled, external_location_id")
       .eq("external_location_id", locationId)
       .maybeSingle();
+    const data = res?.data as {
+      organization_id: string | null;
+      enabled: boolean | null;
+    } | null;
+    const error = res?.error as unknown;
     if (error || !data) {
       return { ok: false as const, reason: "unknown_location" as const };
     }
     if (!data.enabled) {
       return { ok: false as const, reason: "mapping_disabled" as const };
     }
-    return { ok: true as const, organization_id: data.organization_id as string };
+    return {
+      ok: true as const,
+      organization_id: data.organization_id as string,
+    };
   }
 
   return {
     resolveOrgByLocation,
-    findExternalContactRef: async (orgId: string, externalContactId: string) => {
-      const { data } = await admin.supabaseAdmin
+    findExternalContactRef: async (
+      orgId: string,
+      externalContactId: string,
+    ) => {
+      const res = await db
         .from("external_entity_references")
         .select("internal_entity_id, external_id")
         .eq("organization_id", orgId)
         .eq("external_id", externalContactId)
         .maybeSingle();
+      const data = res?.data as {
+        internal_entity_id: string | null;
+        external_id: string | null;
+      } | null;
       return data?.internal_entity_id
-        ? { internal_id: data.internal_entity_id as string, external_id: externalContactId }
+        ? {
+            internal_id: data.internal_entity_id as string,
+            external_id: externalContactId,
+          }
         : null;
     },
     upsertExternalContactRef: async (
@@ -167,30 +201,25 @@ async function buildIngestDeps() {
       internalId: string,
       metadata?: Record<string, unknown> | null,
     ) => {
-      await admin.supabaseAdmin.from("external_entity_references").upsert(
+      await db.from("external_entity_references").upsert(
         {
           organization_id: orgId,
           external_id: externalContactId,
           internal_entity_id: internalId,
           internal_entity_type: "lead",
           status: "active",
-          metadata: metadata ?? null,
+          metadata: (metadata ?? null) as never,
         },
         { onConflict: "organization_id,external_id" },
       );
     },
-    listLeads: async (orgId: string) =>
-      leadRepo ? leadRepo.list(orgId) : [],
-    insertLead: async (lead: import("@/lib/leadTypes").Lead) => {
+    listLeads: async (orgId: string) => (leadRepo ? leadRepo.list(orgId) : []),
+    insertLead: async (lead: Lead) => {
       if (!leadRepo) return lead;
       return leadRepo.insert(lead);
     },
-    updateLead: async (
-      orgId: string,
-      id: string,
-      patch: Partial<import("@/lib/leadTypes").Lead>,
-    ) => {
-      if (!leadRepo) return { ...patch, id } as import("@/lib/leadTypes").Lead;
+    updateLead: async (orgId: string, id: string, patch: Partial<Lead>) => {
+      if (!leadRepo) return { ...patch, id } as Lead;
       return leadRepo.update(orgId, id, patch);
     },
     recordEvent: async (input: {
@@ -201,40 +230,42 @@ async function buildIngestDeps() {
       eventType: string;
       payload: unknown;
     }) => {
-      const { data, error } = await admin.supabaseAdmin
+      const res = await db
         .from("integration_events")
         .select("id")
         .eq("event_key", input.eventKey)
         .maybeSingle();
-      if (data) return { id: data.id as string, duplicate: true };
+      if (res?.data) return { id: res.data.id as string, duplicate: true };
       const id = crypto.randomUUID();
-      const { error: insertError } = await admin.supabaseAdmin
-        .from("integration_events")
-        .insert({
-          id,
-          organization_id: input.orgId,
-          provider: "connect_pro",
-          direction: "inbound",
-          event_type: input.eventType,
-          entity_type: "contact",
-          entity_id: null,
-          external_entity_id: input.externalContactId,
-          event_key: input.eventKey,
-          payload: input.payload,
-          status: "processing",
-          attempts: 1,
-          origin_system: "connect_pro",
-          origin_event_id: input.externalEventId,
-          schema_version: 1,
-        });
-      if (insertError) {
+      const ins = await db.from("integration_events").insert({
+        id,
+        organization_id: input.orgId,
+        provider: "connect_pro",
+        direction: "inbound",
+        event_type: input.eventType,
+        entity_type: "contact",
+        entity_id: null,
+        external_entity_id: input.externalContactId,
+        event_key: input.eventKey,
+        payload: input.payload as never,
+        status: "processing",
+        attempts: 1,
+        origin_system: "connect_pro",
+        origin_event_id: input.externalEventId,
+        schema_version: 1,
+      });
+      if (ins?.error) {
         // A concurrent insert (duplicate event_key) → treat as duplicate.
         return { id, duplicate: true };
       }
       return { id, duplicate: false };
     },
-    markEventProcessed: async (eventId: string, ok: boolean, message?: string) => {
-      await admin.supabaseAdmin
+    markEventProcessed: async (
+      eventId: string,
+      ok: boolean,
+      message?: string,
+    ) => {
+      await db
         .from("integration_events")
         .update({
           status: ok ? "succeeded" : "failed",
@@ -244,14 +275,14 @@ async function buildIngestDeps() {
         .eq("id", eventId);
     },
     claimIdempotency: async (orgId: string, key: string, _scope: string) => {
-      const { data } = await admin.supabaseAdmin
+      const res = await db
         .from("idempotency_keys")
         .select("key")
         .eq("organization_id", orgId)
         .eq("key", key)
         .maybeSingle();
-      if (data) return false;
-      await admin.supabaseAdmin.from("idempotency_keys").insert({
+      if (res?.data) return false;
+      await db.from("idempotency_keys").insert({
         organization_id: orgId,
         key,
         scope: _scope,
@@ -269,7 +300,7 @@ async function buildIngestDeps() {
       metadata?: Record<string, unknown> | null;
     }) => {
       const id = crypto.randomUUID();
-      await admin.supabaseAdmin.from("integration_review_items").insert({
+      await db.from("integration_review_items").insert({
         id,
         organization_id: input.orgId,
         event_id: input.eventId,

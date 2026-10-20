@@ -105,12 +105,12 @@ export async function verifyHighLevelSignature(args: {
   }
   const subtle = globalThis.crypto?.subtle;
   if (!subtle) return { ok: false, reason: "invalid_signature" };
-  // WebCrypto BufferSource is happy with Uint8Array views; cast through the
-  // DOM lib's BufferSource type to satisfy the stricter ArrayBuffer-vs-
-  // SharedArrayBuffer variance without an extra copy.
-  const keySrc = keyBytes as unknown as BufferSource;
-  const sigSrc = sigBytes as unknown as BufferSource;
-  const bodySrc = rawBody as unknown as BufferSource;
+  // Copy into a fresh ArrayBuffer-backed view so the DOM lib's BufferSource
+  // accepts it regardless of whether the source buffer is SharedArrayBuffer
+  // (the TS lib variance error on Uint8Array<ArrayBufferLike>).
+  const keySrc = new Uint8Array(keyBytes);
+  const sigSrc = new Uint8Array(sigBytes);
+  const bodySrc = new Uint8Array(rawBody);
   try {
     const cryptoKey = await subtle.importKey(
       "raw",

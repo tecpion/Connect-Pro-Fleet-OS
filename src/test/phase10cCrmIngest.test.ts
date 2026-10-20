@@ -36,15 +36,18 @@ import type { Lead } from "@/lib/leadTypes";
 
 // ── Ed25519 test fixtures ──────────────────────────────────────────────
 async function makeKeyPair(): Promise<CryptoKeyPair> {
-  return (await webcrypto.subtle.generateKey(
-    { name: "Ed25519" },
-    true,
-    ["sign", "verify"],
-  )) as CryptoKeyPair;
+  return (await webcrypto.subtle.generateKey({ name: "Ed25519" }, true, [
+    "sign",
+    "verify",
+  ])) as CryptoKeyPair;
 }
 
 async function signRaw(privateKey: CryptoKey, body: Uint8Array) {
-  const sig = await webcrypto.subtle.sign({ name: "Ed25519" }, privateKey, body);
+  const sig = await webcrypto.subtle.sign(
+    { name: "Ed25519" },
+    privateKey,
+    body,
+  );
   return Buffer.from(new Uint8Array(sig)).toString("hex");
 }
 
@@ -100,7 +103,9 @@ function deps(state: FixtureState): LeadIngestDeps {
       state.refs.set(`${orgId}:${externalId}`, internalId);
     },
     async listLeads(orgId) {
-      return [...state.leads.values()].filter((l) => l.organization_id === orgId);
+      return [...state.leads.values()].filter(
+        (l) => l.organization_id === orgId,
+      );
     },
     async insertLead(lead) {
       if (state.insertFailNext) {
@@ -125,7 +130,11 @@ function deps(state: FixtureState): LeadIngestDeps {
       const existing = state.events.get(input.eventKey);
       if (existing) return { id: existing.id, duplicate: true };
       const id = `evt_${input.eventKey}`;
-      state.events.set(input.eventKey, { id, status: "processing", duplicate: false });
+      state.events.set(input.eventKey, {
+        id,
+        status: "processing",
+        duplicate: false,
+      });
       return { id, duplicate: false };
     },
     async markEventProcessed(eventId, ok) {
@@ -185,7 +194,9 @@ describe("Phase 10C HighLevel Ed25519 signature verification", () => {
     const body = new TextEncoder().encode(JSON.stringify(contactPayload()));
     const sig = await signRaw(kp.privateKey, body);
     const r = await verifyHighLevelSignature({
-      rawBody: new TextEncoder().encode(JSON.stringify(contactPayload({ email: "x@y.com" }))),
+      rawBody: new TextEncoder().encode(
+        JSON.stringify(contactPayload({ email: "x@y.com" })),
+      ),
       signatureHex: sig,
       publicKey: pub,
     });
@@ -323,7 +334,10 @@ describe("Phase 10C contact.updated → same Lead (no duplicate)", () => {
     });
     const c2 = await ingestCrmContactEvent({
       eventType: "contact.updated",
-      rawPayload: contactPayload({ email: "jane2@example.com", external_event_id: "evt2" }),
+      rawPayload: contactPayload({
+        email: "jane2@example.com",
+        external_event_id: "evt2",
+      }),
       deps: deps(f),
     });
     expect(c1.lead_id).toBe(c2.lead_id);
@@ -487,7 +501,12 @@ describe("Phase 10C normalized fallback matching", () => {
       created_at: "2026-10-20T00:00:00Z",
       updated_at: "2026-10-20T00:00:00Z",
     };
-    const b: Lead = { ...a, id: "lead_b", phone: "+1999", email: "jane@example.com" };
+    const b: Lead = {
+      ...a,
+      id: "lead_b",
+      phone: "+1999",
+      email: "jane@example.com",
+    };
     f.leads.set(a.id, a);
     f.leads.set(b.id, b);
     const r = await ingestCrmContactEvent({
@@ -531,7 +550,10 @@ describe("Phase 10C unknown / disabled / forged org resolution", () => {
     // Payload claims org-b but the location maps to org-a.
     const r = await ingestCrmContactEvent({
       eventType: "contact.created",
-      rawPayload: contactPayload({ organization_id: "org-b", locationId: "loc-a" }),
+      rawPayload: contactPayload({
+        organization_id: "org-b",
+        locationId: "loc-a",
+      }),
       deps: deps(f),
     });
     expect(r.ok).toBe(true);
@@ -549,7 +571,10 @@ describe("Phase 10C unknown / disabled / forged org resolution", () => {
     // A second contact from loc-b lands in org-b, never touching org-a.
     const r2 = await ingestCrmContactEvent({
       eventType: "contact.created",
-      rawPayload: contactPayload({ contactId: "hl-contact-b", locationId: "loc-b" }),
+      rawPayload: contactPayload({
+        contactId: "hl-contact-b",
+        locationId: "loc-b",
+      }),
       deps: deps(f),
     });
     const a = f.leads.get(r.lead_id!)!;
@@ -574,7 +599,11 @@ describe("Phase 10C status preservation + operational isolation", () => {
     f.leads.get(id)!.converted_booking_request_id = "brq_x";
     await ingestCrmContactEvent({
       eventType: "contact.updated",
-      rawPayload: { ...contactPayload(), eventId: "e2", email: "new@example.com" },
+      rawPayload: {
+        ...contactPayload(),
+        eventId: "e2",
+        email: "new@example.com",
+      },
       deps: deps(f),
     });
     const lead = f.leads.get(id)!;
@@ -587,7 +616,11 @@ describe("Phase 10C status preservation + operational isolation", () => {
     const f = makeFixture();
     const r = await ingestCrmContactEvent({
       eventType: "contact.created",
-      rawPayload: contactPayload({ vehicle_id: "veh1", balance: 500, active_rental: true }),
+      rawPayload: contactPayload({
+        vehicle_id: "veh1",
+        balance: 500,
+        active_rental: true,
+      }),
       deps: deps(f),
     });
     const lead = f.leads.get(r.lead_id!);
@@ -622,7 +655,9 @@ describe("Phase 10C failure + partial-failure retry", () => {
     expect(r.ok).toBe(false);
     expect(r.reason).toBe("processing_failed");
     // Event should be marked failed (observable, not silently dropped).
-    expect([...f.events.values()].some((e) => e.status === "failed")).toBe(true);
+    expect([...f.events.values()].some((e) => e.status === "failed")).toBe(
+      true,
+    );
   });
 
   it("a partial-failure retry converges idempotently on one Lead", async () => {

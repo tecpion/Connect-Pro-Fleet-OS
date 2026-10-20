@@ -27,10 +27,7 @@ import { normalizePhone, normalizeEmail } from "../bookingRequestCustomerMatch";
 export interface LocationResolution {
   ok: boolean;
   organization_id?: string;
-  reason?:
-    | "unknown_location"
-    | "mapping_disabled"
-    | "ambiguous_location";
+  reason?: "unknown_location" | "mapping_disabled" | "ambiguous_location";
 }
 
 /** Supported Phase 10C inbound HighLevel Contact event types. */
@@ -96,8 +93,7 @@ export function normalizeHighLevelContact(
   const id = str(contactRaw.contactId ?? contactRaw.id ?? root.contactId);
   if (!id) return { ok: false, reason: "missing_contact_id" };
 
-  const strOr = (v: unknown): string =>
-    typeof v === "string" ? v.trim() : "";
+  const strOr = (v: unknown): string => (typeof v === "string" ? v.trim() : "");
   const firstName = strOr(contactRaw.firstName ?? contactRaw.first_name);
   const lastName = strOr(contactRaw.lastName ?? contactRaw.last_name);
   // Phone OR email is the contact identity; both may be absent on a new lead.
@@ -108,7 +104,10 @@ export function normalizeHighLevelContact(
   const tags = Array.isArray(tagsRaw)
     ? tagsRaw.filter((t): t is string => typeof t === "string")
     : typeof tagsRaw === "string" && tagsRaw
-      ? tagsRaw.split(",").map((t) => t.trim()).filter(Boolean)
+      ? tagsRaw
+          .split(",")
+          .map((t) => t.trim())
+          .filter(Boolean)
       : [];
 
   const locationId = strOr(
@@ -240,11 +239,7 @@ export interface LeadIngestDeps {
     message?: string,
   ): Promise<void>;
   /** Claim an idempotency key; returns true if this caller owns it (first). */
-  claimIdempotency(
-    orgId: string,
-    key: string,
-    scope: string,
-  ): Promise<boolean>;
+  claimIdempotency(orgId: string, key: string, scope: string): Promise<boolean>;
   /** Create a review item for human handling. */
   createReview(input: {
     orgId: string;
@@ -318,16 +313,34 @@ export async function ingestCrmContactEvent(args: {
 }): Promise<LeadIngestResult> {
   const { eventType, rawPayload, deps } = args;
   if (!isSupportedEventType(eventType)) {
-    return { ok: false, duplicate: false, lead_id: null, created: false, reason: "unsupported_event" };
+    return {
+      ok: false,
+      duplicate: false,
+      lead_id: null,
+      created: false,
+      reason: "unsupported_event",
+    };
   }
   const parsed = normalizeHighLevelContact(rawPayload);
   if (!parsed.ok) {
-    return { ok: false, duplicate: false, lead_id: null, created: false, reason: "invalid_payload" };
+    return {
+      ok: false,
+      duplicate: false,
+      lead_id: null,
+      created: false,
+      reason: "invalid_payload",
+    };
   }
   const contact = parsed.contact;
   const locationId = contact.location_id;
   if (!locationId) {
-    return { ok: false, duplicate: false, lead_id: null, created: false, reason: "unknown_location" };
+    return {
+      ok: false,
+      duplicate: false,
+      lead_id: null,
+      created: false,
+      reason: "unknown_location",
+    };
   }
   const resolution = await deps.resolveOrgByLocation(locationId);
   if (!resolution.ok || !resolution.organization_id) {
