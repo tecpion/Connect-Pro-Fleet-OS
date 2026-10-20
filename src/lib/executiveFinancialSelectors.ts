@@ -28,13 +28,12 @@ import {
   deriveArrangementStatus,
 } from "./paymentArrangements";
 import { isDepositHeldEvent } from "./deposit";
+import { startOfDayInTz, getOrgTimezone } from "./timezone";
 
 const DAY = 86_400_000;
 
-function startOfDay(d: Date) {
-  const x = new Date(d);
-  x.setHours(0, 0, 0, 0);
-  return x;
+function startOfDay(d: Date, tz?: string) {
+  return startOfDayInTz(d, getOrgTimezone(tz));
 }
 
 /** Equivalent immediately-preceding period for trend comparison. */

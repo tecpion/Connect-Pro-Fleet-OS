@@ -23,15 +23,12 @@ import type {
   ExpenseTransaction,
 } from "./expenseTypes";
 import { TENDER_METHOD_LABELS } from "./paymentMethodTypes";
-import { startOfDayInTz } from "./timezone";
+import { startOfDayInTz, getOrgTimezone } from "./timezone";
 
 const DAY = 86_400_000;
 
 function startOfDay(d: Date, tz?: string): Date {
-  if (tz) return startOfDayInTz(d, tz);
-  const x = new Date(d);
-  x.setHours(0, 0, 0, 0);
-  return x;
+  return startOfDayInTz(d, getOrgTimezone(tz));
 }
 
 function inRange(date: string, start: Date, end: Date, tz?: string): boolean {

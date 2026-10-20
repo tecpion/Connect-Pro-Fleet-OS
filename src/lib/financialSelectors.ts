@@ -25,15 +25,17 @@ import {
   isDepositHeldEvent,
   obligationSignedAmount,
 } from "./deposit";
-import { startOfDayInTz, startOfWeekInTz, startOfMonthInTz } from "./timezone";
+import {
+  startOfDayInTz,
+  startOfWeekInTz,
+  startOfMonthInTz,
+  getOrgTimezone,
+} from "./timezone";
 
 const DAY = 86_400_000;
 
 function startOfDay(d: Date, tz?: string): Date {
-  if (tz) return startOfDayInTz(d, tz);
-  const x = new Date(d);
-  x.setHours(0, 0, 0, 0);
-  return x;
+  return startOfDayInTz(d, getOrgTimezone(tz));
 }
 
 function inRange(
@@ -139,17 +141,16 @@ export function getNetContributionForRange(
   return revenue - expenses;
 }
 
-/** Start of the current week (Monday), in the org timezone when `tz` is set. */
+/** Start of the current week (Monday), in the org timezone (`tz`, resolved
+ *  through `getOrgTimezone` → UTC safe default). */
 export function startOfWeek(now = new Date(), tz?: string): Date {
-  if (tz) return startOfWeekInTz(now, tz);
-  const day = (now.getDay() + 6) % 7; // Monday = 0
-  return startOfDay(new Date(now.getTime() - day * DAY));
+  return startOfWeekInTz(now, getOrgTimezone(tz));
 }
 
-/** First day of the current month, in the org timezone when `tz` is set. */
+/** First day of the current month, in the org timezone (`tz`, resolved
+ *  through `getOrgTimezone` → UTC safe default). */
 export function startOfMonth(now = new Date(), tz?: string): Date {
-  if (tz) return startOfMonthInTz(now, tz);
-  return startOfDay(new Date(now.getFullYear(), now.getMonth(), 1));
+  return startOfMonthInTz(now, getOrgTimezone(tz));
 }
 
 /** Re-export for callers that need the deposit-aware obligation predicate. */

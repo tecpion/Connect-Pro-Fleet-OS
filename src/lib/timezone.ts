@@ -1,4 +1,4 @@
-// Connect Pro Fleet — Organization timezone infrastructure (foundation).
+// Connect Pro Fleet — Organization timezone infrastructure (Phase 6).
 //
 // Business-calendar day/month/year boundaries must ultimately be evaluated in
 // the organization's configured timezone (`CompanyInfo.timezone`), NOT the
@@ -6,12 +6,12 @@
 // as UTC instants; only calendar interpretation (today, yesterday, this month,
 // due-date day boundaries, reporting periods) uses the org timezone.
 //
-// This module is the pure, opt-in foundation. It introduces NO hard-coded
-// timezone and NO global "force UTC" workaround: every boundary helper takes
-// the org timezone explicitly. Threading these helpers through the existing
-// per-module `startOfDay`/`resolve…Range` callers is the Phase 6 pre-launch
-// task — until then the existing selectors keep their current machine-local
-// behavior and this module proves the correct semantics in isolation.
+// The omitted-tz fallback is the DOCUMENTED safe path: `getOrgTimezone` resolves
+// a missing/invalid zone to **UTC** — never the machine wall-clock zone — so a
+// caller that forgets to thread the org timezone gets a stable, reproducible
+// UTC business day rather than an environment-dependent one. Every business-
+// calendar selector resolves its `tz` through `getOrgTimezone`; the optional
+// parameter is a convenience, not a silent machine-local switch.
 
 /** Calendar parts in a target timezone (month is 1-based, like the platform). */
 export interface ZonedDateTimeParts {
@@ -212,7 +212,11 @@ export function isValidTimezone(timezone: string): boolean {
  * We validate it and fall back to **UTC** — never the server wall-clock zone —
  * so missing/invalid data never silently makes business days follow the
  * process timezone. The fallback is a safe pre-launch default only;
- * onboarding seeds a real IANA zone. */
+ * onboarding seeds a real IANA zone.
+ *
+ * This is the ONE function callers use to resolve an org timezone. It is the
+ * omitted-`tz` path for every business-calendar selector: the fallback is the
+ * documented UTC safe default, NOT the machine-local clock. */
 export function getOrgTimezone(timezone?: string | null): string {
   if (timezone && isValidTimezone(timezone)) return timezone;
   return "UTC";

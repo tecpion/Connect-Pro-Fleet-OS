@@ -9,7 +9,11 @@
 
 import type { Task, TaskEvent, TaskNote, TaskStatus } from "./taskTypes";
 import { TASK_PRIORITY_RANK } from "./taskTypes";
-import { startOfDayInTz, endOfDayInTz } from "./timezone";
+import {
+  startOfDayInTz,
+  endOfDayInTz,
+  getOrgTimezone,
+} from "./timezone";
 
 const DAY = 86_400_000;
 
@@ -27,8 +31,8 @@ export function nextTaskNumber(tasks: Task[]): string {
 
 /** A task is overdue when it's open/in_progress AND its due date/time passed.
  *  Date-only tasks are due through the end of that org-local calendar day.
- *  `tz` (org timezone) makes the day boundary org-local; omitted uses the org
- *  timezone resolved by the caller (see getOrgTimezone). */
+ *  `tz` (org timezone) makes the day boundary org-local; omitted resolves
+ *  through `getOrgTimezone` (the documented UTC safe default). */
 export function isTaskOverdue(
   task: Task,
   now: Date = new Date(),
@@ -38,17 +42,18 @@ export function isTaskOverdue(
   if (!task.due_date) return false;
   const due = new Date(task.due_date + "T12:00:00Z");
   if (isNaN(due.getTime())) return false;
+  const z = getOrgTimezone(tz);
   if (task.due_time) {
     // Specific wall time on the due date, in the org timezone.
     const [h, m] = task.due_time.split(":").map(Number);
-    const dayStart = startOfDayInTz(due, tz ?? "UTC");
+    const dayStart = startOfDayInTz(due, z);
     return (
       now.getTime() >
       dayStart.getTime() + (h ?? 0) * 3600_000 + (m ?? 0) * 60_000
     );
   }
   // Date-only: due through end of that org-local day.
-  const dueEnd = endOfDayInTz(due, tz ?? "UTC");
+  const dueEnd = endOfDayInTz(due, z);
   return now.getTime() > dueEnd.getTime();
 }
 
@@ -60,7 +65,7 @@ export function isTaskDueToday(
 ): boolean {
   if (task.status !== "open" && task.status !== "in_progress") return false;
   if (!task.due_date) return false;
-  const z = tz ?? "UTC";
+  const z = getOrgTimezone(tz);
   const today = startOfDayInTz(now, z);
   const due = startOfDayInTz(new Date(task.due_date + "T12:00:00Z"), z);
   return due.getTime() === today.getTime();
@@ -74,7 +79,7 @@ export function isTaskUpcoming(
 ): boolean {
   if (task.status !== "open" && task.status !== "in_progress") return false;
   if (!task.due_date) return false;
-  const z = tz ?? "UTC";
+  const z = getOrgTimezone(tz);
   const today = startOfDayInTz(now, z);
   const due = startOfDayInTz(new Date(task.due_date + "T12:00:00Z"), z);
   return due.getTime() > today.getTime();

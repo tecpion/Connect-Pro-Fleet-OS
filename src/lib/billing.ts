@@ -25,18 +25,22 @@ import type {
 import type { FinancialTransaction, RateType, RentalAgreement } from "./types";
 import { affectsRentalObligation, isDepositHeldEvent } from "./deposit";
 import { isObligationLate } from "./lateEvaluator";
-import { zonedDateTimeParts, startOfDayInTz } from "./timezone";
+import {
+  zonedDateTimeParts,
+  startOfDayInTz,
+  getOrgTimezone,
+} from "./timezone";
 
 const DAY = 86_400_000;
 
 export const todayStr = () => new Date().toISOString().slice(0, 10);
 
-/** "Today" as a YYYY-MM-DD date-only string in the org timezone (`tz`), or the
- *  machine-local date when no tz is supplied (legacy callers). Used by the
- *  period-status day comparison so "due today" is org-local, not UTC/machine. */
+/** "Today" as a YYYY-MM-DD date-only string in the org timezone (`tz`, resolved
+ *  through `getOrgTimezone` → UTC safe default). Used by the period-status day
+ *  comparison so "due today" is org-local, not UTC/machine. */
 export function todayStrInTz(tz?: string, now: Date = new Date()): string {
-  if (!tz) return now.toISOString().slice(0, 10);
-  const p = zonedDateTimeParts(now, tz);
+  const z = getOrgTimezone(tz);
+  const p = zonedDateTimeParts(now, z);
   return `${p.year}-${String(p.month).padStart(2, "0")}-${String(p.day).padStart(2, "0")}`;
 }
 
@@ -47,13 +51,7 @@ function addDays(iso: string, n: number): string {
 }
 
 function startOfDay(d: Date, tz?: string) {
-  if (tz) {
-    // Org-local start of day as a UTC instant, then read back its YYYY-MM-DD.
-    return startOfDayInTz(d, tz);
-  }
-  const x = new Date(d);
-  x.setHours(0, 0, 0, 0);
-  return x;
+  return startOfDayInTz(d, getOrgTimezone(tz));
 }
 
 /** Stable dedupe identity for a billing period. */
@@ -337,8 +335,8 @@ export function allocatePayments(
 }
 
 /** Derive a period's status from its due date and allocated paid/balance. `tz`
- *  (org timezone) makes the "today" comparison org-local; omitted preserves the
- *  legacy machine-local date-string behavior. */
+ *  (org timezone, resolved through `getOrgTimezone`) makes the "today"
+ *  comparison org-local; the omitted path is the documented UTC safe default. */
 export function periodStatus(
   period: BillingPeriod,
   paid: number,

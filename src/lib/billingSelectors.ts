@@ -21,15 +21,12 @@ import {
 import { isObligationLate } from "./lateEvaluator";
 import type { BillingPeriod } from "./billingTypes";
 import type { FinancialTransaction, RentalAgreement } from "./types";
-import { startOfDayInTz } from "./timezone";
+import { startOfDayInTz, getOrgTimezone } from "./timezone";
 
 const DAY = 86_400_000;
 
 function startOfDay(d: Date, tz?: string): Date {
-  if (tz) return startOfDayInTz(d, tz);
-  const x = new Date(d);
-  x.setHours(0, 0, 0, 0);
-  return x;
+  return startOfDayInTz(d, getOrgTimezone(tz));
 }
 
 /** Full allocation result for a rental (delegates to the single FIFO engine). */

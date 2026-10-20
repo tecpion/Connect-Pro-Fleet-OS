@@ -22,74 +22,103 @@ import {
   DAY,
   type DateRange,
 } from "./profitabilityHelpers";
+import {
+  startOfMonthInTz,
+  endOfMonthInTz,
+  startOfYearInTz,
+  zonedDateTimeParts,
+  getOrgTimezone,
+} from "./timezone";
 import type { PerformanceRange } from "./vehiclePerformanceRanges";
 
 /**
  * Resolve the prior comparison period for a range, or null when no valid
  * comparison exists (Lifetime). The prior window is the same length as the
- * current window and ends the day before the current window starts.
+ * current window and ends the day before the current window starts. Day/month
+ * boundaries are evaluated in the org's configured timezone (`tz`, resolved
+ * through `getOrgTimezone` → UTC safe default).
  */
 export function resolvePriorPerformanceRange(
   range: PerformanceRange,
   now: Date = new Date(),
   lifetimeStart?: string,
+  tz?: string,
 ): DateRange | null {
+  const z = getOrgTimezone(tz);
+  const p = zonedDateTimeParts(now, z);
   switch (range) {
     case "this_week": {
-      const day = (now.getDay() + 6) % 7; // Monday-start
-      const curStart = startOfDay(new Date(now.getTime() - day * DAY));
+      const dow = (p.day + 6) % 7; // Monday-start
+      const curStart = startOfDay(new Date(now.getTime() - dow * DAY), z);
       const lenDays = 7;
-      const priorEnd = endOfDay(new Date(curStart.getTime() - DAY));
+      const priorEnd = endOfDay(new Date(curStart.getTime() - DAY), z);
       const priorStart = startOfDay(
         new Date(priorEnd.getTime() - (lenDays - 1) * DAY),
+        z,
       );
       return { start: priorStart, end: priorEnd };
     }
     case "this_month": {
-      // Previous calendar month.
-      const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const end = new Date(now.getFullYear(), now.getMonth(), 0);
-      return { start: startOfDay(start), end: endOfDay(end) };
+      // Previous calendar month in the org zone.
+      const curMonthStart = startOfMonthInTz(now, z);
+      const start = startOfMonthInTz(
+        new Date(curMonthStart.getTime() - DAY),
+        z,
+      );
+      return { start, end: endOfMonthInTz(start, z) };
     }
     case "last_month": {
       // Calendar month immediately before Last Month (i.e. two months ago).
-      const start = new Date(now.getFullYear(), now.getMonth() - 2, 1);
-      const end = new Date(now.getFullYear(), now.getMonth() - 1, 0);
-      return { start: startOfDay(start), end: endOfDay(end) };
+      const thisMonthStart = startOfMonthInTz(now, z);
+      const lastMonthStart = startOfMonthInTz(
+        new Date(thisMonthStart.getTime() - DAY),
+        z,
+      );
+      const start = startOfMonthInTz(
+        new Date(lastMonthStart.getTime() - DAY),
+        z,
+      );
+      return { start, end: endOfMonthInTz(start, z) };
     }
     case "last_30_days": {
       // Current = [now-29 .. now]. Prior = [now-59 .. now-30].
-      const priorEnd = endOfDay(new Date(now.getTime() - 30 * DAY));
-      const priorStart = startOfDay(new Date(now.getTime() - 59 * DAY));
+      const priorEnd = endOfDay(new Date(now.getTime() - 30 * DAY), z);
+      const priorStart = startOfDay(new Date(now.getTime() - 59 * DAY), z);
       return { start: priorStart, end: priorEnd };
     }
     case "last_90_days": {
       // Current = [now-89 .. now]. Prior = [now-179 .. now-90].
-      const priorEnd = endOfDay(new Date(now.getTime() - 90 * DAY));
-      const priorStart = startOfDay(new Date(now.getTime() - 179 * DAY));
+      const priorEnd = endOfDay(new Date(now.getTime() - 90 * DAY), z);
+      const priorStart = startOfDay(new Date(now.getTime() - 179 * DAY), z);
       return { start: priorStart, end: priorEnd };
     }
     case "last_12_months": {
       // Current = [now-12mo .. now]. Prior = [now-24mo .. now-12mo-1d].
-      const curStart = startOfDay(
-        new Date(now.getFullYear(), now.getMonth() - 12, now.getDate()),
+      const curStart = startOfMonthInTz(
+        new Date(Date.UTC(p.year - 1, p.month - 1, 15)),
+        z,
       );
-      const priorEnd = endOfDay(new Date(curStart.getTime() - DAY));
-      const priorStart = startOfDay(
-        new Date(now.getFullYear(), now.getMonth() - 24, now.getDate()),
+      const priorEnd = endOfDay(new Date(curStart.getTime() - DAY), z);
+      const priorStart = startOfMonthInTz(
+        new Date(Date.UTC(p.year - 2, p.month - 1, 15)),
+        z,
       );
       return { start: priorStart, end: priorEnd };
     }
     case "ytd": {
       // Current = [Jan 1 (this year) .. now]. Prior = [Jan 1 (last year) ..
       // same elapsed day last year]. Same number of elapsed calendar days.
-      const curStart = startOfDay(new Date(now.getFullYear(), 0, 1));
+      const curStart = startOfYearInTz(now, z);
       const elapsedDays = Math.floor(
-        (startOfDay(now).getTime() - curStart.getTime()) / DAY,
+        (startOfDay(now, z).getTime() - curStart.getTime()) / DAY,
       );
-      const priorStart = startOfDay(new Date(now.getFullYear() - 1, 0, 1));
+      const priorStart = startOfYearInTz(
+        new Date(Date.UTC(p.year - 1, 6, 1)),
+        z,
+      );
       const priorEnd = endOfDay(
         new Date(priorStart.getTime() + elapsedDays * DAY),
+        z,
       );
       return { start: priorStart, end: priorEnd };
     }

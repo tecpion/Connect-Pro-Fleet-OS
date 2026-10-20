@@ -12,13 +12,17 @@
 //
 // Phase 6 — organization timezone: the cutoff is expressed in the org's local
 // business time. `obligationDueInstant` / `isObligationLate` accept an optional
-// `tz` (an IANA zone from `CompanyInfo.timezone`). When supplied the due date
-// is interpreted as a wall time in that org zone (the returned instant is a
-// real UTC instant, correct regardless of the machine's TZ); the `now`
-// comparison uses the same wall-clock convention. When omitted the legacy
-// machine-local behavior is preserved exactly.
+// `tz` (an IANA zone from `CompanyInfo.timezone`). The due date is interpreted
+// as a wall time in that org zone (the returned instant is a real UTC instant,
+// correct regardless of the machine's TZ); the `now` comparison uses the same
+// wall-clock convention. When omitted the org timezone is resolved through
+// `getOrgTimezone` (→ UTC), the documented safe path — never the machine clock.
 
-import { startOfDayInTz, endOfDayInTz } from "./timezone";
+import {
+  startOfDayInTz,
+  endOfDayInTz,
+  getOrgTimezone,
+} from "./timezone";
 
 export interface ObligationLateInput {
   /** ISO date ("YYYY-MM-DD") the obligation is due. */
@@ -41,34 +45,26 @@ export interface ObligationLateResult {
 /** Build the wall-clock instant an obligation is payable through, applying the
  *  cutoff time in the tenant's local timezone (not UTC). Returns end-of-day
  *  when no cutoff time is configured. `tz` (org timezone) makes the wall time
- *  org-local; omitted preserves the legacy machine-local behavior. */
+ *  org-local; omitted resolves through `getOrgTimezone` (the documented UTC
+ *  safe default), never the machine-local clock. */
 export function obligationDueInstant(
   input: ObligationLateInput,
   tz?: string,
 ): number {
-  if (tz) {
-    // Anchor to org-local midnight of the due day, then add the cutoff as a
-    // wall-clock duration. This matches the legacy "local midnight + cutoff"
-    // semantics in the org zone (cutoffs are business hours, never in the
-    // 2am DST gap, so the wall duration is unambiguous).
-    const midnight = startOfDayInTz(
-      new Date(input.due_at + "T12:00:00Z"),
-      tz,
-    ).getTime();
-    if (input.cutoff_time && /^\d{1,2}:\d{2}$/.test(input.cutoff_time)) {
-      const [h, m] = input.cutoff_time.split(":").map(Number);
-      return midnight + (h ?? 0) * 3600_000 + (m ?? 0) * 60_000;
-    }
-    return endOfDayInTz(new Date(input.due_at + "T12:00:00Z"), tz).getTime();
-  }
-  const due = new Date(input.due_at + "T00:00:00");
+  const z = getOrgTimezone(tz);
+  // Anchor to org-local midnight of the due day, then add the cutoff as a
+  // wall-clock duration. This matches the legacy "local midnight + cutoff"
+  // semantics in the org zone (cutoffs are business hours, never in the
+  // 2am DST gap, so the wall duration is unambiguous).
+  const midnight = startOfDayInTz(
+    new Date(input.due_at + "T12:00:00Z"),
+    z,
+  ).getTime();
   if (input.cutoff_time && /^\d{1,2}:\d{2}$/.test(input.cutoff_time)) {
     const [h, m] = input.cutoff_time.split(":").map(Number);
-    due.setHours(h, m, 0, 0);
-  } else {
-    due.setHours(23, 59, 0, 0);
+    return midnight + (h ?? 0) * 3600_000 + (m ?? 0) * 60_000;
   }
-  return due.getTime();
+  return endOfDayInTz(new Date(input.due_at + "T12:00:00Z"), z).getTime();
 }
 
 /**

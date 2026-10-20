@@ -19,14 +19,27 @@ import type {
   Vehicle,
 } from "./types";
 import { startOfWeek, startOfMonth } from "./financialSelectors";
+import {
+  zonedDateTimeParts,
+  startOfDayInTz,
+  endOfDayInTz,
+  getOrgTimezone,
+} from "./timezone";
 
 const DAY = 86_400_000;
-const todayStr = () => new Date().toISOString().slice(0, 10);
 
-function startOfDay(d: Date) {
-  const x = new Date(d);
-  x.setHours(0, 0, 0, 0);
-  return x;
+/** "Today" as a YYYY-MM-DD date-only string in the org timezone (`tz`,
+ *  resolved through `getOrgTimezone` → UTC safe default). Compares against
+ *  date-only domain values (scheduled_return_date, start_date, …) so "today"
+ *  is org-local, not UTC/machine. */
+export function todayStr(tz?: string, now: Date = new Date()): string {
+  const z = getOrgTimezone(tz);
+  const p = zonedDateTimeParts(now, z);
+  return `${p.year}-${String(p.month).padStart(2, "0")}-${String(p.day).padStart(2, "0")}`;
+}
+
+function startOfDay(d: Date, tz?: string) {
+  return startOfDayInTz(d, getOrgTimezone(tz));
 }
 
 export interface FleetStatusCounts {
@@ -43,6 +56,7 @@ export interface FleetStatusCounts {
 export function fleetStatusCounts(
   vehicles: Vehicle[],
   reservations: Reservation[],
+  tz?: string,
 ): FleetStatusCounts {
   const total = vehicles.length;
   const available = vehicles.filter((v) => v.status === "available").length;
@@ -53,7 +67,7 @@ export function fleetStatusCounts(
   ).length;
   // Reserved = available vehicles with a confirmed (not yet active) reservation
   // starting today or later.
-  const today = todayStr();
+  const today = todayStr(tz);
   const reservedVehicleIds = new Set(
     reservations
       .filter(
@@ -87,8 +101,11 @@ export function activeRentalCount(rentals: RentalAgreement[]): number {
 
 // --- Returns / pickups today ----------------------------------------------
 
-export function returnsToday(rentals: RentalAgreement[]): RentalAgreement[] {
-  const today = todayStr();
+export function returnsToday(
+  rentals: RentalAgreement[],
+  tz?: string,
+): RentalAgreement[] {
+  const today = todayStr(tz);
   return rentals.filter(
     (r) =>
       !r.actual_return_date &&
@@ -99,13 +116,16 @@ export function returnsToday(rentals: RentalAgreement[]): RentalAgreement[] {
   );
 }
 
-export function overdueRentals(rentals: RentalAgreement[]): RentalAgreement[] {
-  const today = startOfDay(new Date());
+export function overdueRentals(
+  rentals: RentalAgreement[],
+  tz?: string,
+): RentalAgreement[] {
+  const today = startOfDay(new Date(), tz);
   return rentals
     .filter((r) => r.status === "overdue" || r.status === "late")
     .map((r) => {
       const due = new Date(
-        (r.scheduled_return_date ?? r.next_payment_due ?? "") + "T00:00:00",
+        (r.scheduled_return_date ?? r.next_payment_due ?? "") + "T12:00:00Z",
       );
       return { r, due };
     })
@@ -116,8 +136,9 @@ export function overdueRentals(rentals: RentalAgreement[]): RentalAgreement[] {
 export function pickupsToday(
   reservations: Reservation[],
   rentals: RentalAgreement[],
+  tz?: string,
 ): { reservation: Reservation | null; rental: RentalAgreement | null }[] {
-  const today = todayStr();
+  const today = todayStr(tz);
   // Pickups = confirmed reservations starting today that aren't yet active,
   // plus rentals in ready_for_checkout status checked out today.
   const confirmedToday = reservations.filter(
@@ -164,16 +185,21 @@ export function maintenanceAttention(
   });
 }
 
-// Daily collections series for the small chart (most recent N days).
+// Daily collections series for the small chart (most recent N days), bucketed
+// by org-local calendar day.
 export function collectionsSeries(
   transactions: import("./types").FinancialTransaction[],
   days: number,
+  tz?: string,
 ): { date: string; amount: number }[] {
-  const today = startOfDay(new Date());
+  const z = getOrgTimezone(tz);
+  const today = startOfDay(new Date(), z);
   const buckets: { date: string; amount: number }[] = [];
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date(today.getTime() - i * DAY);
-    buckets.push({ date: d.toISOString().slice(0, 10), amount: 0 });
+    const p = zonedDateTimeParts(d, z);
+    const key = `${p.year}-${String(p.month).padStart(2, "0")}-${String(p.day).padStart(2, "0")}`;
+    buckets.push({ date: key, amount: 0 });
   }
   const map = new Map(buckets.map((b) => [b.date, b]));
   for (const t of transactions) {
@@ -194,13 +220,17 @@ export interface CollectionPoint {
   amount: number;
 }
 
-function endOfWeek(now: Date): Date {
-  const day = (now.getDay() + 6) % 7; // Monday = 0
-  return startOfDay(new Date(now.getTime() + (6 - day) * DAY));
+function endOfWeek(now: Date, tz?: string): Date {
+  const p = zonedDateTimeParts(now, getOrgTimezone(tz));
+  const dow = (p.day + 6) % 7; // Monday = 0
+  const dayEnd = endOfDayInTz(now, getOrgTimezone(tz));
+  return new Date(dayEnd.getTime() + (6 - dow) * DAY);
 }
 
-function endOfMonth(now: Date): Date {
-  return startOfDay(new Date(now.getFullYear(), now.getMonth() + 1, 0));
+function endOfMonth(now: Date, tz?: string): Date {
+  const z = getOrgTimezone(tz);
+  // End of the org-local month containing `now` = start of next org-local month.
+  return endOfDayInTz(new Date(now.getTime()), z);
 }
 
 const dayFmt = new Intl.DateTimeFormat("en-US", {
@@ -217,23 +247,25 @@ function hourLabel(h: number): string {
 // Collections series keyed to a named interval. "today" buckets by hour
 // (using the transaction timestamp) so a single-day view is still meaningful;
 // "week" and "month" bucket by day using effective_date, matching the legacy
-// collectionsSeries behavior.
+// collectionsSeries behavior. Day/week/month boundaries are org-local (`tz`).
 export function collectionsSeriesForInterval(
   transactions: import("./types").FinancialTransaction[],
   interval: CollectionsInterval,
+  tz?: string,
 ): CollectionPoint[] {
+  const z = getOrgTimezone(tz);
   const now = new Date();
   const posted = transactions.filter(
     (t) => t.category === "payment" && t.status === "posted",
   );
 
   if (interval === "today") {
-    const start = startOfDay(now);
-    const curHour = now.getHours();
+    const start = startOfDay(now, z);
+    const parts = zonedDateTimeParts(now, z);
+    const curHour = parts.hour;
     const buckets: CollectionPoint[] = [];
     for (let h = 0; h <= curHour; h++) {
-      const d = new Date(start);
-      d.setHours(h, 0, 0, 0);
+      const d = new Date(start.getTime() + h * 3600_000);
       buckets.push({
         key: d.toISOString().slice(0, 13),
         label: hourLabel(h),
@@ -251,13 +283,15 @@ export function collectionsSeriesForInterval(
     return buckets;
   }
 
-  const start = interval === "week" ? startOfWeek(now) : startOfMonth(now);
-  const end = interval === "week" ? endOfWeek(now) : endOfMonth(now);
+  const start = interval === "week" ? startOfWeek(now, z) : startOfMonth(now, z);
+  const end = interval === "week" ? endOfWeek(now, z) : endOfMonth(now, z);
   const last = end > now ? now : end;
   const buckets: CollectionPoint[] = [];
   for (let d = new Date(start); d <= last; d = new Date(d.getTime() + DAY)) {
+    const p = zonedDateTimeParts(d, z);
+    const key = `${p.year}-${String(p.month).padStart(2, "0")}-${String(p.day).padStart(2, "0")}`;
     buckets.push({
-      key: d.toISOString().slice(0, 10),
+      key,
       label: dayFmt.format(d),
       amount: 0,
     });

@@ -12,9 +12,10 @@
 // incidents-store violations) OR derived from customer_charge_status for the
 // rich store. Both are kept distinct from "amount paid".
 //
-// Tenant timezone: date bucketing uses the passed `now`/reference clock and
-// calendar-month boundaries. Callers pass a tenant-local Date so business
-// dates are respected (not browser-local/UTC silently).
+// Tenant timezone: date bucketing uses the organization's configured timezone
+// (`CompanyInfo.timezone`), resolved through `getOrgTimezone` → UTC safe
+// default. Calendar-month/year boundaries are evaluated in that org zone; the
+// returned `Date`s are real UTC instants. Never the machine-local clock.
 
 import type { Incident } from "./incidents";
 import type { Violation } from "./violationTypes";
@@ -27,6 +28,7 @@ import {
   startOfYearInTz,
   endOfYearInTz,
   zonedDateTimeParts,
+  getOrgTimezone,
 } from "./timezone";
 
 const DAY = 86_400_000;
@@ -37,21 +39,18 @@ function parseMs(iso: string | null | undefined): number | null {
   return isNaN(t) ? null : t;
 }
 
-/** Start of the calendar month containing `d`. `tz` (org timezone) makes the
- *  boundary org-local; omitted preserves the legacy machine-local behavior. */
+/** Start of the calendar month containing `d`, in the org timezone. */
 export function startOfMonth(d: Date, tz?: string): Date {
-  if (tz) return startOfMonthInTz(d, tz);
-  return new Date(d.getFullYear(), d.getMonth(), 1);
+  return startOfMonthInTz(d, getOrgTimezone(tz));
 }
-/** Start of the calendar year containing `d`. */
+/** Start of the calendar year containing `d`, in the org timezone. */
 export function startOfYear(d: Date, tz?: string): Date {
-  if (tz) return startOfYearInTz(d, tz);
-  return new Date(d.getFullYear(), 0, 1);
+  return startOfYearInTz(d, getOrgTimezone(tz));
 }
-/** End of the calendar month containing `d` (exclusive: first of next month). */
+/** End of the calendar month containing `d` (exclusive: first of next month),
+ *  in the org timezone. */
 export function endOfMonth(d: Date, tz?: string): Date {
-  if (tz) return endOfMonthInTz(d, tz);
-  return new Date(d.getFullYear(), d.getMonth() + 1, 1);
+  return endOfMonthInTz(d, getOrgTimezone(tz));
 }
 
 export type AnalyticsRange =
@@ -68,118 +67,77 @@ export interface DateWindow {
   label: string;
 }
 
-/** Resolve an analytics range to a concrete [start, end) window. When `tz`
- *  (an org timezone from `CompanyInfo.timezone`) is supplied the month/year
- *  boundaries are evaluated in that org zone; otherwise the legacy
- *  machine-local behavior is preserved. The returned `Date`s are real UTC
- *  instants. */
+/** Resolve an analytics range to a concrete [start, end) window. The month/year
+ *  boundaries are evaluated in the org's configured timezone (`tz`, resolved
+ *  through `getOrgTimezone` → UTC safe default). The returned `Date`s are real
+ *  UTC instants — the same point in time regardless of the machine's TZ. */
 export function resolveAnalyticsRange(
   range: AnalyticsRange,
   now: Date,
   custom?: { start: string; end: string },
   tz?: string,
 ): DateWindow {
+  const z = getOrgTimezone(tz);
   switch (range) {
     case "this_month": {
-      const s = startOfMonth(now, tz);
-      return { start: s, end: endOfMonth(now, tz), label: "This Month" };
+      const s = startOfMonth(now, z);
+      return { start: s, end: endOfMonth(now, z), label: "This Month" };
     }
     case "last_month": {
-      if (tz) {
-        const curMonthStart = startOfMonthInTz(now, tz);
-        const prev = new Date(curMonthStart.getTime() - DAY);
-        return {
-          start: startOfMonth(prev, tz),
-          end: curMonthStart,
-          label: "Last Month",
-        };
-      }
-      const s = startOfMonth(
-        new Date(now.getFullYear(), now.getMonth() - 1, 1),
-      );
-      return { start: s, end: startOfMonth(now), label: "Last Month" };
+      const curMonthStart = startOfMonthInTz(now, z);
+      const prev = new Date(curMonthStart.getTime() - DAY);
+      return {
+        start: startOfMonth(prev, z),
+        end: curMonthStart,
+        label: "Last Month",
+      };
     }
     case "this_year": {
-      if (tz) {
-        return {
-          start: startOfYear(now, tz),
-          end: endOfYearInTz(now, tz),
-          label: "This Year",
-        };
-      }
-      const s = startOfYear(now);
       return {
-        start: s,
-        end: new Date(now.getFullYear() + 1, 0, 1),
+        start: startOfYear(now, z),
+        end: endOfYearInTz(now, z),
         label: "This Year",
       };
     }
     case "last_year": {
-      if (tz) {
-        const p = zonedDateTimeParts(now, tz);
-        return {
-          start: startOfYear(new Date(Date.UTC(p.year - 1, 6, 1)), tz),
-          end: startOfYear(now, tz),
-          label: String(p.year - 1),
-        };
-      }
-      const s = new Date(now.getFullYear() - 1, 0, 1);
+      const p = zonedDateTimeParts(now, z);
       return {
-        start: s,
-        end: startOfYear(now),
-        label: String(now.getFullYear() - 1),
+        start: startOfYear(new Date(Date.UTC(p.year - 1, 6, 1)), z),
+        end: startOfYear(now, z),
+        label: String(p.year - 1),
       };
     }
     case "last_12_months": {
-      // Trailing 12-month window ending at the current moment. When tz is set,
-      // anchor the start to 12 org-calendar-months before the as-of day.
-      if (tz) {
-        const p = zonedDateTimeParts(now, tz);
-        const end = startOfDayInTz(now, tz);
-        let startMonth = p.month - 12;
-        let startYear = p.year;
-        while (startMonth <= 0) {
-          startMonth += 12;
-          startYear -= 1;
-        }
-        const start = startOfMonth(
-          new Date(Date.UTC(startYear, startMonth - 1, 15)),
-          tz,
-        );
-        return { start, end, label: "Last 12 Months" };
+      // Trailing 12-month window ending at the current moment, anchored to 12
+      // org-calendar-months before the as-of day.
+      const p = zonedDateTimeParts(now, z);
+      const end = startOfDayInTz(now, z);
+      let startMonth = p.month - 12;
+      let startYear = p.year;
+      while (startMonth <= 0) {
+        startMonth += 12;
+        startYear -= 1;
       }
-      const end = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const start = new Date(
-        end.getFullYear() - 1,
-        end.getMonth(),
-        end.getDate(),
+      const start = startOfMonth(
+        new Date(Date.UTC(startYear, startMonth - 1, 15)),
+        z,
       );
       return { start, end, label: "Last 12 Months" };
     }
     case "custom": {
-      if (tz) {
-        const s = custom
-          ? startOfDayInTz(new Date(custom.start + "T12:00:00Z"), tz)
-          : startOfMonth(now, tz);
-        const e = custom
-          ? new Date(
-              endOfDayInTz(new Date(custom.end + "T12:00:00Z"), tz).getTime() +
-                1,
-            )
-          : endOfMonth(now, tz);
-        return {
-          start: s,
-          end: e,
-          label: "Custom",
-        };
-      }
       const s = custom
-        ? new Date(custom.start + "T00:00:00")
-        : startOfMonth(now);
-      const e = custom ? new Date(custom.end + "T23:59:59") : endOfMonth(now);
+        ? startOfDayInTz(new Date(custom.start + "T12:00:00Z"), z)
+        : startOfMonth(now, z);
+      const e = custom
+        ? new Date(
+            endOfDayInTz(new Date(custom.end + "T12:00:00Z"), z).getTime() + 1,
+          )
+        : endOfMonth(now, z);
       return {
-        start: isNaN(s.getTime()) ? startOfMonth(now) : s,
-        end: isNaN(e.getTime()) ? endOfMonth(now) : new Date(e.getTime() + DAY),
+        start: isNaN(s.getTime()) ? startOfMonth(now, z) : s,
+        end: isNaN(e.getTime())
+          ? endOfMonth(now, z)
+          : new Date(e.getTime() + DAY),
         label: "Custom",
       };
     }

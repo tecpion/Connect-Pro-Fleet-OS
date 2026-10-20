@@ -2,8 +2,9 @@
 //
 // Extends the profitability range presets with the owner-facing performance
 // ranges: This Week, This Month, Last Month, YTD, Last 30 Days, Last 90 Days,
-// Last 12 Months, Lifetime. All ranges are computed in the tenant/company
-// timezone (the passed `now` Date). Pure functions, no React.
+// Last 12 Months, Lifetime. All ranges are computed in the organization's
+// configured timezone (`tz`, resolved through `getOrgTimezone` → UTC safe
+// default). Pure functions, no React.
 
 import {
   startOfDay,
@@ -11,6 +12,14 @@ import {
   DAY,
   type DateRange,
 } from "./profitabilityHelpers";
+import {
+  startOfMonthInTz,
+  endOfMonthInTz,
+  startOfYearInTz,
+  endOfDayInTz,
+  zonedDateTimeParts,
+  getOrgTimezone,
+} from "./timezone";
 
 export type PerformanceRange =
   | "this_week"
@@ -34,64 +43,76 @@ export const PERFORMANCE_RANGE_LABELS: Record<PerformanceRange, string> = {
 };
 
 /** Resolve a performance date range from a preset. `lifetimeStart` is the
- *  earliest vehicle/transaction date for the tenant (used only for Lifetime). */
+ *  earliest vehicle/transaction date for the tenant (used only for Lifetime).
+ *  `tz` is the org timezone; day/month/year boundaries are org-local. */
 export function resolvePerformanceRange(
   range: PerformanceRange,
   now: Date = new Date(),
   lifetimeStart?: string,
+  tz?: string,
 ): DateRange {
-  const today = startOfDay(now);
+  const z = getOrgTimezone(tz);
   switch (range) {
     case "this_week": {
-      const day = (now.getDay() + 6) % 7; // Monday-start
+      const p = zonedDateTimeParts(now, z);
+      const day = (p.day + 6) % 7; // Monday-start (calendar date)
       return {
-        start: startOfDay(new Date(now.getTime() - day * DAY)),
-        end: endOfDay(now),
+        start: startOfDay(new Date(now.getTime() - day * DAY), z),
+        end: endOfDay(now, z),
       };
     }
     case "this_month":
       return {
-        start: startOfDay(new Date(now.getFullYear(), now.getMonth(), 1)),
-        end: endOfDay(now),
+        start: startOfMonthInTz(now, z),
+        end: endOfDay(now, z),
       };
     case "last_month": {
-      const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const end = new Date(now.getFullYear(), now.getMonth(), 0);
-      return { start: startOfDay(start), end: endOfDay(end) };
+      const curMonthStart = startOfMonthInTz(now, z);
+      const start = startOfMonthInTz(
+        new Date(curMonthStart.getTime() - DAY),
+        z,
+      );
+      return { start, end: endOfMonthInTz(start, z) };
     }
     case "ytd":
       return {
-        start: startOfDay(new Date(now.getFullYear(), 0, 1)),
-        end: endOfDay(now),
+        start: startOfYearInTz(now, z),
+        end: endOfDay(now, z),
       };
     case "last_30_days":
       return {
-        start: startOfDay(new Date(now.getTime() - 29 * DAY)),
-        end: endOfDay(now),
+        start: startOfDay(new Date(now.getTime() - 29 * DAY), z),
+        end: endOfDay(now, z),
       };
     case "last_90_days":
       return {
-        start: startOfDay(new Date(now.getTime() - 89 * DAY)),
-        end: endOfDay(now),
+        start: startOfDay(new Date(now.getTime() - 89 * DAY), z),
+        end: endOfDay(now, z),
       };
-    case "last_12_months":
+    case "last_12_months": {
+      const p = zonedDateTimeParts(now, z);
       return {
-        start: startOfDay(
-          new Date(now.getFullYear(), now.getMonth() - 12, now.getDate()),
+        start: startOfMonthInTz(
+          new Date(Date.UTC(p.year - 1, p.month - 1, 15)),
+          z,
         ),
-        end: endOfDay(now),
+        end: endOfDay(now, z),
       };
+    }
     case "lifetime": {
       if (lifetimeStart) {
         return {
-          start: startOfDay(new Date(lifetimeStart + "T00:00:00")),
-          end: endOfDay(now),
+          start: startOfDay(new Date(lifetimeStart + "T12:00:00Z"), z),
+          end: endOfDay(now, z),
         };
       }
       // Fall back to 10 years back when no earliest date is known.
       return {
-        start: startOfDay(new Date(now.getFullYear() - 10, 0, 1)),
-        end: endOfDay(now),
+        start: startOfYearInTz(
+          new Date(Date.UTC(zonedDateTimeParts(now, z).year - 10, 6, 1)),
+          z,
+        ),
+        end: endOfDay(now, z),
       };
     }
   }
