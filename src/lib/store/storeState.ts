@@ -209,6 +209,19 @@ export interface StoreState {
   setAgreementTemplates: React.Dispatch<
     React.SetStateAction<AgreementTemplate[]>
   >;
+  setMasterAgreements: React.Dispatch<
+    React.SetStateAction<MasterAgreement[]>
+  >;
+  setAgreementInstances: React.Dispatch<
+    React.SetStateAction<AgreementInstance[]>
+  >;
+  /** Functional-updater aliases used by Phase 9 hydration (prev => next). */
+  setMasterAgreementsRef: (
+    updater: (prev: MasterAgreement[]) => MasterAgreement[],
+  ) => void;
+  setAgreementInstancesRef: (
+    updater: (prev: AgreementInstance[]) => AgreementInstance[],
+  ) => void;
   setAgreementRules: React.Dispatch<React.SetStateAction<AgreementRules>>;
   setSettingsAudit: React.Dispatch<React.SetStateAction<SettingsAuditEntry[]>>;
   setLocations: React.Dispatch<React.SetStateAction<Location[]>>;
@@ -313,6 +326,16 @@ export function useStoreState(): StoreState {
   const [agreementTemplates, setAgreementTemplates] = useState(
     seed.agreementTemplates,
   );
+  // Phase 9 — master agreements + agreement instances become durable Cloud
+  // slices (owned by the core StoreProvider; no dedicated provider exists).
+  // They were previously seeded-only constants; promote them to useState so
+  // hydration can replace them with Cloud-authoritative state.
+  const [masterAgreements, setMasterAgreements] = useState<MasterAgreement[]>(
+    seed.masterAgreements,
+  );
+  const [agreementInstances, setAgreementInstances] = useState<
+    AgreementInstance[]
+  >(seed.agreementInstances);
   const [agreementRules, setAgreementRules] = useState(seed.agreementRules);
   const [settingsAudit, setSettingsAudit] = useState(seed.settingsAudit);
   const [locations, setLocations] = useState(seed.locations);
@@ -504,8 +527,8 @@ export function useStoreState(): StoreState {
     settingsAudit,
     locations,
     staff,
-    masterAgreements: seed.masterAgreements,
-    agreementInstances: seed.agreementInstances,
+    masterAgreements,
+    agreementInstances,
     currentStaffId,
     activityLog,
     vehicleExchanges,
@@ -577,6 +600,12 @@ export function useStoreState(): StoreState {
     setAddonCatalog,
     setDepositPolicies,
     setAgreementTemplates,
+    setMasterAgreements,
+    setAgreementInstances,
+    setMasterAgreementsRef: (updater) =>
+      setMasterAgreements((prev) => updater(prev)),
+    setAgreementInstancesRef: (updater) =>
+      setAgreementInstances((prev) => updater(prev)),
     setAgreementRules,
     setSettingsAudit,
     setLocations,

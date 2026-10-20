@@ -39,6 +39,7 @@ import {
 import { hydrateMaintenance } from "../supabase/maintenanceAdapters";
 import { hydrateExpenses, hydrateBanking } from "../supabase/phase5StoreSync";
 import { hydratePhase8Slices } from "../supabase/phase8StoreSync";
+import { hydratePhase9Slices } from "../supabase/phase9StoreSync";
 import { setCompanyPoliciesRef } from "./companyPolicyRef";
 
 export function StoreProvider({ children }: { children: ReactNode }) {
@@ -229,6 +230,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     s.addonCatalog,
     s.depositPolicies,
     s.agreementTemplates,
+    s.masterAgreements,
+    s.agreementInstances,
     s.agreementRules,
     s.settingsAudit,
     s.locations,
@@ -448,6 +451,50 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         if (cfg.feeRules) s.setFeeRules(() => cfg.feeRules);
       },
     })
+      .then((ran) => {
+        if (!ran || !active) return;
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeOrgId]);
+
+  // Phase 9: hydrate the durable document/promise/audit/agreement slices from
+  // Cloud on auth/org change — rental events, invoices, receipts, payment
+  // arrangements (+ installments + events), agreement templates/master
+  // agreements/agreement instances, and the activity/audit feed. Agreement
+  // templates/master/instances are owned by the core StoreProvider (they live
+  // in storeState.ts useState slices; no dedicated provider exists for them),
+  // so all Phase 9 slices hydrate here. In memory mode hydratePhase9Slices is a
+  // no-op and the seeded demo data stays. The stale-closure `active` guard
+  // cancels async work after an org switch so a slow org-A read never
+  // overwrites org-B's cache; the StaleOrgGuard also discards results if the
+  // org changed mid-flight.
+  useEffect(() => {
+    if (!activeOrgId) return;
+    let active = true;
+    const guard = { isActive: (id: string) => active && id === activeOrgId };
+    void hydratePhase9Slices(
+      activeOrgId,
+      {
+        setRentalEvents: s.setRentalEvents,
+        setInvoices: s.setInvoices,
+        setReceipts: s.setReceipts,
+        setPaymentArrangements: s.setPaymentArrangements,
+        setArrangementInstallments: s.setArrangementInstallments,
+        setArrangementEvents: s.setArrangementEvents,
+        setAgreementTemplates: s.setAgreementTemplates,
+        setMasterAgreements: (updater) =>
+          s.setMasterAgreementsRef(updater),
+        setAgreementInstances: (updater) =>
+          s.setAgreementInstancesRef(updater),
+        setActivityLog: s.setActivity,
+      },
+      undefined,
+      guard,
+    )
       .then((ran) => {
         if (!ran || !active) return;
       })
