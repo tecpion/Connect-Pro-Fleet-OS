@@ -298,9 +298,7 @@ export class SupabaseNotificationsRepository implements NotificationsRepository 
 // authoritative (Phase 6); never replaced with browser/server time.
 
 export interface CompanySettingsRepository {
-  get(
-    orgId: string,
-  ): Promise<{
+  get(orgId: string): Promise<{
     companyInfo: CompanyInfo;
     settingsConfig: CompanySettingsConfig;
   } | null>;
