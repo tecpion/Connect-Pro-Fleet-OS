@@ -145,7 +145,7 @@ describe("Phase 9 mappers — round trips", () => {
       vehicle_id: "veh-1",
       payment_transaction_id: "txn-1",
       amount: 250,
-      payment_method: "card_payment",
+      payment_method: "card",
       external_transaction_id: null,
       applied_invoice_ids: ["inv-1"],
       remaining_balance: 250,
