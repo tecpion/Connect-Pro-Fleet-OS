@@ -3084,6 +3084,86 @@ export type Database = {
           },
         ]
       }
+      invoices: {
+        Row: {
+          amount_paid: number
+          balance_due: number
+          billing_period_end: string | null
+          billing_period_start: string | null
+          created_at: string
+          created_by: string | null
+          customer_id: string
+          due_date: string
+          id: string
+          invoice_number: string
+          issue_date: string
+          line_items: Json
+          notes: string | null
+          organization_id: string
+          rental_id: string | null
+          reservation_id: string | null
+          status: string
+          subtotal: number
+          tax: number
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          amount_paid?: number
+          balance_due?: number
+          billing_period_end?: string | null
+          billing_period_start?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id: string
+          due_date: string
+          id?: string
+          invoice_number: string
+          issue_date: string
+          line_items?: Json
+          notes?: string | null
+          organization_id: string
+          rental_id?: string | null
+          reservation_id?: string | null
+          status?: string
+          subtotal?: number
+          tax?: number
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          amount_paid?: number
+          balance_due?: number
+          billing_period_end?: string | null
+          billing_period_start?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string
+          due_date?: string
+          id?: string
+          invoice_number?: string
+          issue_date?: string
+          line_items?: Json
+          notes?: string | null
+          organization_id?: string
+          rental_id?: string | null
+          reservation_id?: string | null
+          status?: string
+          subtotal?: number
+          tax?: number
+          total?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       locations: {
         Row: {
           address: string
@@ -4142,6 +4222,197 @@ export type Database = {
           },
         ]
       }
+      payment_arrangement_events: {
+        Row: {
+          amount: number | null
+          arrangement_id: string
+          at: string
+          created_at: string
+          id: string
+          installment_id: string | null
+          label: string
+          notes: string | null
+          organization_id: string
+          staff_id: string | null
+          type: string
+        }
+        Insert: {
+          amount?: number | null
+          arrangement_id: string
+          at?: string
+          created_at?: string
+          id?: string
+          installment_id?: string | null
+          label: string
+          notes?: string | null
+          organization_id: string
+          staff_id?: string | null
+          type: string
+        }
+        Update: {
+          amount?: number | null
+          arrangement_id?: string
+          at?: string
+          created_at?: string
+          id?: string
+          installment_id?: string | null
+          label?: string
+          notes?: string | null
+          organization_id?: string
+          staff_id?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_arrangement_events_arrangement_id_fkey"
+            columns: ["arrangement_id"]
+            isOneToOne: false
+            referencedRelation: "payment_arrangements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_arrangement_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_arrangement_installments: {
+        Row: {
+          amount_due: number
+          arrangement_id: string
+          created_at: string
+          due_date: string
+          id: string
+          linked_payment_transaction_ids: Json
+          linked_payments: Json
+          notes: string | null
+          organization_id: string
+          paid_at: string | null
+          sequence: number
+        }
+        Insert: {
+          amount_due?: number
+          arrangement_id: string
+          created_at?: string
+          due_date: string
+          id?: string
+          linked_payment_transaction_ids?: Json
+          linked_payments?: Json
+          notes?: string | null
+          organization_id: string
+          paid_at?: string | null
+          sequence: number
+        }
+        Update: {
+          amount_due?: number
+          arrangement_id?: string
+          created_at?: string
+          due_date?: string
+          id?: string
+          linked_payment_transaction_ids?: Json
+          linked_payments?: Json
+          notes?: string | null
+          organization_id?: string
+          paid_at?: string | null
+          sequence?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_arrangement_installments_arrangement_id_fkey"
+            columns: ["arrangement_id"]
+            isOneToOne: false
+            referencedRelation: "payment_arrangements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_arrangement_installments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_arrangements: {
+        Row: {
+          arrangement_amount: number
+          arrangement_number: string
+          billing_period_ids: Json
+          broken_at: string | null
+          cancelled_at: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          customer_id: string
+          grace_period_days: number
+          id: string
+          invoice_id: string | null
+          organization_id: string
+          original_outstanding_amount: number
+          reason: string | null
+          rental_id: string | null
+          start_date: string
+          status: string
+          terms_summary: string
+          updated_at: string
+        }
+        Insert: {
+          arrangement_amount?: number
+          arrangement_number: string
+          billing_period_ids?: Json
+          broken_at?: string | null
+          cancelled_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id: string
+          grace_period_days?: number
+          id?: string
+          invoice_id?: string | null
+          organization_id: string
+          original_outstanding_amount?: number
+          reason?: string | null
+          rental_id?: string | null
+          start_date: string
+          status?: string
+          terms_summary?: string
+          updated_at?: string
+        }
+        Update: {
+          arrangement_amount?: number
+          arrangement_number?: string
+          billing_period_ids?: Json
+          broken_at?: string | null
+          cancelled_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string
+          grace_period_days?: number
+          id?: string
+          invoice_id?: string | null
+          organization_id?: string
+          original_outstanding_amount?: number
+          reason?: string | null
+          rental_id?: string | null
+          start_date?: string
+          status?: string
+          terms_summary?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_arrangements_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       permissions: {
         Row: {
           code: string
@@ -4283,6 +4554,74 @@ export type Database = {
         }
         Relationships: []
       }
+      receipts: {
+        Row: {
+          amount: number
+          applied_invoice_ids: Json
+          created_at: string
+          customer_id: string
+          external_transaction_id: string | null
+          id: string
+          issued_at: string
+          issued_by: string | null
+          organization_id: string
+          payment_method: string | null
+          payment_transaction_id: string
+          receipt_number: string
+          remaining_balance: number
+          rental_id: string | null
+          reservation_id: string | null
+          status: string
+          vehicle_id: string | null
+        }
+        Insert: {
+          amount?: number
+          applied_invoice_ids?: Json
+          created_at?: string
+          customer_id: string
+          external_transaction_id?: string | null
+          id?: string
+          issued_at?: string
+          issued_by?: string | null
+          organization_id: string
+          payment_method?: string | null
+          payment_transaction_id: string
+          receipt_number: string
+          remaining_balance?: number
+          rental_id?: string | null
+          reservation_id?: string | null
+          status?: string
+          vehicle_id?: string | null
+        }
+        Update: {
+          amount?: number
+          applied_invoice_ids?: Json
+          created_at?: string
+          customer_id?: string
+          external_transaction_id?: string | null
+          id?: string
+          issued_at?: string
+          issued_by?: string | null
+          organization_id?: string
+          payment_method?: string | null
+          payment_transaction_id?: string
+          receipt_number?: string
+          remaining_balance?: number
+          rental_id?: string | null
+          reservation_id?: string | null
+          status?: string
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receipts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reconciliation_events: {
         Row: {
           actor_user_id: string | null
@@ -4374,6 +4713,53 @@ export type Database = {
           },
           {
             foreignKeyName: "reconciliation_matches_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rental_events: {
+        Row: {
+          at: string
+          created_at: string
+          id: string
+          label: string
+          metadata: Json | null
+          organization_id: string
+          rental_id: string
+          staff_id: string | null
+          tone: string
+          type: string
+        }
+        Insert: {
+          at?: string
+          created_at?: string
+          id?: string
+          label: string
+          metadata?: Json | null
+          organization_id: string
+          rental_id: string
+          staff_id?: string | null
+          tone?: string
+          type: string
+        }
+        Update: {
+          at?: string
+          created_at?: string
+          id?: string
+          label?: string
+          metadata?: Json | null
+          organization_id?: string
+          rental_id?: string
+          staff_id?: string | null
+          tone?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rental_events_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
