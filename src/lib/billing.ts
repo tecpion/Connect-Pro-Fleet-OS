@@ -25,10 +25,20 @@ import type {
 import type { FinancialTransaction, RateType, RentalAgreement } from "./types";
 import { affectsRentalObligation, isDepositHeldEvent } from "./deposit";
 import { isObligationLate } from "./lateEvaluator";
+import { zonedDateTimeParts, startOfDayInTz } from "./timezone";
 
 const DAY = 86_400_000;
 
 export const todayStr = () => new Date().toISOString().slice(0, 10);
+
+/** "Today" as a YYYY-MM-DD date-only string in the org timezone (`tz`), or the
+ *  machine-local date when no tz is supplied (legacy callers). Used by the
+ *  period-status day comparison so "due today" is org-local, not UTC/machine. */
+export function todayStrInTz(tz?: string, now: Date = new Date()): string {
+  if (!tz) return now.toISOString().slice(0, 10);
+  const p = zonedDateTimeParts(now, tz);
+  return `${p.year}-${String(p.month).padStart(2, "0")}-${String(p.day).padStart(2, "0")}`;
+}
 
 function addDays(iso: string, n: number): string {
   return new Date(new Date(iso + "T00:00:00").getTime() + n * DAY)
@@ -36,7 +46,11 @@ function addDays(iso: string, n: number): string {
     .slice(0, 10);
 }
 
-function startOfDay(d: Date) {
+function startOfDay(d: Date, tz?: string) {
+  if (tz) {
+    // Org-local start of day as a UTC instant, then read back its YYYY-MM-DD.
+    return startOfDayInTz(d, tz);
+  }
   const x = new Date(d);
   x.setHours(0, 0, 0, 0);
   return x;
@@ -322,16 +336,19 @@ export function allocatePayments(
   return { allocations, appliedToAdHoc, overpayment };
 }
 
-/** Derive a period's status from its due date and allocated paid/balance. */
+/** Derive a period's status from its due date and allocated paid/balance. `tz`
+ *  (org timezone) makes the "today" comparison org-local; omitted preserves the
+ *  legacy machine-local date-string behavior. */
 export function periodStatus(
   period: BillingPeriod,
   paid: number,
   charge: number,
+  tz?: string,
 ): BillingPeriodStatus {
   if (period.status === "cancelled" || period.status === "waived")
     return period.status;
   const balance = Math.max(0, charge - paid);
-  const today = todayStr();
+  const today = todayStrInTz(tz);
   if (balance <= 0) return "paid";
   if (paid > 0) {
     return period.due_at < today ? "past_due" : "partially_paid";
@@ -387,6 +404,7 @@ export function lateFeeEligibility(
   allocation: PeriodAllocation | undefined,
   rental: RentalAgreement,
   now = new Date(),
+  tz?: string,
 ): LateFeeEligibility {
   if (period.late_fee_applied)
     return { eligible: false, reason: "Late fee already applied." };
@@ -402,6 +420,7 @@ export function lateFeeEligibility(
       grace_period: rental.grace_period ?? 0,
     },
     now,
+    tz,
   );
   if (!result.late)
     return { eligible: false, reason: "Still within grace window." };
@@ -426,6 +445,7 @@ export function rentalLateStatus(
   allocations: Map<string, PeriodAllocation>,
   rental: RentalAgreement,
   now = new Date(),
+  tz?: string,
 ): "late" | "overdue" | null {
   let worst: "late" | "overdue" | null = null;
   for (const p of periods) {
@@ -439,6 +459,7 @@ export function rentalLateStatus(
         grace_period: rental.grace_period ?? 0,
       },
       now,
+      tz,
     );
     if (!result.late) continue;
     // How far past the late-since instant, in days.

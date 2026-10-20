@@ -8,6 +8,9 @@
 // ledger as linked ExpenseTransactions (source = maintenance_work_order). The
 // vehicle maintenance-cost selector sums ONLY non-reversed work-order-sourced
 // expenses so a repair is counted once, not as (work-order cost + expense).
+//
+// Business-calendar ranges (e.g. getTotalExpensesForRange) are evaluated in the
+// organization's configured timezone (`tz`), never the machine wall clock.
 
 import type {
   CashAccount,
@@ -20,17 +23,21 @@ import type {
   ExpenseTransaction,
 } from "./expenseTypes";
 import { TENDER_METHOD_LABELS } from "./paymentMethodTypes";
+import { startOfDayInTz } from "./timezone";
 
 const DAY = 86_400_000;
 
-function startOfDay(d: Date) {
+function startOfDay(d: Date, tz?: string): Date {
+  if (tz) return startOfDayInTz(d, tz);
   const x = new Date(d);
   x.setHours(0, 0, 0, 0);
   return x;
 }
 
-function inRange(date: string, start: Date, end: Date): boolean {
-  const d = new Date(date + "T00:00:00");
+function inRange(date: string, start: Date, end: Date, tz?: string): boolean {
+  // Anchor date-only values at local noon before reading org parts so a
+  // date-only value never shifts a calendar day because of UTC parsing.
+  const d = startOfDay(new Date(date + "T12:00:00Z"), tz);
   return d >= start && d <= end;
 }
 
@@ -221,14 +228,16 @@ export function getOutstandingReimbursementTotal(
   );
 }
 
-/** Total expenses within a date range (net, by transaction_date). */
+/** Total expenses within a date range (net, by transaction_date). `tz` (org
+ *  timezone) makes the range boundaries org-local. */
 export function getTotalExpensesForRange(
   expenses: ExpenseTransaction[],
   start: Date,
   end: Date,
+  tz?: string,
 ): number {
   return netExpenseTotal(
-    expenses.filter((e) => inRange(e.transaction_date, start, end)),
+    expenses.filter((e) => inRange(e.transaction_date, start, end, tz)),
   );
 }
 

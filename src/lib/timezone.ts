@@ -161,4 +161,61 @@ export function startOfDayMinusInTz(d: Date, tz: string, daysBack = 1): Date {
   return new Date(startOfDayInTz(d, tz).getTime() - daysBack * DAY_MS);
 }
 
+/** Day-of-week (1=Mon..7=Sun) of a {year,month,day} calendar date. A calendar
+ *  date's weekday is timezone-independent once the date is known. */
+function weekdayOf(year: number, month: number, day: number): number {
+  // Date.UTC month is 0-based; getUTCDay() returns 0=Sun..6=Sat.
+  const jsDow = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+  // Convert 0=Sun..6=Sat → 1=Mon..7=Sun.
+  return jsDow === 0 ? 7 : jsDow;
+}
+
+/** UTC instant of local midnight (00:00:00) on the Monday of the week
+ *  containing `d` in `tz`. Weeks are Monday-start to match the existing
+ *  `startOfWeek` convention. */
+export function startOfWeekInTz(d: Date, tz: string): Date {
+  const dayStart = startOfDayInTz(d, tz);
+  const p = zonedDateTimeParts(d, tz);
+  const dow = weekdayOf(p.year, p.month, p.day); // 1=Mon..7=Sun
+  const offset = dow - 1; // days back to Monday
+  return new Date(dayStart.getTime() - offset * DAY_MS);
+}
+
+/** UTC instant of local 23:59:59.999 on the Sunday ending the week containing
+ *  `d` in `tz` (inclusive end of a 7-day Monday→Sunday window). */
+export function endOfWeekInTz(d: Date, tz: string): Date {
+  const dayEnd = endOfDayInTz(d, tz);
+  const p = zonedDateTimeParts(d, tz);
+  const dow = weekdayOf(p.year, p.month, p.day); // 1=Mon..7=Sun
+  const remaining = 7 - dow; // days forward to Sunday
+  return new Date(dayEnd.getTime() + remaining * DAY_MS);
+}
+
+/** Validate an IANA timezone string against the runtime's known zones. */
+export function isValidTimezone(timezone: string): boolean {
+  try {
+    const known = Intl.supportedValuesOf?.("timeZone");
+    if (known) return known.includes(timezone);
+    // Fallback: ask the runtime to format in the zone; invalid zones throw.
+    new Intl.DateTimeFormat("en-US", { timeZone: timezone }).format(new Date());
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Resolve the authoritative organization timezone from a CompanyInfo value.
+ *
+ * `CompanyInfo.timezone` is the source of truth (an IANA zone string). It is a
+ * required field on the persisted model, but legacy/in-flight records may be
+ * empty or malformed, and edge runtimes have no machine-local business zone.
+ * We validate it and fall back to **UTC** — never the server wall-clock zone —
+ * so missing/invalid data never silently makes business days follow the
+ * process timezone. The fallback is a safe pre-launch default only;
+ * onboarding seeds a real IANA zone. */
+export function getOrgTimezone(timezone?: string | null): string {
+  if (timezone && isValidTimezone(timezone)) return timezone;
+  return "UTC";
+}
+
 export { DAY_MS };

@@ -8,6 +8,9 @@
 // the SAME centralized exact-time evaluator (lateEvaluator) as the billing
 // engine's lateFeeEligibility / rentalLateStatus, so Payments Due can never
 // disagree with the billing engine about whether an obligation is late.
+//
+// Day-boundary classification (due today / late / daysLate) is evaluated in
+// the organization's configured timezone (`tz`), never the machine wall clock.
 
 import {
   allocatePayments,
@@ -18,10 +21,12 @@ import {
 import { isObligationLate } from "./lateEvaluator";
 import type { BillingPeriod } from "./billingTypes";
 import type { FinancialTransaction, RentalAgreement } from "./types";
+import { startOfDayInTz } from "./timezone";
 
 const DAY = 86_400_000;
 
-function startOfDay(d: Date) {
+function startOfDay(d: Date, tz?: string): Date {
+  if (tz) return startOfDayInTz(d, tz);
   const x = new Date(d);
   x.setHours(0, 0, 0, 0);
   return x;
@@ -55,13 +60,15 @@ export function getNextPaymentDue(
 }
 
 /** Late billing periods for a rental (outstanding + authoritatively late via
- *  the centralized exact-time evaluator: cutoff + grace). */
+ *  the centralized exact-time evaluator: cutoff + grace). `tz` (org timezone)
+ *  makes the cutoff/grace boundary org-local. */
 export function getLateBillingPeriods(
   periods: BillingPeriod[],
   transactions: FinancialTransaction[],
   rentalId: string,
   rental?: RentalAgreement,
   now: Date = new Date(),
+  tz?: string,
 ): BillingPeriod[] {
   const alloc = allocatePayments(periods, transactions, rentalId);
   return periods.filter((p) => {
@@ -75,6 +82,7 @@ export function getLateBillingPeriods(
         grace_period: rental?.grace_period ?? 0,
       },
       now,
+      tz,
     ).late;
   });
 }
@@ -92,14 +100,16 @@ export interface PaymentObligation {
  * Authoritative payment-obligation derivation across ALL billing frequencies.
  * Uses allocatePayments (the single FIFO engine) so Dashboard, Payments Due,
  * and Rental Detail never disagree. Returns one entry per outstanding period.
+ * `tz` (org timezone) makes the due-day boundary org-local.
  */
 export function getPaymentObligations(
   rentals: RentalAgreement[],
   periods: BillingPeriod[],
   transactions: FinancialTransaction[],
   now: Date = new Date(),
+  tz?: string,
 ): PaymentObligation[] {
-  const today = startOfDay(now);
+  const today = startOfDay(now, tz);
   const out: PaymentObligation[] = [];
   for (const r of rentals) {
     if (["cancelled", "completed"].includes(r.status)) continue;
@@ -123,7 +133,8 @@ export function getPaymentObligations(
       const a = alloc.allocations.get(p.id);
       const balance = a?.balance ?? p.total_amount;
       const paid = a?.paid ?? 0;
-      const due = new Date(p.due_at + "T00:00:00");
+      // Anchor the date-only due day at local noon before reading org parts.
+      const due = startOfDay(new Date(p.due_at + "T12:00:00Z"), tz);
       const diff = Math.round((due.getTime() - today.getTime()) / DAY);
       // Authoritative lateness uses the centralized exact-time evaluator
       // (cutoff + grace) so Payments Due agrees with the billing engine.
@@ -134,6 +145,7 @@ export function getPaymentObligations(
           grace_period: r.grace_period ?? 0,
         },
         now,
+        tz,
       ).late;
       let bucket: PaymentObligation["bucket"];
       if (balance <= 0) bucket = "upcoming";

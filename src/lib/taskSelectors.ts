@@ -2,20 +2,16 @@
 //
 // Pure functions over Task[] + TaskEvent[] + TaskNote[]. Overdue is DERIVED
 // (status open/in_progress + due date passed), never stored. Date-only tasks
-// remain due through the end of the tenant-local calendar day so a 5 PM task
-// isn't overdue at the wrong local time. All comparisons use local-day semantics
-// consistent with the rest of the app.
+// remain due through the end of the org-local calendar day so a 5 PM task
+// isn't overdue at the wrong local time. All comparisons use org-local-day
+// semantics (the organization's configured timezone), never the machine
+// wall clock — see `CompanyInfo.timezone` / `getOrgTimezone`.
 
 import type { Task, TaskEvent, TaskNote, TaskStatus } from "./taskTypes";
 import { TASK_PRIORITY_RANK } from "./taskTypes";
+import { startOfDayInTz, endOfDayInTz } from "./timezone";
 
 const DAY = 86_400_000;
-
-function startOfDay(d: Date) {
-  const x = new Date(d);
-  x.setHours(0, 0, 0, 0);
-  return x;
-}
 
 /** Next task number in the TSK-000000 sequence (tenant-scoped). */
 export function nextTaskNumber(tasks: Task[]): string {
@@ -30,38 +26,57 @@ export function nextTaskNumber(tasks: Task[]): string {
 }
 
 /** A task is overdue when it's open/in_progress AND its due date/time passed.
- *  Date-only tasks are due through the end of that local calendar day. */
-export function isTaskOverdue(task: Task, now: Date = new Date()): boolean {
+ *  Date-only tasks are due through the end of that org-local calendar day.
+ *  `tz` (org timezone) makes the day boundary org-local; omitted uses the org
+ *  timezone resolved by the caller (see getOrgTimezone). */
+export function isTaskOverdue(
+  task: Task,
+  now: Date = new Date(),
+  tz?: string,
+): boolean {
   if (task.status !== "open" && task.status !== "in_progress") return false;
   if (!task.due_date) return false;
-  const due = new Date(task.due_date + "T00:00:00");
+  const due = new Date(task.due_date + "T12:00:00Z");
   if (isNaN(due.getTime())) return false;
   if (task.due_time) {
-    // Specific time on the due date.
+    // Specific wall time on the due date, in the org timezone.
     const [h, m] = task.due_time.split(":").map(Number);
-    const dueWithTime = new Date(due);
-    dueWithTime.setHours(h ?? 0, m ?? 0, 0, 0);
-    return now.getTime() > dueWithTime.getTime();
+    const dayStart = startOfDayInTz(due, tz ?? "UTC");
+    return (
+      now.getTime() >
+      dayStart.getTime() + (h ?? 0) * 3600_000 + (m ?? 0) * 60_000
+    );
   }
-  // Date-only: due through end of that day (start of next day).
-  return now.getTime() >= due.getTime() + DAY;
+  // Date-only: due through end of that org-local day.
+  const dueEnd = endOfDayInTz(due, tz ?? "UTC");
+  return now.getTime() > dueEnd.getTime();
 }
 
-/** Tasks due today (tenant-local). Includes overdue tasks due today. */
-export function isTaskDueToday(task: Task, now: Date = new Date()): boolean {
+/** Tasks due today (org-local). Includes overdue tasks due today. */
+export function isTaskDueToday(
+  task: Task,
+  now: Date = new Date(),
+  tz?: string,
+): boolean {
   if (task.status !== "open" && task.status !== "in_progress") return false;
   if (!task.due_date) return false;
-  const today = startOfDay(now);
-  const due = startOfDay(new Date(task.due_date + "T00:00:00"));
+  const z = tz ?? "UTC";
+  const today = startOfDayInTz(now, z);
+  const due = startOfDayInTz(new Date(task.due_date + "T12:00:00Z"), z);
   return due.getTime() === today.getTime();
 }
 
-/** Tasks due in the future (after today). */
-export function isTaskUpcoming(task: Task, now: Date = new Date()): boolean {
+/** Tasks due in the future (after today, org-local). */
+export function isTaskUpcoming(
+  task: Task,
+  now: Date = new Date(),
+  tz?: string,
+): boolean {
   if (task.status !== "open" && task.status !== "in_progress") return false;
   if (!task.due_date) return false;
-  const today = startOfDay(now);
-  const due = startOfDay(new Date(task.due_date + "T00:00:00"));
+  const z = tz ?? "UTC";
+  const today = startOfDayInTz(now, z);
+  const due = startOfDayInTz(new Date(task.due_date + "T12:00:00Z"), z);
   return due.getTime() > today.getTime();
 }
 
@@ -78,30 +93,36 @@ export function getUnassignedTasks(tasks: Task[]): Task[] {
   return tasks.filter((t) => !t.assigned_to_user_id && isTaskActive(t));
 }
 
-export function getOverdueTasks(tasks: Task[], now: Date = new Date()): Task[] {
-  return tasks.filter((t) => isTaskOverdue(t, now));
+export function getOverdueTasks(
+  tasks: Task[],
+  now: Date = new Date(),
+  tz?: string,
+): Task[] {
+  return tasks.filter((t) => isTaskOverdue(t, now, tz));
 }
 
 export function getTasksDueToday(
   tasks: Task[],
   now: Date = new Date(),
+  tz?: string,
 ): Task[] {
-  return tasks.filter((t) => isTaskDueToday(t, now));
+  return tasks.filter((t) => isTaskDueToday(t, now, tz));
 }
 
 /** Operational sort: overdue first, then due today, then priority, then nearest
- *  due date. Completed/cancelled sink to the bottom. */
-export function sortTasksOperational(tasks: Task[]): Task[] {
+ *  due date. Completed/cancelled sink to the bottom. `tz` (org timezone) makes
+ *  the overdue/due-today boundary org-local. */
+export function sortTasksOperational(tasks: Task[], tz?: string): Task[] {
   const now = new Date();
   return [...tasks].sort((a, b) => {
     const aActive = isTaskActive(a);
     const bActive = isTaskActive(b);
     if (aActive !== bActive) return aActive ? -1 : 1;
-    const aOver = isTaskOverdue(a, now);
-    const bOver = isTaskOverdue(b, now);
+    const aOver = isTaskOverdue(a, now, tz);
+    const bOver = isTaskOverdue(b, now, tz);
     if (aOver !== bOver) return aOver ? -1 : 1;
-    const aToday = isTaskDueToday(a, now);
-    const bToday = isTaskDueToday(b, now);
+    const aToday = isTaskDueToday(a, now, tz);
+    const bToday = isTaskDueToday(b, now, tz);
     if (aToday !== bToday) return aToday ? -1 : 1;
     const pDiff =
       TASK_PRIORITY_RANK[a.priority] - TASK_PRIORITY_RANK[b.priority];
