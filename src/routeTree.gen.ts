@@ -39,6 +39,7 @@ import { Route as TasksRouteImport } from './routes/tasks'
 import { Route as TelematicsRouteImport } from './routes/telematics'
 import { Route as TollsViolationsRouteImport } from './routes/tolls-violations'
 import { Route as ViolationsRouteImport } from './routes/violations'
+import { Route as ApiCrmIngestRouteImport } from './routes/api/crm-ingest'
 import { Route as ApiPhase1E2eRouteImport } from './routes/api/phase1-e2e'
 import { Route as ApiPhase2E2eRouteImport } from './routes/api/phase2-e2e'
 import { Route as ApiPhase3E2eRouteImport } from './routes/api/phase3-e2e'
@@ -255,6 +256,11 @@ const TollsViolationsRoute = TollsViolationsRouteImport.update({
 const ViolationsRoute = ViolationsRouteImport.update({
   id: '/violations',
   path: '/violations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCrmIngestRoute = ApiCrmIngestRouteImport.update({
+  id: '/api/crm-ingest',
+  path: '/api/crm-ingest',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPhase1E2eRoute = ApiPhase1E2eRouteImport.update({
@@ -630,6 +636,7 @@ export interface FileRoutesByFullPath {
   '/telematics': typeof TelematicsRoute
   '/tolls-violations': typeof TollsViolationsRoute
   '/violations': typeof ViolationsRoute
+  '/api/crm-ingest': typeof ApiCrmIngestRoute
   '/api/phase1-e2e': typeof ApiPhase1E2eRoute
   '/api/phase2-e2e': typeof ApiPhase2E2eRoute
   '/api/phase3-e2e': typeof ApiPhase3E2eRoute
@@ -728,6 +735,7 @@ export interface FileRoutesByTo {
   '/telematics': typeof TelematicsRoute
   '/tolls-violations': typeof TollsViolationsRoute
   '/violations': typeof ViolationsRoute
+  '/api/crm-ingest': typeof ApiCrmIngestRoute
   '/api/phase1-e2e': typeof ApiPhase1E2eRoute
   '/api/phase2-e2e': typeof ApiPhase2E2eRoute
   '/api/phase3-e2e': typeof ApiPhase3E2eRoute
@@ -827,6 +835,7 @@ export interface FileRoutesById {
   '/telematics': typeof TelematicsRoute
   '/tolls-violations': typeof TollsViolationsRoute
   '/violations': typeof ViolationsRoute
+  '/api/crm-ingest': typeof ApiCrmIngestRoute
   '/api/phase1-e2e': typeof ApiPhase1E2eRoute
   '/api/phase2-e2e': typeof ApiPhase2E2eRoute
   '/api/phase3-e2e': typeof ApiPhase3E2eRoute
@@ -928,6 +937,7 @@ export interface FileRouteTypes {
     | '/telematics'
     | '/tolls-violations'
     | '/violations'
+    | '/api/crm-ingest'
     | '/api/phase1-e2e'
     | '/api/phase2-e2e'
     | '/api/phase3-e2e'
@@ -1026,6 +1036,7 @@ export interface FileRouteTypes {
     | '/telematics'
     | '/tolls-violations'
     | '/violations'
+    | '/api/crm-ingest'
     | '/api/phase1-e2e'
     | '/api/phase2-e2e'
     | '/api/phase3-e2e'
@@ -1124,6 +1135,7 @@ export interface FileRouteTypes {
     | '/telematics'
     | '/tolls-violations'
     | '/violations'
+    | '/api/crm-ingest'
     | '/api/phase1-e2e'
     | '/api/phase2-e2e'
     | '/api/phase3-e2e'
@@ -1224,6 +1236,7 @@ export interface RootRouteChildren {
   TelematicsRoute: typeof TelematicsRoute
   TollsViolationsRoute: typeof TollsViolationsRoute
   ViolationsRoute: typeof ViolationsRoute
+  ApiCrmIngestRoute: typeof ApiCrmIngestRoute
   ApiPhase1E2eRoute: typeof ApiPhase1E2eRoute
   ApiPhase2E2eRoute: typeof ApiPhase2E2eRoute
   ApiPhase3E2eRoute: typeof ApiPhase3E2eRoute
@@ -1476,6 +1489,13 @@ declare module '@tanstack/react-router' {
       path: '/violations'
       fullPath: '/violations'
       preLoaderRoute: typeof ViolationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/crm-ingest': {
+      id: '/api/crm-ingest'
+      path: '/api/crm-ingest'
+      fullPath: '/api/crm-ingest'
+      preLoaderRoute: typeof ApiCrmIngestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/phase1-e2e': {
@@ -2054,6 +2074,7 @@ const rootRouteChildren: RootRouteChildren = {
   TelematicsRoute: TelematicsRoute,
   TollsViolationsRoute: TollsViolationsRoute,
   ViolationsRoute: ViolationsRoute,
+  ApiCrmIngestRoute: ApiCrmIngestRoute,
   ApiPhase1E2eRoute: ApiPhase1E2eRoute,
   ApiPhase2E2eRoute: ApiPhase2E2eRoute,
   ApiPhase3E2eRoute: ApiPhase3E2eRoute,
