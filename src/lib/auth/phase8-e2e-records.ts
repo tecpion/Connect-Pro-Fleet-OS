@@ -130,7 +130,7 @@ export async function runOperationalRecords(
 
   const driver: Driver = {
     id: crypto.randomUUID(),
-    reservation_id: runtime.ctx.rentalId,
+    reservation_id: "",
     full_name: "Phase8 Driver",
     license_number: "D8-12345",
     license_state: "NY",
