@@ -35,6 +35,12 @@ import type {
   AgreementTemplateRow,
   MasterAgreementRow,
   AgreementInstanceRow,
+  StaffRow,
+  OperationalStaffAssignmentRow,
+  DriverRow,
+  CompanySettingsRow,
+  AddonCategoryRow,
+  AddonCatalogItemRow,
 } from "./dbTypesCore";
 import type {
   ComplianceDocumentRow,
@@ -207,6 +213,13 @@ export interface Database {
       verification_overrides: Entity<VerificationOverrideRow>;
       verification_audit_events: Entity<VerificationAuditEventRow>;
       verification_usage_charges: Entity<VerificationUsageChargeRow>;
+      // ── Phase 8A: operational & configuration tables ──────────────────
+      staff: Entity<StaffRow>;
+      operational_staff_assignments: Entity<OperationalStaffAssignmentRow>;
+      drivers: Entity<DriverRow>;
+      company_settings: Entity<CompanySettingsRow>;
+      addon_categories: Entity<AddonCategoryRow>;
+      addon_catalog_items: Entity<AddonCatalogItemRow>;
     };
     Views: Record<string, never>;
     Functions: {

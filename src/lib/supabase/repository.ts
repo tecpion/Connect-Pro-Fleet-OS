@@ -69,6 +69,24 @@ import {
   SupabaseMaintenanceRepository,
   type MaintenanceRepository,
 } from "./maintenanceAdapters";
+import {
+  SupabaseLocationsRepository,
+  SupabaseStaffAssignmentsRepository,
+  type LocationsRepository,
+  type StaffAssignmentsRepository,
+} from "./phase8OperationalAdapters";
+import {
+  SupabaseTasksRepository,
+  SupabaseNotificationsRepository,
+  SupabaseCompanySettingsRepository,
+  SupabaseVehicleClassesRepository,
+  SupabaseAddonsRepository,
+  type TasksRepository,
+  type NotificationsRepository,
+  type CompanySettingsRepository,
+  type VehicleClassesRepository,
+  type AddonsRepository,
+} from "./phase8ConfigAdapters";
 
 // ---------------------------------------------------------------------------
 // Repository interfaces
@@ -231,6 +249,13 @@ export {
   SupabaseBankingRepository,
   SupabaseInvestorRepository,
   SupabaseMaintenanceRepository,
+  SupabaseLocationsRepository,
+  SupabaseStaffAssignmentsRepository,
+  SupabaseTasksRepository,
+  SupabaseNotificationsRepository,
+  SupabaseCompanySettingsRepository,
+  SupabaseVehicleClassesRepository,
+  SupabaseAddonsRepository,
 };
 export type {
   TelematicsRepository,
@@ -240,6 +265,13 @@ export type {
   BankingRepository,
   InvestorRepository,
   MaintenanceRepository,
+  LocationsRepository,
+  StaffAssignmentsRepository,
+  TasksRepository,
+  NotificationsRepository,
+  CompanySettingsRepository,
+  VehicleClassesRepository,
+  AddonsRepository,
 };
 
 // ---------------------------------------------------------------------------
@@ -346,6 +378,13 @@ export function createRepositories(): {
   banking: BankingRepository | null;
   investor: InvestorRepository | null;
   maintenance: MaintenanceRepository | null;
+  locations: LocationsRepository | null;
+  staffAssignments: StaffAssignmentsRepository | null;
+  tasks: TasksRepository | null;
+  notifications: NotificationsRepository | null;
+  companySettings: CompanySettingsRepository | null;
+  vehicleClasses: VehicleClassesRepository | null;
+  addons: AddonsRepository | null;
 } {
   const db = getSupabase();
   if (!db)
@@ -367,6 +406,13 @@ export function createRepositories(): {
       banking: null,
       investor: null,
       maintenance: null,
+      locations: null,
+      staffAssignments: null,
+      tasks: null,
+      notifications: null,
+      companySettings: null,
+      vehicleClasses: null,
+      addons: null,
     };
   return {
     customers: new SupabaseCustomerRepository(db),
@@ -386,5 +432,12 @@ export function createRepositories(): {
     banking: new SupabaseBankingRepository(db),
     investor: new SupabaseInvestorRepository(db),
     maintenance: new SupabaseMaintenanceRepository(db),
+    locations: new SupabaseLocationsRepository(db),
+    staffAssignments: new SupabaseStaffAssignmentsRepository(db),
+    tasks: new SupabaseTasksRepository(db),
+    notifications: new SupabaseNotificationsRepository(db),
+    companySettings: new SupabaseCompanySettingsRepository(db),
+    vehicleClasses: new SupabaseVehicleClassesRepository(db),
+    addons: new SupabaseAddonsRepository(db),
   };
 }
