@@ -32,6 +32,7 @@ import {
 import { TENANT_ID, uid } from "./ids";
 import type { StoreState } from "./storeState";
 import { emitPaymentPosted, emitPaymentReversed } from "./integrationEmission";
+import { persistLedgerInsert } from "../supabase/phase2StoreSync";
 
 export function buildLedgerMethods(
   s: StoreState,
@@ -163,6 +164,7 @@ export function buildLedgerMethods(
     };
     const updatedTxns = [...s.transactions, txn];
     s.setTransactions((ts) => [...ts, txn]);
+    persistLedgerInsert(txn);
     if (opts?.invoiceId) {
       s.setTransactions((ts) =>
         ts.map((t) =>
@@ -290,6 +292,7 @@ export function buildLedgerMethods(
         metadata: null,
       };
       s.setTransactions((ts) => [...ts, txn]);
+      persistLedgerInsert(txn);
       syncRentalFromLedger(rentalId);
       s.setRentalEvents((es) => [
         {
@@ -350,6 +353,7 @@ export function buildLedgerMethods(
         metadata: input.metadata ?? null,
       };
       s.setTransactions((ts) => [...ts, txn]);
+      persistLedgerInsert(txn);
       return txn.id;
     },
 
@@ -388,6 +392,7 @@ export function buildLedgerMethods(
         metadata: { reversal: true },
       };
       s.setTransactions((ts) => [...ts, reversal]);
+      persistLedgerInsert(reversal);
       if (s.rentals.find((r) => r.id === original.rental_id))
         syncRentalFromLedger(original.rental_id);
       if (arrangements) arrangements.refreshArrangementStatuses();

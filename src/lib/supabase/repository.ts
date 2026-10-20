@@ -65,6 +65,10 @@ import {
   type BankingRepository,
   type InvestorRepository,
 } from "./phase5Adapters";
+import {
+  SupabaseMaintenanceRepository,
+  type MaintenanceRepository,
+} from "./maintenanceAdapters";
 
 // ---------------------------------------------------------------------------
 // Repository interfaces
@@ -226,6 +230,7 @@ export {
   SupabaseExpenseRepository,
   SupabaseBankingRepository,
   SupabaseInvestorRepository,
+  SupabaseMaintenanceRepository,
 };
 export type {
   TelematicsRepository,
@@ -234,6 +239,7 @@ export type {
   ExpenseRepository,
   BankingRepository,
   InvestorRepository,
+  MaintenanceRepository,
 };
 
 // ---------------------------------------------------------------------------
@@ -339,6 +345,7 @@ export function createRepositories(): {
   expenses: ExpenseRepository | null;
   banking: BankingRepository | null;
   investor: InvestorRepository | null;
+  maintenance: MaintenanceRepository | null;
 } {
   const db = getSupabase();
   if (!db)
@@ -359,6 +366,7 @@ export function createRepositories(): {
       expenses: null,
       banking: null,
       investor: null,
+      maintenance: null,
     };
   return {
     customers: new SupabaseCustomerRepository(db),
@@ -377,5 +385,6 @@ export function createRepositories(): {
     expenses: new SupabaseExpenseRepository(db),
     banking: new SupabaseBankingRepository(db),
     investor: new SupabaseInvestorRepository(db),
+    maintenance: new SupabaseMaintenanceRepository(db),
   };
 }

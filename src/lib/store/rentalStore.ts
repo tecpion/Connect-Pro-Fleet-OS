@@ -20,6 +20,10 @@ import {
 } from "./rentalIntegrationEmission";
 import { getCompanyPoliciesRef } from "./companyPolicyRef";
 import { freezeRentalPolicySnapshot } from "../companyPolicy";
+import {
+  persistRentalInsert,
+  persistRentalUpdate,
+} from "../supabase/phase2StoreSync";
 
 const DAY = 86_400_000;
 
@@ -83,15 +87,21 @@ export function buildRentalMethods(
   }
 
   return {
-    addRental: (r: RentalAgreement) => s.setRentals((rs) => [r, ...rs]),
-    updateRental: (id: string, patch: Partial<RentalAgreement>) =>
+    addRental: (r: RentalAgreement) => {
+      s.setRentals((rs) => [r, ...rs]);
+      persistRentalInsert(r);
+    },
+    updateRental: (id: string, patch: Partial<RentalAgreement>) => {
+      const existing = s.rentals.find((r) => r.id === id);
       s.setRentals((rs) =>
         rs.map((r) =>
           r.id === id
             ? { ...r, ...patch, updated_at: new Date().toISOString() }
             : r,
         ),
-      ),
+      );
+      if (existing) persistRentalUpdate(existing.tenant_id, id, patch);
+    },
     addRentalEvent: addEvent,
 
     // Record a payment against a rental via the authoritative shared ledger
@@ -261,6 +271,7 @@ export function buildRentalMethods(
       };
 
       s.setRentals((rs) => [rental, ...rs]);
+      persistRentalInsert(rental);
       s.setReservations((rs) =>
         rs.map((r) =>
           r.id === res.id ? { ...r, converted_to_rental_id: rentalId } : r,
@@ -316,6 +327,16 @@ export function buildRentalMethods(
             : r,
         ),
       );
+      persistRentalUpdate(rental.tenant_id, id, {
+        status: "active",
+        checkout_date: today,
+        checkout_time: time,
+        mileage_out: data.mileageOut,
+        fuel_out: data.fuelOut,
+        billing_config: data.billingConfig ?? rental.billing_config ?? null,
+        pricing_snapshot: snapshot,
+        policy_snapshot: policySnapshot,
+      });
       // Build #9 cleanup — post start-time FEES only (one-time / rental_start
       // fees such as an admin fee) + their taxes. The rental BASE charge is
       // NOT posted here: for recurring rentals the billing engine posts each

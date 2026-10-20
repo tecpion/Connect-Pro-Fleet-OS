@@ -42,13 +42,21 @@ import type { StoreState } from "./storeState";
 import { resolveSystemTasks } from "./taskResolution";
 import { emitDepositApplied } from "./depositIntegrationEmission";
 import { buildDepositOverrideMethods } from "./depositOverrideStore";
+import {
+  persistDepositInsert,
+  persistDepositUpdate,
+  persistDepositHistoryInsert,
+} from "../supabase/phase2StoreSync";
 
 export function buildDepositMethods(s: StoreState) {
   function logEvent(e: Omit<DepositHistoryEvent, "id" | "tenant_id">) {
-    s.setDepositHistory((hs) => [
-      { ...e, id: uid("dhe"), tenant_id: TENANT_ID },
-      ...hs,
-    ]);
+    const event: DepositHistoryEvent = {
+      ...e,
+      id: uid("dhe"),
+      tenant_id: TENANT_ID,
+    };
+    s.setDepositHistory((hs) => [event, ...hs]);
+    persistDepositHistoryInsert(event);
   }
   // Idempotency: has a money-moving event with this requestKey already fired?
   // Uses the synchronous ref registry so rapid sequential calls within one
@@ -101,6 +109,7 @@ export function buildDepositMethods(s: StoreState) {
     depositId: string,
     patch: (prev: RentalDeposit) => Partial<RentalDeposit>,
   ) {
+    const existing = s.rentalDeposits.find((d) => d.id === depositId);
     s.setRentalDeposits((ds) =>
       ds.map((d) => {
         if (d.id !== depositId) return d;
@@ -113,6 +122,10 @@ export function buildDepositMethods(s: StoreState) {
         return next;
       }),
     );
+    if (existing) {
+      const merged: Partial<RentalDeposit> = patch(existing);
+      persistDepositUpdate(existing.tenant_id, depositId, merged);
+    }
   }
 
   const postTxn = postDepositTransaction.bind(null, s);
@@ -170,6 +183,7 @@ export function buildDepositMethods(s: StoreState) {
         created_by: s.currentStaffId,
       };
       s.setRentalDeposits((ds) => [deposit, ...ds]);
+      persistDepositInsert(deposit);
       if (input.requiredAmount > 0) {
         logEvent({
           deposit_id: deposit.id,
