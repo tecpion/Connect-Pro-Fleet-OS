@@ -182,12 +182,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(DEMO_SESSION);
         return { ok: true };
       }
-      const { data, error } = await supabase.auth.signUp({
-        email: args.email,
-        password: args.password,
-      });
-      if (error) return { ok: false, error: error.message };
-      const user = data.user;
+      let data:
+        Awaited<ReturnType<typeof supabase.auth.signUp>>["data"] | null = null;
+      try {
+        const res = await supabase.auth.signUp({
+          email: args.email,
+          password: args.password,
+        });
+        if (res.error) return { ok: false, error: res.error.message };
+        data = res.data;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (msg.includes("Failed to fetch") || msg.includes("NetworkError")) {
+          return {
+            ok: false,
+            error:
+              "Authentication service is currently unreachable (connection timed out). The backend is undergoing maintenance — please try again in a few moments.",
+          };
+        }
+        return { ok: false, error: msg || "Sign up failed." };
+      }
+      const user = data?.user;
       if (!user) {
         // Email confirmation may be required — no session yet.
         return {

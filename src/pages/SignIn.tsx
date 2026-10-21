@@ -33,17 +33,31 @@ export default function SignIn() {
     e.preventDefault();
     setBusy(true);
     setError(null);
-    const res =
-      mode === "signin"
-        ? await signIn(email, password)
-        : await signUp({ email, password, orgName, firstName, lastName });
-    setBusy(false);
-    if (res.ok) navigate("/");
-    else
-      setError(
-        res.error ??
-          (mode === "signin" ? "Sign in failed." : "Sign up failed."),
-      );
+    try {
+      const res =
+        mode === "signin"
+          ? await signIn(email, password)
+          : await signUp({ email, password, orgName, firstName, lastName });
+      setBusy(false);
+      if (res.ok) navigate("/");
+      else
+        setError(
+          res.error ??
+            (mode === "signin" ? "Sign in failed." : "Sign up failed."),
+        );
+    } catch (err) {
+      setBusy(false);
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes("Failed to fetch") || msg.includes("NetworkError")) {
+        setError(
+          "Unable to reach the authentication service (connection timed out). The backend is currently undergoing maintenance — please retry in a few moments.",
+        );
+      } else {
+        setError(
+          msg || (mode === "signin" ? "Sign in failed." : "Sign up failed."),
+        );
+      }
+    }
   }
 
   return (
