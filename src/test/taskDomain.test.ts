@@ -25,6 +25,7 @@ import {
   findOpenSystemTask,
   findOpenSystemTasksForEntity,
 } from "@/lib/taskSelectors";
+import { startOfDayInTz, zonedDateTimeParts } from "@/lib/timezone";
 
 function makeTask(over: Partial<Task> = {}): Task {
   return {
@@ -191,31 +192,61 @@ describe("task active / user selectors", () => {
   });
 });
 
+// Org timezone used for the operational-sort fixture. Constructing fixture
+// due dates as org-local calendar dates (not machine-local wall-clock dates)
+// and passing the same tz + an org-local-noon `now` to sortTasksOperational
+// makes the overdue/due-today boundaries deterministic and independent of the
+// process wall clock — the same invariants the production code enforces.
+const SORT_TZ = "America/New_York";
+
+/** org-local calendar date string (YYYY-MM-DD) of `instant` as seen in SORT_TZ. */
+const dateStrInSortTz = (instant: Date): string => {
+  const p = zonedDateTimeParts(instant, SORT_TZ);
+  return `${p.year}-${String(p.month).padStart(2, "0")}-${String(p.day).padStart(2, "0")}`;
+};
+
+/** A `now` pinned to local noon in SORT_TZ (well inside the local day, away
+ *  from the UTC-midnight boundary that shifts the calendar day under non-UTC
+ *  process timezones). */
+const nowInSortTz = (): Date => {
+  const p = zonedDateTimeParts(new Date(), SORT_TZ);
+  // Build the UTC instant of local 12:00 in SORT_TZ using the same round-trip
+  // offset technique as the production helpers via startOfDayInTz.
+  const midnight = startOfDayInTz(new Date(), SORT_TZ);
+  return new Date(midnight.getTime() + 12 * 3600_000);
+};
+
 describe("task operational sort", () => {
   it("overdue first, then priority, then due date", () => {
+    const now = nowInSortTz();
     const tasks = [
-      makeTask({ id: "low", priority: "low", due_date: dateStr(tomorrow()) }),
+      makeTask({
+        id: "low",
+        priority: "low",
+        due_date: dateStrInSortTz(new Date(now.getTime() + 86_400_000)),
+      }),
       makeTask({
         id: "overdue",
         priority: "normal",
-        due_date: dateStr(yesterday()),
+        due_date: dateStrInSortTz(new Date(now.getTime() - 86_400_000)),
       }),
       makeTask({
         id: "urgent",
         priority: "urgent",
-        due_date: dateStr(today()),
+        due_date: dateStrInSortTz(now),
       }),
     ];
-    const sorted = sortTasksOperational(tasks);
+    const sorted = sortTasksOperational(tasks, now, SORT_TZ);
     expect(sorted[0].id).toBe("overdue");
     expect(sorted[1].id).toBe("urgent");
   });
   it("completed sinks to bottom", () => {
+    const now = nowInSortTz();
     const tasks = [
       makeTask({ id: "done", status: "completed", priority: "urgent" }),
       makeTask({ id: "open", status: "open", priority: "low" }),
     ];
-    const sorted = sortTasksOperational(tasks);
+    const sorted = sortTasksOperational(tasks, now, SORT_TZ);
     expect(sorted[0].id).toBe("open");
   });
 });
