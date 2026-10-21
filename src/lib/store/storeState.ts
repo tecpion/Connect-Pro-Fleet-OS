@@ -83,6 +83,7 @@ import type {
 } from "../bankingTypes";
 import * as seed from "./seed";
 import { uid } from "./ids";
+import { getBackendMode } from "../supabase/client";
 
 export interface StoreState {
   // state values
@@ -313,24 +314,35 @@ export function useStoreState(): StoreState {
   // configures during onboarding — those are settings, not fake records.
   const isDemo = (() => {
     try {
-      const mod = require("./supabaseClientShim") as typeof import("./supabaseClientShim");
-      return mod.getBackendMode() === "memory";
+      return getBackendMode() === "memory";
     } catch {
       return true;
     }
   })();
 
   const [vehicles, setVehicles] = useState(isDemo ? seed.vehicles : []);
-  const [reservations, setReservations] = useState(isDemo ? seed.reservations : []);
+  const [reservations, setReservations] = useState(
+    isDemo ? seed.reservations : [],
+  );
   const [customers, setCustomers] = useState(isDemo ? seed.customers : []);
   const [rentals, setRentals] = useState(isDemo ? seed.rentals : []);
-  const [rentalEvents, setRentalEvents] = useState(isDemo ? seed.rentalEvents : []);
-  const [inspections, setInspections] = useState(isDemo ? seed.inspections : []);
-  const [maintenance, setMaintenance] = useState(isDemo ? seed.maintenance : []);
+  const [rentalEvents, setRentalEvents] = useState(
+    isDemo ? seed.rentalEvents : [],
+  );
+  const [inspections, setInspections] = useState(
+    isDemo ? seed.inspections : [],
+  );
+  const [maintenance, setMaintenance] = useState(
+    isDemo ? seed.maintenance : [],
+  );
   const [addons, setAddons] = useState(isDemo ? seed.addons : []);
-  const [assignments, setAssignments] = useState(isDemo ? seed.assignments : []);
+  const [assignments, setAssignments] = useState(
+    isDemo ? seed.assignments : [],
+  );
   const [drivers, setDrivers] = useState(isDemo ? seed.drivers : []);
-  const [transactions, setTransactions] = useState(isDemo ? seed.transactions : []);
+  const [transactions, setTransactions] = useState(
+    isDemo ? seed.transactions : [],
+  );
   const [invoices, setInvoices] = useState(isDemo ? seed.invoices : []);
   const [receipts, setReceipts] = useState(isDemo ? seed.receipts : []);
   const [companyInfo, setCompanyInfo] = useState(seed.companyInfo);
