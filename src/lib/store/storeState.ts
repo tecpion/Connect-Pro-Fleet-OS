@@ -314,6 +314,8 @@ export function useStoreState(): StoreState {
   // configures during onboarding — those are settings, not fake records.
   const isDemo = (() => {
     try {
+      // Tests always use in-memory seed data (no live Cloud round-trips).
+      if (import.meta.env?.VITEST) return true;
       return getBackendMode() === "memory";
     } catch {
       return true;
