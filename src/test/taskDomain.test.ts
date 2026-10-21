@@ -76,7 +76,16 @@ const tomorrow = () => {
   d.setDate(d.getDate() + 1);
   return d;
 };
-const dateStr = (d: Date) => d.toISOString().slice(0, 10);
+// Format the LOCAL calendar date (YYYY-MM-DD) of the provided Date, not the
+// UTC date. today()/yesterday()/tomorrow() use local wall-clock arithmetic, so
+// using toISOString() here would shift the calendar day under non-UTC timezones
+// (e.g. America/New_York after 20:00 local, when UTC has rolled to tomorrow).
+const dateStr = (d: Date) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
 
 describe("task overdue derivation", () => {
   it("open task with past due date is overdue", () => {

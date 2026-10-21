@@ -33,6 +33,7 @@ import { AllTasksView, STATUS_FILTERS, CATEGORIES } from "./tasks/AllTasksView";
 export default function Tasks() {
   const { tasks, staff, roles, currentStaffId, generateSystemTasks } =
     useStore();
+  const tz = useStore((s) => s.companyInfo?.timezone) ?? undefined;
 
   const currentStaff = staff.find((s) => s.id === currentStaffId);
   const role = currentStaff
@@ -84,8 +85,10 @@ export default function Tasks() {
     () =>
       sortTasksOperational(
         tasks.filter((t) => t.assigned_to_user_id === currentStaffId),
+        new Date(),
+        tz,
       ),
-    [tasks, currentStaffId],
+    [tasks, currentStaffId, tz],
   );
   const myOverdue = myTasks.filter((t) => isTaskOverdue(t));
   const myToday = myTasks.filter(
@@ -111,8 +114,8 @@ export default function Tasks() {
     else if (assigneeFilter !== "all")
       rows = rows.filter((t) => t.assigned_to_user_id === assigneeFilter);
     rows = searchTasks(rows, query);
-    return sortTasksOperational(rows);
-  }, [tasks, statusFilter, categoryFilter, assigneeFilter, query]);
+    return sortTasksOperational(rows, new Date(), tz);
+  }, [tasks, statusFilter, categoryFilter, assigneeFilter, query, tz]);
 
   const overdueCount = getOverdueTasks(tasks).length;
   const dueTodayCount = getTasksDueToday(tasks).length;

@@ -111,10 +111,14 @@ export function getTasksDueToday(
 }
 
 /** Operational sort: overdue first, then due today, then priority, then nearest
- *  due date. Completed/cancelled sink to the bottom. `tz` (org timezone) makes
- *  the overdue/due-today boundary org-local. */
-export function sortTasksOperational(tasks: Task[], tz?: string): Task[] {
-  const now = new Date();
+ *  due date. Completed/cancelled sink to the bottom. `now` and `tz` (org
+ *  timezone) make the overdue/due-today boundary org-local so the sort does not
+ *  depend on the server/process wall clock. */
+export function sortTasksOperational(
+  tasks: Task[],
+  now: Date = new Date(),
+  tz?: string,
+): Task[] {
   return [...tasks].sort((a, b) => {
     const aActive = isTaskActive(a);
     const bActive = isTaskActive(b);
