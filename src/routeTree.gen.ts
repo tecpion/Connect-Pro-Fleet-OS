@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ActionCenterRouteImport } from './routes/action-center'
 import { Route as AiWorkforceRouteImport } from './routes/ai-workforce'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BankingRouteImport } from './routes/banking'
 import { Route as BriefingRouteImport } from './routes/briefing'
 import { Route as ComplianceRouteImport } from './routes/compliance'
@@ -121,6 +122,11 @@ const ActionCenterRoute = ActionCenterRouteImport.update({
 const AiWorkforceRoute = AiWorkforceRouteImport.update({
   id: '/ai-workforce',
   path: '/ai-workforce',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BankingRoute = BankingRouteImport.update({
@@ -609,6 +615,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/action-center': typeof ActionCenterRoute
   '/ai-workforce': typeof AiWorkforceRoute
+  '/auth': typeof AuthRoute
   '/banking': typeof BankingRoute
   '/briefing': typeof BriefingRoute
   '/compliance': typeof ComplianceRoute
@@ -709,6 +716,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/action-center': typeof ActionCenterRoute
   '/ai-workforce': typeof AiWorkforceRoute
+  '/auth': typeof AuthRoute
   '/banking': typeof BankingRoute
   '/briefing': typeof BriefingRoute
   '/compliance': typeof ComplianceRoute
@@ -808,6 +816,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/action-center': typeof ActionCenterRoute
   '/ai-workforce': typeof AiWorkforceRoute
+  '/auth': typeof AuthRoute
   '/banking': typeof BankingRoute
   '/briefing': typeof BriefingRoute
   '/compliance': typeof ComplianceRoute
@@ -910,6 +919,7 @@ export interface FileRouteTypes {
     | '/'
     | '/action-center'
     | '/ai-workforce'
+    | '/auth'
     | '/banking'
     | '/briefing'
     | '/compliance'
@@ -1010,6 +1020,7 @@ export interface FileRouteTypes {
     | '/'
     | '/action-center'
     | '/ai-workforce'
+    | '/auth'
     | '/banking'
     | '/briefing'
     | '/compliance'
@@ -1108,6 +1119,7 @@ export interface FileRouteTypes {
     | '/'
     | '/action-center'
     | '/ai-workforce'
+    | '/auth'
     | '/banking'
     | '/briefing'
     | '/compliance'
@@ -1209,6 +1221,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ActionCenterRoute: typeof ActionCenterRoute
   AiWorkforceRoute: typeof AiWorkforceRoute
+  AuthRoute: typeof AuthRoute
   BankingRoute: typeof BankingRoute
   BriefingRoute: typeof BriefingRoute
   ComplianceRoute: typeof ComplianceRoute
@@ -1300,6 +1313,13 @@ declare module '@tanstack/react-router' {
       path: '/ai-workforce'
       fullPath: '/ai-workforce'
       preLoaderRoute: typeof AiWorkforceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/banking': {
@@ -2047,6 +2067,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ActionCenterRoute: ActionCenterRoute,
   AiWorkforceRoute: AiWorkforceRoute,
+  AuthRoute: AuthRoute,
   BankingRoute: BankingRoute,
   BriefingRoute: BriefingRoute,
   ComplianceRoute: ComplianceRoute,
