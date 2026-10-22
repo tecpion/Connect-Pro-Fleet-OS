@@ -1187,6 +1187,68 @@ export type Database = {
         }
         Relationships: []
       }
+      custom_menu_links: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_enabled: boolean
+          name: string
+          open_mode: string
+          organization_id: string
+          sort_order: number
+          updated_at: string
+          url: string
+          visibility: string
+          visible_role_ids: string[]
+          visible_user_ids: string[]
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_enabled?: boolean
+          name: string
+          open_mode?: string
+          organization_id: string
+          sort_order?: number
+          updated_at?: string
+          url: string
+          visibility?: string
+          visible_role_ids?: string[]
+          visible_user_ids?: string[]
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_enabled?: boolean
+          name?: string
+          open_mode?: string
+          organization_id?: string
+          sort_order?: number
+          updated_at?: string
+          url?: string
+          visibility?: string
+          visible_role_ids?: string[]
+          visible_user_ids?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_menu_links_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customer_auth_links: {
         Row: {
           created_at: string
