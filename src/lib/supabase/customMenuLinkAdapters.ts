@@ -29,7 +29,10 @@ type Db = NonNullable<ReturnType<typeof getSupabase>>;
 export interface CustomMenuLinkRepository {
   list(orgId: string): Promise<CustomMenuLink[]>;
   get(orgId: string, id: string): Promise<CustomMenuLink | null>;
-  insert(orgId: string, input: CustomMenuLinkCreateInput): Promise<CustomMenuLink>;
+  insert(
+    orgId: string,
+    input: CustomMenuLinkCreateInput,
+  ): Promise<CustomMenuLink>;
   update(
     orgId: string,
     id: string,
@@ -38,9 +41,7 @@ export interface CustomMenuLinkRepository {
   delete(orgId: string, id: string): Promise<void>;
 }
 
-export class SupabaseCustomMenuLinkRepository
-  implements CustomMenuLinkRepository
-{
+export class SupabaseCustomMenuLinkRepository implements CustomMenuLinkRepository {
   constructor(private db: Db) {}
 
   async list(orgId: string): Promise<CustomMenuLink[]> {
@@ -97,8 +98,14 @@ export class SupabaseCustomMenuLinkRepository
     const res = await (
       this.db.from("custom_menu_links") as unknown as {
         update: (r: CustomMenuLinkUpdate) => {
-          eq: (col: string, val: string) => {
-            eq: (col: string, val: string) => {
+          eq: (
+            col: string,
+            val: string,
+          ) => {
+            eq: (
+              col: string,
+              val: string,
+            ) => {
               select: () => {
                 single: () => Promise<{
                   data: CustomMenuLinkRow | null;

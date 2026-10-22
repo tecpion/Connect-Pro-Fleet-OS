@@ -449,6 +449,7 @@ export function createRepositories(): {
       agreements: null,
       activityAudit: null,
       leads: null,
+      customMenuLinks: null,
     };
   return {
     customers: new SupabaseCustomerRepository(db),
@@ -482,5 +483,6 @@ export function createRepositories(): {
     agreements: new SupabaseAgreementsRepository(db),
     activityAudit: new SupabaseActivityAuditRepository(db),
     leads: new SupabaseLeadRepository(db),
+    customMenuLinks: new SupabaseCustomMenuLinkRepository(db),
   };
 }

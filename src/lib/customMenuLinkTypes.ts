@@ -11,9 +11,7 @@
 export type CustomMenuLinkOpenMode = "new_tab" | "embedded";
 
 export type CustomMenuLinkVisibility =
-  | "all_staff"
-  | "selected_roles"
-  | "selected_users";
+  "all_staff" | "selected_roles" | "selected_users";
 
 export interface CustomMenuLink {
   id: string;
