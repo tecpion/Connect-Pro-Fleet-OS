@@ -102,6 +102,10 @@ import {
   type ActivityAuditRepository,
 } from "./phase9Adapters";
 import { SupabaseLeadRepository, type LeadRepository } from "./phase10Adapters";
+import {
+  SupabaseCustomMenuLinkRepository,
+  type CustomMenuLinkRepository,
+} from "./customMenuLinkAdapters";
 
 // ---------------------------------------------------------------------------
 // Repository interfaces
@@ -409,6 +413,7 @@ export function createRepositories(): {
   agreements: AgreementsRepository | null;
   activityAudit: ActivityAuditRepository | null;
   leads: LeadRepository | null;
+  customMenuLinks: CustomMenuLinkRepository | null;
 } {
   const db = getSupabase();
   if (!db)
