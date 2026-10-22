@@ -1,6 +1,7 @@
 import { NavLink, useLocation } from "@/lib/router-compat";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/lib/store";
+import { useAuth } from "@/lib/supabase/authContext";
 import { can } from "@/lib/permissions";
 import { useCompanyPolicies } from "@/lib/store/companyPolicyStore";
 import { isVerificationEnabled } from "@/lib/verificationConfig";
@@ -331,6 +332,7 @@ function NavGroupSection({
 
 export function StaffLayout({ children }: { children: React.ReactNode }) {
   const { tenant, staff, currentStaffId, setCurrentStaffId } = useStore();
+  const { session, backendMode, signOut } = useAuth();
   const { visibleStandalone, visibleGroups, visibleFooter } = useVisibleNav();
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
@@ -462,24 +464,51 @@ export function StaffLayout({ children }: { children: React.ReactNode }) {
             {/* Staff identity */}
             <div className="border-t border-white/[0.08] px-4 py-4">
               <p className="text-xs text-nav-muted">Signed in as</p>
-              <select
-                value={currentStaffId}
-                onChange={(e) => setCurrentStaffId(e.target.value)}
-                className="mt-1.5 w-full rounded-md border border-white/10 bg-white/5 px-2.5 py-1.5 text-sm text-nav-foreground focus:border-nav-active focus:outline-none"
-                aria-label="Switch staff member"
-              >
-                {staff.map((s) => (
-                  <option
-                    key={s.id}
-                    value={s.id}
-                    className="bg-nav text-nav-foreground"
+              {backendMode === "supabase" && session?.user ? (
+                <div className="mt-1.5 flex items-center justify-between gap-2 rounded-md border border-white/10 bg-white/5 px-2.5 py-1.5">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-nav-foreground">
+                      {session.profile?.display_name ||
+                        session.profile?.first_name ||
+                        session.user.email?.split("@")[0] ||
+                        "User"}{" "}
+                      <span className="text-xs text-nav-muted">
+                        · {session.memberships[0]?.role_code || "owner"}
+                      </span>
+                    </p>
+                    <p className="truncate text-[11px] text-nav-muted">
+                      {session.user.email}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => signOut()}
+                    className="shrink-0 rounded px-1.5 py-0.5 text-[11px] text-nav-muted hover:bg-white/10 hover:text-nav-foreground transition-colors"
+                    title="Sign out"
                   >
-                    {s.full_name} · {s.role}
-                  </option>
-                ))}
-              </select>
+                    Sign out
+                  </button>
+                </div>
+              ) : (
+                <select
+                  value={currentStaffId}
+                  onChange={(e) => setCurrentStaffId(e.target.value)}
+                  className="mt-1.5 w-full rounded-md border border-white/10 bg-white/5 px-2.5 py-1.5 text-sm text-nav-foreground focus:border-nav-active focus:outline-none"
+                  aria-label="Switch staff member"
+                >
+                  {staff.map((s) => (
+                    <option
+                      key={s.id}
+                      value={s.id}
+                      className="bg-nav text-nav-foreground"
+                    >
+                      {s.full_name} · {s.role}
+                    </option>
+                  ))}
+                </select>
+              )}
               <p className="mt-2 font-mono text-[11px] text-nav-muted">
-                {tenant.business_name}
+                {session?.memberships[0]?.organization_name ||
+                  tenant.business_name}
               </p>
             </div>
           </div>
