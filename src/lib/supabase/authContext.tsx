@@ -97,6 +97,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Restore session on mount.
   useEffect(() => {
     let active = true;
+    // Safety timeout: if auth restoration hangs (Cloud DB unreachable),
+    // resolve loading so RequireAuth can redirect to /signin instead of
+    // showing "Loading…" forever.
+    const timeoutId = setTimeout(() => {
+      if (active) setLoading(false);
+    }, 3000);
     async function restore() {
       if (!supabase || mode === "memory") {
         // Memory mode: deterministic demo session keeps existing app working.
@@ -106,24 +112,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         return;
       }
-      const { data } = await supabase.auth.getSession();
-      if (!active) return;
-      const user = data.session?.user;
-      if (user) {
-        await loadProfile(supabase, user.id, user.email ?? "", setSession);
-      } else {
-        setSession({
-          user: null,
-          profile: null,
-          memberships: [],
-          activeOrganizationId: null,
-        });
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (!active) return;
+        const user = data.session?.user;
+        if (user) {
+          await loadProfile(supabase, user.id, user.email ?? "", setSession);
+        } else {
+          setSession({
+            user: null,
+            profile: null,
+            memberships: [],
+            activeOrganizationId: null,
+          });
+        }
+        setLoading(false);
+      } catch {
+        // Auth service unreachable — treat as unauthenticated so the app
+        // redirects to /signin rather than hanging on "Loading…".
+        if (active) {
+          setSession({
+            user: null,
+            profile: null,
+            memberships: [],
+            activeOrganizationId: null,
+          });
+          setLoading(false);
+        }
       }
-      setLoading(false);
     }
     restore();
     return () => {
       active = false;
+      clearTimeout(timeoutId);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -135,7 +156,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       async (_event, sbSession) => {
         const user = sbSession?.user;
         if (user) {
-          await loadProfile(supabase, user.id, user.email ?? "", setSession);
+          try {
+            await loadProfile(supabase, user.id, user.email ?? "", setSession);
+          } catch {
+            // Profile load failed (DB unreachable) — keep the auth user
+            // but don't hang loading.
+          }
         } else {
           setSession({
             user: null,
