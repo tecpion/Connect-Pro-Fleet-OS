@@ -57,6 +57,7 @@ import { Route as InspectionsIndexRouteImport } from './routes/inspections/index
 import { Route as InspectionsNewRouteImport } from './routes/inspections/new'
 import { Route as InvestorsIndexRouteImport } from './routes/investors/index'
 import { Route as InvestorsIdRouteImport } from './routes/investors/$id'
+import { Route as MyToolsIdRouteImport } from './routes/my-tools.$id'
 import { Route as PortalIndexRouteImport } from './routes/portal/index'
 import { Route as PortalDocumentsRouteImport } from './routes/portal/documents'
 import { Route as PortalPaymentsRouteImport } from './routes/portal/payments'
@@ -347,6 +348,11 @@ const InvestorsIndexRoute = InvestorsIndexRouteImport.update({
 const InvestorsIdRoute = InvestorsIdRouteImport.update({
   id: '/investors/$id',
   path: '/investors/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MyToolsIdRoute = MyToolsIdRouteImport.update({
+  id: '/my-tools/$id',
+  path: '/my-tools/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PortalIndexRoute = PortalIndexRouteImport.update({
@@ -657,6 +663,7 @@ export interface FileRoutesByFullPath {
   '/customers/$id': typeof CustomersIdRoute
   '/inspections/new': typeof InspectionsNewRoute
   '/investors/$id': typeof InvestorsIdRoute
+  '/my-tools/$id': typeof MyToolsIdRoute
   '/portal/documents': typeof PortalDocumentsRoute
   '/portal/payments': typeof PortalPaymentsRoute
   '/portal/rental': typeof PortalRentalRoute
@@ -757,6 +764,7 @@ export interface FileRoutesByTo {
   '/customers/$id': typeof CustomersIdRoute
   '/inspections/new': typeof InspectionsNewRoute
   '/investors/$id': typeof InvestorsIdRoute
+  '/my-tools/$id': typeof MyToolsIdRoute
   '/portal/documents': typeof PortalDocumentsRoute
   '/portal/payments': typeof PortalPaymentsRoute
   '/portal/rental': typeof PortalRentalRoute
@@ -858,6 +866,7 @@ export interface FileRoutesById {
   '/customers/$id': typeof CustomersIdRoute
   '/inspections/new': typeof InspectionsNewRoute
   '/investors/$id': typeof InvestorsIdRoute
+  '/my-tools/$id': typeof MyToolsIdRoute
   '/portal/documents': typeof PortalDocumentsRoute
   '/portal/payments': typeof PortalPaymentsRoute
   '/portal/rental': typeof PortalRentalRoute
@@ -961,6 +970,7 @@ export interface FileRouteTypes {
     | '/customers/$id'
     | '/inspections/new'
     | '/investors/$id'
+    | '/my-tools/$id'
     | '/portal/documents'
     | '/portal/payments'
     | '/portal/rental'
@@ -1061,6 +1071,7 @@ export interface FileRouteTypes {
     | '/customers/$id'
     | '/inspections/new'
     | '/investors/$id'
+    | '/my-tools/$id'
     | '/portal/documents'
     | '/portal/payments'
     | '/portal/rental'
@@ -1161,6 +1172,7 @@ export interface FileRouteTypes {
     | '/customers/$id'
     | '/inspections/new'
     | '/investors/$id'
+    | '/my-tools/$id'
     | '/portal/documents'
     | '/portal/payments'
     | '/portal/rental'
@@ -1263,6 +1275,7 @@ export interface RootRouteChildren {
   CustomersIdRoute: typeof CustomersIdRoute
   InspectionsNewRoute: typeof InspectionsNewRoute
   InvestorsIdRoute: typeof InvestorsIdRoute
+  MyToolsIdRoute: typeof MyToolsIdRoute
   PortalDocumentsRoute: typeof PortalDocumentsRoute
   PortalPaymentsRoute: typeof PortalPaymentsRoute
   PortalRentalRoute: typeof PortalRentalRoute
@@ -1628,6 +1641,13 @@ declare module '@tanstack/react-router' {
       path: '/investors/$id'
       fullPath: '/investors/$id'
       preLoaderRoute: typeof InvestorsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/my-tools/$id': {
+      id: '/my-tools/$id'
+      path: '/my-tools/$id'
+      fullPath: '/my-tools/$id'
+      preLoaderRoute: typeof MyToolsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/portal/': {
@@ -2109,6 +2129,7 @@ const rootRouteChildren: RootRouteChildren = {
   CustomersIdRoute: CustomersIdRoute,
   InspectionsNewRoute: InspectionsNewRoute,
   InvestorsIdRoute: InvestorsIdRoute,
+  MyToolsIdRoute: MyToolsIdRoute,
   PortalDocumentsRoute: PortalDocumentsRoute,
   PortalPaymentsRoute: PortalPaymentsRoute,
   PortalRentalRoute: PortalRentalRoute,
