@@ -27,6 +27,7 @@ import { Route as IncidentsRouteImport } from './routes/incidents'
 import { Route as IncidentsViolationsRouteImport } from './routes/incidents-violations'
 import { Route as IntegrationsRouteImport } from './routes/integrations'
 import { Route as MaintenanceRouteImport } from './routes/maintenance'
+import { Route as MigrationRouteImport } from './routes/migration'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as PaymentArrangementsRouteImport } from './routes/payment-arrangements'
 import { Route as PaymentsDueRouteImport } from './routes/payments-due'
@@ -197,6 +198,11 @@ const IntegrationsRoute = IntegrationsRouteImport.update({
 const MaintenanceRoute = MaintenanceRouteImport.update({
   id: '/maintenance',
   path: '/maintenance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MigrationRoute = MigrationRouteImport.update({
+  id: '/migration',
+  path: '/migration',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NotificationsRoute = NotificationsRouteImport.update({
@@ -630,6 +636,7 @@ export interface FileRoutesByFullPath {
   '/incidents-violations': typeof IncidentsViolationsRoute
   '/integrations': typeof IntegrationsRoute
   '/maintenance': typeof MaintenanceRoute
+  '/migration': typeof MigrationRoute
   '/notifications': typeof NotificationsRoute
   '/payment-arrangements': typeof PaymentArrangementsRoute
   '/payments-due': typeof PaymentsDueRoute
@@ -731,6 +738,7 @@ export interface FileRoutesByTo {
   '/incidents-violations': typeof IncidentsViolationsRoute
   '/integrations': typeof IntegrationsRoute
   '/maintenance': typeof MaintenanceRoute
+  '/migration': typeof MigrationRoute
   '/notifications': typeof NotificationsRoute
   '/payment-arrangements': typeof PaymentArrangementsRoute
   '/payments-due': typeof PaymentsDueRoute
@@ -831,6 +839,7 @@ export interface FileRoutesById {
   '/incidents-violations': typeof IncidentsViolationsRoute
   '/integrations': typeof IntegrationsRoute
   '/maintenance': typeof MaintenanceRoute
+  '/migration': typeof MigrationRoute
   '/notifications': typeof NotificationsRoute
   '/payment-arrangements': typeof PaymentArrangementsRoute
   '/payments-due': typeof PaymentsDueRoute
@@ -934,6 +943,7 @@ export interface FileRouteTypes {
     | '/incidents-violations'
     | '/integrations'
     | '/maintenance'
+    | '/migration'
     | '/notifications'
     | '/payment-arrangements'
     | '/payments-due'
@@ -1035,6 +1045,7 @@ export interface FileRouteTypes {
     | '/incidents-violations'
     | '/integrations'
     | '/maintenance'
+    | '/migration'
     | '/notifications'
     | '/payment-arrangements'
     | '/payments-due'
@@ -1134,6 +1145,7 @@ export interface FileRouteTypes {
     | '/incidents-violations'
     | '/integrations'
     | '/maintenance'
+    | '/migration'
     | '/notifications'
     | '/payment-arrangements'
     | '/payments-due'
@@ -1236,6 +1248,7 @@ export interface RootRouteChildren {
   IncidentsViolationsRoute: typeof IncidentsViolationsRoute
   IntegrationsRoute: typeof IntegrationsRoute
   MaintenanceRoute: typeof MaintenanceRoute
+  MigrationRoute: typeof MigrationRoute
   NotificationsRoute: typeof NotificationsRoute
   PaymentArrangementsRoute: typeof PaymentArrangementsRoute
   PaymentsDueRoute: typeof PaymentsDueRoute
@@ -1418,6 +1431,13 @@ declare module '@tanstack/react-router' {
       path: '/maintenance'
       fullPath: '/maintenance'
       preLoaderRoute: typeof MaintenanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/migration': {
+      id: '/migration'
+      path: '/migration'
+      fullPath: '/migration'
+      preLoaderRoute: typeof MigrationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/notifications': {
@@ -2082,6 +2102,7 @@ const rootRouteChildren: RootRouteChildren = {
   IncidentsViolationsRoute: IncidentsViolationsRoute,
   IntegrationsRoute: IntegrationsRoute,
   MaintenanceRoute: MaintenanceRoute,
+  MigrationRoute: MigrationRoute,
   NotificationsRoute: NotificationsRoute,
   PaymentArrangementsRoute: PaymentArrangementsRoute,
   PaymentsDueRoute: PaymentsDueRoute,
