@@ -350,6 +350,11 @@ export const PERMISSION_CATALOG: PermissionDef[] = [
     label: "Manage Integrations",
     module: "Settings",
   },
+  {
+    key: "settings.manage_custom_links",
+    label: "Manage Custom Menu Links",
+    module: "Settings",
+  },
   // Build #23 — company policy management permissions.
   {
     key: "company_settings.view",

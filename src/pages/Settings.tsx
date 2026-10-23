@@ -62,6 +62,7 @@ import { ComplianceSettingsSection } from "./settings/ComplianceSettingsSection"
 import { BusinessHealthSignalsSection } from "./settings/BusinessHealthSection";
 import { CompanySetupWizard } from "./settings/CompanySetupWizard";
 import { CustomerVerificationSection } from "./settings/CustomerVerificationSection";
+import { CustomMenuLinksSection } from "./settings/CustomMenuLinksSection";
 import MigrationCenter from "./MigrationCenter";
 
 // ---------------------------------------------------------------------------
