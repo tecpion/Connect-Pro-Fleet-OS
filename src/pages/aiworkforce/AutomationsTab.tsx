@@ -114,9 +114,10 @@ function deriveAreaMode(
 }
 
 /** Map an area mode to agent config updates. */
-function modeToAgentConfigs(
-  mode: AreaMode,
-): { enable_state: "enabled" | "disabled"; max_mode: AgentMode } {
+function modeToAgentConfigs(mode: AreaMode): {
+  enable_state: "enabled" | "disabled";
+  max_mode: AgentMode;
+} {
   switch (mode) {
     case "off":
       return { enable_state: "disabled", max_mode: "observe" };
@@ -130,46 +131,44 @@ function modeToAgentConfigs(
 }
 
 /** Customer-facing copy for each internal automation. */
-const AUTOMATION_COPY: Record<
-  AgentId,
-  { label: string; description: string }
-> = {
-  collections: {
-    label: "Follow up on overdue balances",
-    description:
-      "Watches overdue balances and broken payment arrangements, and prepares reminder drafts and follow-up tasks for your approval.",
-  },
-  fleet_readiness: {
-    label: "Review blocked vehicles every morning",
-    description:
-      "Flags blocked and long-idle vehicles each morning so nothing slips through before pickups.",
-  },
-  rental_operations: {
-    label: "Review overdue returns",
-    description:
-      "Watches overdue returns, upcoming pickups, and incomplete inspections, and prepares operational tasks.",
-  },
-  maintenance: {
-    label: "Prepare maintenance reminders",
-    description:
-      "Tracks overdue and upcoming maintenance and prepares service follow-ups for blocked vehicles.",
-  },
-  finance_review: {
-    label: "Prepare weekly owner summary",
-    description:
-      "Keeps operational finances review-ready: unallocated expenses, unmatched bank items, and month-end checklist.",
-  },
-  compliance: {
-    label: "Watch for expiring compliance",
-    description:
-      "Monitors registration, insurance, and document expirations and prepares renewal tasks before they block rentals.",
-  },
-  partner_settlement: {
-    label: "Prepare partner settlement review",
-    description:
-      "Prepares projected partner/JV settlements and statement drafts for your review and approval.",
-  },
-};
+const AUTOMATION_COPY: Record<AgentId, { label: string; description: string }> =
+  {
+    collections: {
+      label: "Follow up on overdue balances",
+      description:
+        "Watches overdue balances and broken payment arrangements, and prepares reminder drafts and follow-up tasks for your approval.",
+    },
+    fleet_readiness: {
+      label: "Review blocked vehicles every morning",
+      description:
+        "Flags blocked and long-idle vehicles each morning so nothing slips through before pickups.",
+    },
+    rental_operations: {
+      label: "Review overdue returns",
+      description:
+        "Watches overdue returns, upcoming pickups, and incomplete inspections, and prepares operational tasks.",
+    },
+    maintenance: {
+      label: "Prepare maintenance reminders",
+      description:
+        "Tracks overdue and upcoming maintenance and prepares service follow-ups for blocked vehicles.",
+    },
+    finance_review: {
+      label: "Prepare weekly owner summary",
+      description:
+        "Keeps operational finances review-ready: unallocated expenses, unmatched bank items, and month-end checklist.",
+    },
+    compliance: {
+      label: "Watch for expiring compliance",
+      description:
+        "Monitors registration, insurance, and document expirations and prepares renewal tasks before they block rentals.",
+    },
+    partner_settlement: {
+      label: "Prepare partner settlement review",
+      description:
+        "Prepares projected partner/JV settlements and statement drafts for your review and approval.",
+    },
+  };
 
 export function AutomationsTab({
   agentStore,
@@ -212,9 +211,7 @@ export function AutomationsTab({
       </InfoBanner>
 
       {AREAS.map((area) => {
-        const areaCards = cards.filter((c) =>
-          area.agentIds.includes(c.id),
-        );
+        const areaCards = cards.filter((c) => area.agentIds.includes(c.id));
         if (areaCards.length === 0) return null;
 
         const currentMode = deriveAreaMode(area.agentIds, agentStore.configs);

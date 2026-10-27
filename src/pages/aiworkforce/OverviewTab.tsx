@@ -193,7 +193,11 @@ function ManagementAreaCard({
     <SectionCard
       title={area.label}
       icon={<Icon size={16} className="text-primary" />}
-      right={optional ? <span className="text-xs text-muted-foreground">Optional</span> : undefined}
+      right={
+        optional ? (
+          <span className="text-xs text-muted-foreground">Optional</span>
+        ) : undefined
+      }
     >
       <div className="space-y-4">
         <p className="text-sm text-muted-foreground">{area.description}</p>
@@ -286,8 +290,8 @@ function TodaysBriefing({
         <p className="text-sm text-muted-foreground">
           Your AI operations manager is monitoring your rental business. When
           items need attention, a morning summary will appear here with the
-          day's pickups, returns, overdue balances, and prepared actions
-          waiting for your approval.
+          day's pickups, returns, overdue balances, and prepared actions waiting
+          for your approval.
         </p>
       </div>
     </SectionCard>
@@ -405,7 +409,8 @@ export function OverviewTab({
   const completedToday = kpis.successfulActionsToday;
   const monitoring = kpis.activeAgents;
 
-  const hasBriefingData = setupDone && (needsAttention > 0 || preparedForApproval > 0);
+  const hasBriefingData =
+    setupDone && (needsAttention > 0 || preparedForApproval > 0);
 
   return (
     <div className="space-y-6">
@@ -450,7 +455,8 @@ export function OverviewTab({
           <p className="text-sm text-muted-foreground">
             AI usage this month:{" "}
             <span className="font-medium text-foreground">
-              {fmtMoney(plan.usedThisPeriod)} of {fmtMoney(plan.includedAllowance)} included
+              {fmtMoney(plan.usedThisPeriod)} of{" "}
+              {fmtMoney(plan.includedAllowance)} included
             </span>
           </p>
           {onOpenUsageBilling && (
@@ -517,10 +523,15 @@ export function OverviewTab({
       </div>
 
       {showHowItWorks && (
-        <SectionCard title="AI Operator Details" icon={<Bot size={16} className="text-primary" />}>
+        <SectionCard
+          title="AI Operator Details"
+          icon={<Bot size={16} className="text-primary" />}
+        >
           <div className="space-y-3 text-sm text-muted-foreground">
             <p>
-              <strong className="text-foreground">Connect Pro AI Operator</strong>{" "}
+              <strong className="text-foreground">
+                Connect Pro AI Operator
+              </strong>{" "}
               is your single AI operations manager. It watches your rental
               business, prepares work, and takes approved actions — all through
               your existing Connect Pro workflows and permissions.
@@ -534,7 +545,9 @@ export function OverviewTab({
               />
               <MiniMetric
                 label="Spending cap"
-                value={plan.spendingCap > 0 ? fmtMoney(plan.spendingCap) : "None"}
+                value={
+                  plan.spendingCap > 0 ? fmtMoney(plan.spendingCap) : "None"
+                }
               />
             </div>
           </div>

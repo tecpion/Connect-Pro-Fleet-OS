@@ -29,7 +29,7 @@ import { CopilotPanel } from "@/components/copilot/CopilotPanel";
 import type { AgentId } from "@/lib/agentTypes";
 
 type Tab =
-  | "overview" | "chat" | "automations" | "approvals" | "activity" | "usage";
+  "overview" | "chat" | "automations" | "approvals" | "activity" | "usage";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "overview", label: "Overview" },
@@ -132,7 +132,7 @@ export default function FleetCopilot() {
           }}
           onOpenSettings={(id) => setSettingsAgent(id)}
           onOpenSetup={() => setShowSetup(true)}
-          onViewUsage={() => setTab("usage")}
+          onOpenUsageBilling={() => setTab("usage")}
         />
       )}
 
