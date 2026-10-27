@@ -15,6 +15,7 @@ import { isVerificationEnabled } from "@/lib/verificationConfig";
 import { useCompliance } from "@/lib/complianceStoreProvider";
 import { useCustomerTags } from "@/lib/customerTagStore";
 import { useCan } from "@/pages/settings/useCan";
+import { toast } from "sonner";
 import { PageHeader, EmptyState } from "@/components/ui-bits";
 import { StatusPill } from "@/components/Status";
 import {
@@ -59,6 +60,11 @@ import {
   type CustomerReadiness,
 } from "@/lib/customerWorkspaceSelectors";
 import { AddCustomerDialog } from "@/pages/customers/AddCustomerDialog";
+import {
+  SmartCaptureDialog,
+  SmartCaptureButton,
+  CUSTOMER_PRESET,
+} from "@/components/smartcapture/SmartCapture";
 import { ImportCustomersDialog } from "@/pages/customers/ImportCustomersDialog";
 import { ExportCustomersDialog } from "@/pages/customers/ExportCustomersDialog";
 import {
@@ -128,6 +134,7 @@ export default function Customers() {
   const [tagFilter, setTagFilter] = useState<string>("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [addOpen, setAddOpen] = useState(false);
+  const [captureOpen, setCaptureOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [exportMode, setExportMode] = useState<
     "all" | "view" | "selected" | null
@@ -342,6 +349,10 @@ export default function Customers() {
             <Button variant="outline" onClick={() => setImportOpen(true)}>
               <Upload size={15} className="mr-1.5" /> Import
             </Button>
+            <SmartCaptureButton
+              label="Smart Capture"
+              onClick={() => setCaptureOpen(true)}
+            />
             <Button variant="outline" onClick={() => setExportMode("view")}>
               <Download size={15} className="mr-1.5" /> Export
             </Button>
@@ -353,6 +364,20 @@ export default function Customers() {
             </Button>
           </div>
         }
+      />
+
+      <SmartCaptureDialog
+        open={captureOpen}
+        onOpenChange={setCaptureOpen}
+        preset={CUSTOMER_PRESET}
+        title="Smart Capture — Customer"
+        onConfirm={() => {
+          toast.success(
+            "Captured information ready — review and finish adding the customer.",
+          );
+          setCaptureOpen(false);
+          setAddOpen(true);
+        }}
       />
 
       {/* KPI row */}

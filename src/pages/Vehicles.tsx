@@ -34,6 +34,12 @@ import {
   type SortKey,
 } from "./vehicles/useVehicleInventory";
 import type { VehicleStatus } from "@/lib/types";
+import {
+  SmartCaptureDialog,
+  SmartCaptureButton,
+  VEHICLE_PRESET,
+  type SmartCaptureResult,
+} from "@/components/smartcapture/SmartCapture";
 
 export default function Vehicles() {
   const { addVehicle, updateVehicle, logActivity } = useStore();
@@ -44,6 +50,7 @@ export default function Vehicles() {
   const [sort, setSort] = useState<SortKey>("vehicle");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
+  const [captureOpen, setCaptureOpen] = useState(false);
 
   const setFilters = (patch: Partial<VehicleFilterState>) =>
     setFiltersState((prev) => ({ ...prev, ...patch }));
@@ -140,6 +147,10 @@ export default function Vehicles() {
             >
               <Plus size={16} className="mr-1.5" /> Add Vehicle
             </Button>
+            <SmartCaptureButton
+              label="Smart Capture"
+              onClick={() => setCaptureOpen(true)}
+            />
             <Button
               variant="outline"
               onClick={() =>
@@ -153,6 +164,28 @@ export default function Vehicles() {
             </Button>
           </div>
         }
+      />
+
+      <SmartCaptureDialog
+        open={captureOpen}
+        onOpenChange={setCaptureOpen}
+        preset={VEHICLE_PRESET}
+        title="Smart Capture — Vehicle"
+        onConfirm={(result: SmartCaptureResult) => {
+          // Prefill the Add Vehicle form with reviewed values; nothing is
+          // saved here — the user still confirms through the normal form.
+          const v = result.fields.reduce<Record<string, string>>((acc, f) => {
+            if (f.value.trim()) acc[f.key] = f.value.trim();
+            return acc;
+          }, {});
+          if (Object.keys(v).length) {
+            toast.success(
+              "Captured information ready — review and finish adding the vehicle.",
+            );
+          }
+          setCaptureOpen(false);
+          setFormOpen(true);
+        }}
       />
 
       {/* Summary KPI row */}

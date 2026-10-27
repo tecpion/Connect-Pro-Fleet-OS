@@ -15,6 +15,7 @@ import {
   WORK_ORDER_PRIORITY_LABELS,
 } from "@/lib/maintenanceTypes";
 import type { WorkOrderStatus } from "@/lib/maintenanceTypes";
+import { toast } from "sonner";
 import {
   isWorkOrderActive,
   isWorkOrderPastExpectedReady,
@@ -49,6 +50,11 @@ import {
   Timer,
 } from "lucide-react";
 import { CreateWorkOrderDialog } from "./maintenance/CreateWorkOrderDialog";
+import {
+  SmartCaptureDialog,
+  SmartCaptureButton,
+  MAINTENANCE_PRESET,
+} from "@/components/smartcapture/SmartCapture";
 import { WorkOrderDetail } from "./maintenance/WorkOrderDetail";
 import { VendorsSection } from "./maintenance/VendorsSection";
 import {
@@ -82,6 +88,7 @@ export default function Maintenance() {
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [attentionOnly, setAttentionOnly] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [captureOpen, setCaptureOpen] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(null);
 
   const currentStaff = staff.find((x) => x.id === currentStaffId);
@@ -207,14 +214,34 @@ export default function Maintenance() {
         subtitle="Track work orders, downtime, vendors, costs, and service readiness across your fleet."
         actions={
           canCreate && (
-            <Button
-              onClick={() => setCreateOpen(true)}
-              className="bg-primary text-primary-foreground hover:bg-primary-press"
-            >
-              <Plus size={16} className="mr-1.5" /> Create Work Order
-            </Button>
+            <div className="flex items-center gap-2">
+              <SmartCaptureButton
+                label="Scan Service Receipt"
+                onClick={() => setCaptureOpen(true)}
+              />
+              <Button
+                onClick={() => setCreateOpen(true)}
+                className="bg-primary text-primary-foreground hover:bg-primary-press"
+              >
+                <Plus size={16} className="mr-1.5" /> Create Work Order
+              </Button>
+            </div>
           )
         }
+      />
+
+      <SmartCaptureDialog
+        open={captureOpen}
+        onOpenChange={setCaptureOpen}
+        preset={MAINTENANCE_PRESET}
+        title="Smart Capture — Service Receipt"
+        onConfirm={() => {
+          toast.success(
+            "Service receipt information ready — review and finish creating the work order.",
+          );
+          setCaptureOpen(false);
+          setCreateOpen(true);
+        }}
       />
 
       {/* Tabs */}

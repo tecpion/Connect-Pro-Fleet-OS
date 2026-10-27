@@ -14,7 +14,13 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Kpi } from "@/components/Kpi";
 import { fmtMoney, fmtMoneyExact } from "@/lib/format";
+import { toast } from "sonner";
 import { RecordExpenseDialog } from "./expenses/RecordExpenseDialog";
+import {
+  SmartCaptureDialog,
+  SmartCaptureButton,
+  EXPENSE_PRESET,
+} from "@/components/smartcapture/SmartCapture";
 import {
   ExpensesList,
   ReimbursementsList,
@@ -64,6 +70,7 @@ export default function Expenses({
   };
   const [query, setQuery] = useState("");
   const [recordOpen, setRecordOpen] = useState(false);
+  const [captureOpen, setCaptureOpen] = useState(false);
   const [scopeFilter, setScopeFilter] = useState("all");
   const [methodFilter, setMethodFilter] = useState("all");
   const [receiptFilter, setReceiptFilter] = useState("all");
@@ -162,19 +169,43 @@ export default function Expenses({
             </p>
           </div>
           {canCreate && (
-            <Button onClick={() => setRecordOpen(true)}>
-              <Plus size={16} className="mr-1" /> Record expense
-            </Button>
+            <div className="flex items-center gap-2">
+              <SmartCaptureButton
+                label="Scan Receipt"
+                onClick={() => setCaptureOpen(true)}
+              />
+              <Button onClick={() => setRecordOpen(true)}>
+                <Plus size={16} className="mr-1" /> Record expense
+              </Button>
+            </div>
           )}
         </header>
       )}
       {embedded && canCreate && (
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          <SmartCaptureButton
+            label="Scan Receipt"
+            onClick={() => setCaptureOpen(true)}
+          />
           <Button onClick={() => setRecordOpen(true)}>
             <Plus size={16} className="mr-1" /> Record expense
           </Button>
         </div>
       )}
+
+      <SmartCaptureDialog
+        open={captureOpen}
+        onOpenChange={setCaptureOpen}
+        preset={EXPENSE_PRESET}
+        title="Smart Capture — Receipt"
+        onConfirm={() => {
+          toast.success(
+            "Receipt information ready — review and finish recording the expense.",
+          );
+          setCaptureOpen(false);
+          setRecordOpen(true);
+        }}
+      />
 
       {/* KPI row — Gross revenue-style hero is intentionally absent here; this
           is the expense ledger. Expenses This Month is the dominant KPI. */}
