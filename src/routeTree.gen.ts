@@ -15,6 +15,7 @@ import { Route as AiWorkforceRouteImport } from './routes/ai-workforce'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BankingRouteImport } from './routes/banking'
 import { Route as BriefingRouteImport } from './routes/briefing'
+import { Route as CaseCenterRouteImport } from './routes/case-center'
 import { Route as ComplianceRouteImport } from './routes/compliance'
 import { Route as CopilotRouteImport } from './routes/copilot'
 import { Route as DamageClaimsRouteImport } from './routes/damage-claims'
@@ -139,6 +140,11 @@ const BankingRoute = BankingRouteImport.update({
 const BriefingRoute = BriefingRouteImport.update({
   id: '/briefing',
   path: '/briefing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CaseCenterRoute = CaseCenterRouteImport.update({
+  id: '/case-center',
+  path: '/case-center',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ComplianceRoute = ComplianceRouteImport.update({
@@ -630,6 +636,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/banking': typeof BankingRoute
   '/briefing': typeof BriefingRoute
+  '/case-center': typeof CaseCenterRoute
   '/compliance': typeof ComplianceRoute
   '/copilot': typeof CopilotRoute
   '/damage-claims': typeof DamageClaimsRoute
@@ -733,6 +740,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/banking': typeof BankingRoute
   '/briefing': typeof BriefingRoute
+  '/case-center': typeof CaseCenterRoute
   '/compliance': typeof ComplianceRoute
   '/copilot': typeof CopilotRoute
   '/damage-claims': typeof DamageClaimsRoute
@@ -835,6 +843,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/banking': typeof BankingRoute
   '/briefing': typeof BriefingRoute
+  '/case-center': typeof CaseCenterRoute
   '/compliance': typeof ComplianceRoute
   '/copilot': typeof CopilotRoute
   '/damage-claims': typeof DamageClaimsRoute
@@ -940,6 +949,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/banking'
     | '/briefing'
+    | '/case-center'
     | '/compliance'
     | '/copilot'
     | '/damage-claims'
@@ -1043,6 +1053,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/banking'
     | '/briefing'
+    | '/case-center'
     | '/compliance'
     | '/copilot'
     | '/damage-claims'
@@ -1144,6 +1155,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/banking'
     | '/briefing'
+    | '/case-center'
     | '/compliance'
     | '/copilot'
     | '/damage-claims'
@@ -1248,6 +1260,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   BankingRoute: typeof BankingRoute
   BriefingRoute: typeof BriefingRoute
+  CaseCenterRoute: typeof CaseCenterRoute
   ComplianceRoute: typeof ComplianceRoute
   CopilotRoute: typeof CopilotRoute
   DamageClaimsRoute: typeof DamageClaimsRoute
@@ -1360,6 +1373,13 @@ declare module '@tanstack/react-router' {
       path: '/briefing'
       fullPath: '/briefing'
       preLoaderRoute: typeof BriefingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/case-center': {
+      id: '/case-center'
+      path: '/case-center'
+      fullPath: '/case-center'
+      preLoaderRoute: typeof CaseCenterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/compliance': {
@@ -2110,6 +2130,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   BankingRoute: BankingRoute,
   BriefingRoute: BriefingRoute,
+  CaseCenterRoute: CaseCenterRoute,
   ComplianceRoute: ComplianceRoute,
   CopilotRoute: CopilotRoute,
   DamageClaimsRoute: DamageClaimsRoute,
