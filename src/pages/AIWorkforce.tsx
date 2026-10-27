@@ -1,11 +1,12 @@
-// Connect Pro Fleet — Fleet Copilot workspace (Build #43).
+// Connect Pro Fleet — Connect Pro AI Operator workspace (Build #43 / #48).
 //
-// Fleet Copilot is the SINGLE AI brain for the software. It replaces the
-// customer-facing multi-agent "AI Workforce" experience with one assistant
-// that has Chat, Voice, Automations, Approvals, Activity, and Usage.
+// Connect Pro AI Operator is the SINGLE AI operations manager for the
+// software. It replaces the customer-facing multi-agent "AI Workforce"
+// experience with one assistant that has Chat, Voice, Automations, Approvals,
+// Activity, and Usage.
 //
 // The underlying agent registry / run engine / action execution / approvals /
-// usage are UNCHANGED — they are the permissioned tools behind the Copilot.
+// usage are UNCHANGED — they are the permissioned tools behind the Operator.
 // The user never needs to know which internal capability handled a request.
 //
 // Tabs: Overview · Chat · Automations · Approvals · Activity · Usage
@@ -62,12 +63,12 @@ export default function FleetCopilot() {
     return (
       <div className="space-y-8">
         <PageHeader
-          title="Fleet Copilot"
-          subtitle="Your AI operations manager for your rental business."
+          title="Connect Pro AI Operator"
+          subtitle="Your AI operations manager watches your rental business, prepares work, and takes approved actions."
         />
         <EmptyState
-          title="You don't have access to Fleet Copilot"
-          hint="Ask an owner or admin to grant the Fleet Copilot view permission."
+          title="You don't have access to Connect Pro AI Operator"
+          hint="Ask an owner or admin to grant the AI Operator view permission."
           icon={<Bot size={22} />}
         />
       </div>
@@ -80,8 +81,8 @@ export default function FleetCopilot() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Fleet Copilot"
-        subtitle="Your AI operations manager for your rental business — ask questions, prepare work, and approve actions."
+        title="Connect Pro AI Operator"
+        subtitle="Your AI operations manager watches your rental business, prepares work, and takes approved actions."
         actions={
           <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-2 px-2.5 py-1.5 text-xs font-medium text-muted-foreground">
             <span
@@ -89,7 +90,7 @@ export default function FleetCopilot() {
             />
             {agentStore.productionProviderConnected
               ? "Production AI connected"
-              : "Deterministic (dev) — production AI not connected"}
+              : "Development Mode — Live AI provider not connected"}
           </span>
         }
       />
