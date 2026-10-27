@@ -29,24 +29,61 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { isSafeUrl, type CustomMenuLink, type CustomMenuLinkVisibility } from "@/lib/customMenuLinkTypes";
-import { ExternalLink, Pencil, Trash2, Plus, GripVertical, ArrowUp, ArrowDown, Wrench } from "lucide-react";
+import {
+  isSafeUrl,
+  type CustomMenuLink,
+  type CustomMenuLinkCreateInput,
+  type CustomMenuLinkVisibility,
+} from "@/lib/customMenuLinkTypes";
+import {
+  ExternalLink,
+  Pencil,
+  Trash2,
+  Plus,
+  GripVertical,
+  ArrowUp,
+  ArrowDown,
+  Wrench,
+} from "lucide-react";
 import { toast } from "sonner";
 
 const ICON_OPTIONS = [
-  "ExternalLink", "Satellite", "Wallet", "CreditCard", "Shield", "Wrench",
-  "Car", "MapPin", "FileText", "Gavel", "Receipt", "Building2", "Link",
-  "Calculator", "Cloud", "Zap", "Globe", "Truck",
+  "ExternalLink",
+  "Satellite",
+  "Wallet",
+  "CreditCard",
+  "Shield",
+  "Wrench",
+  "Car",
+  "MapPin",
+  "FileText",
+  "Gavel",
+  "Receipt",
+  "Building2",
+  "Link",
+  "Calculator",
+  "Cloud",
+  "Zap",
+  "Globe",
+  "Truck",
 ];
 
 export function CustomMenuLinksSection() {
-  const { links, loading, createLink, updateLink, deleteLink, toggleLink, reorderLink } = useCustomMenuLinks();
+  const {
+    links,
+    loading,
+    createLink,
+    updateLink,
+    deleteLink,
+    toggleLink,
+    reorderLink,
+  } = useCustomMenuLinks();
   const { staff, roles } = useStore();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<CustomMenuLink | null>(null);
 
   const canManage = can(
-    roles.find((r) => r.name === "Owner") ?? null,
+    roles.find((r) => r.name === "Owner"),
     null,
     "settings.manage_custom_links",
   );
@@ -94,9 +131,12 @@ export function CustomMenuLinksSection() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-foreground">My Tools & Custom Links</h2>
+          <h2 className="text-xl font-semibold text-foreground">
+            My Tools & Custom Links
+          </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Add external software links to your sidebar. Only secure https:// URLs are allowed.
+            Add external software links to your sidebar. Only secure https://
+            URLs are allowed.
           </p>
         </div>
         {canManage && (
@@ -110,12 +150,20 @@ export function CustomMenuLinksSection() {
       {links.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border p-12 text-center">
           <Wrench className="mx-auto h-10 w-10 text-muted-foreground/50" />
-          <p className="mt-3 text-sm font-medium text-foreground">No custom links yet</p>
+          <p className="mt-3 text-sm font-medium text-foreground">
+            No custom links yet
+          </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Add links to GPS trackers, insurance portals, QuickBooks, Stripe, and other tools your team uses.
+            Add links to GPS trackers, insurance portals, QuickBooks, Stripe,
+            and other tools your team uses.
           </p>
           {canManage && (
-            <Button onClick={openCreate} variant="outline" size="sm" className="mt-4">
+            <Button
+              onClick={openCreate}
+              variant="outline"
+              size="sm"
+              className="mt-4"
+            >
               <Plus className="mr-1.5 h-4 w-4" />
               Add your first link
             </Button>
@@ -148,16 +196,22 @@ export function CustomMenuLinksSection() {
               )}
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="truncate font-medium text-foreground">{link.name}</span>
+                  <span className="truncate font-medium text-foreground">
+                    {link.name}
+                  </span>
                   {!link.is_enabled && (
                     <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
                       Disabled
                     </span>
                   )}
                 </div>
-                <p className="truncate text-xs text-muted-foreground">{link.url}</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {link.url}
+                </p>
                 {link.description && (
-                  <p className="mt-0.5 truncate text-xs text-muted-foreground">{link.description}</p>
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                    {link.description}
+                  </p>
                 )}
                 <div className="mt-1 flex items-center gap-2 text-[11px] text-muted-foreground">
                   <span className="rounded bg-muted px-1.5 py-0.5">
@@ -290,7 +344,9 @@ function LinkDialog({
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>{editing ? "Edit Custom Link" : "Add Custom Link"}</DialogTitle>
+          <DialogTitle>
+            {editing ? "Edit Custom Link" : "Add Custom Link"}
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-2">
           <div>
@@ -313,7 +369,9 @@ function LinkDialog({
               }}
               placeholder="https://tracker.example.com"
             />
-            {urlError && <p className="mt-1 text-xs text-destructive">{urlError}</p>}
+            {urlError && (
+              <p className="mt-1 text-xs text-destructive">{urlError}</p>
+            )}
           </div>
           <div>
             <Label htmlFor="cml-desc">Description (optional)</Label>
@@ -365,7 +423,9 @@ function LinkDialog({
             <Label>Visible To</Label>
             <Select
               value={visibility}
-              onValueChange={(v) => setVisibility(v as CustomMenuLinkVisibility)}
+              onValueChange={(v) =>
+                setVisibility(v as CustomMenuLinkVisibility)
+              }
             >
               <SelectTrigger>
                 <SelectValue />

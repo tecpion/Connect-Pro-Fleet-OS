@@ -18,7 +18,7 @@ export const Route = createFileRoute("/my-tools/$id")({
 });
 
 function EmbeddedTool() {
-  const { id } = useParams({ strict: false }) as { id: string };
+  const { id } = useParams() as { id: string };
   const { links } = useCustomMenuLinks();
   const navigate = useNavigate();
   const [loadFailed, setLoadFailed] = useState(false);
@@ -33,11 +33,13 @@ function EmbeddedTool() {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="text-center">
-          <h2 className="text-lg font-semibold text-foreground">Tool not found</h2>
+          <h2 className="text-lg font-semibold text-foreground">
+            Tool not found
+          </h2>
           <p className="mt-1 text-sm text-muted-foreground">
             This custom tool link does not exist or you don&apos;t have access.
           </p>
-          <Button onClick={() => navigate({ to: "/" })} className="mt-4">
+          <Button onClick={() => navigate("/")} className="mt-4">
             Go to Dashboard
           </Button>
         </div>
@@ -51,7 +53,9 @@ function EmbeddedTool() {
         <div>
           <h1 className="text-xl font-semibold text-foreground">{link.name}</h1>
           {link.description && (
-            <p className="mt-0.5 text-sm text-muted-foreground">{link.description}</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              {link.description}
+            </p>
           )}
         </div>
         <a href={link.url} target="_blank" rel="noopener noreferrer">
@@ -70,7 +74,12 @@ function EmbeddedTool() {
           <p className="mt-1 text-sm text-muted-foreground">
             Open it in a new tab instead.
           </p>
-          <a href={link.url} target="_blank" rel="noopener noreferrer" className="mt-4">
+          <a
+            href={link.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4"
+          >
             <Button>
               <ExternalLink className="mr-1.5 h-4 w-4" />
               Open in New Tab

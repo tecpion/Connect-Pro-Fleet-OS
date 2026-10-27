@@ -27,8 +27,13 @@ interface CustomMenuLinkContextValue {
   links: CustomMenuLink[];
   loading: boolean;
   visibleLinks: CustomMenuLink[];
-  createLink: (input: CustomMenuLinkCreateInput) => Promise<CustomMenuLink | null>;
-  updateLink: (id: string, patch: CustomMenuLinkUpdateInput) => Promise<CustomMenuLink | null>;
+  createLink: (
+    input: CustomMenuLinkCreateInput,
+  ) => Promise<CustomMenuLink | null>;
+  updateLink: (
+    id: string,
+    patch: CustomMenuLinkUpdateInput,
+  ) => Promise<CustomMenuLink | null>;
   deleteLink: (id: string) => Promise<boolean>;
   toggleLink: (id: string, enabled: boolean) => Promise<void>;
   reorderLink: (id: string, newOrder: number) => Promise<void>;
@@ -39,7 +44,10 @@ const Ctx = createContext<CustomMenuLinkContextValue | null>(null);
 
 export function useCustomMenuLinks() {
   const v = useContext(Ctx);
-  if (!v) throw new Error("useCustomMenuLinks must be used within CustomMenuLinksProvider");
+  if (!v)
+    throw new Error(
+      "useCustomMenuLinks must be used within CustomMenuLinksProvider",
+    );
   return v;
 }
 
