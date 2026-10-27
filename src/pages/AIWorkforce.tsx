@@ -1,15 +1,15 @@
-// Connect Pro Fleet — Connect Pro AI Operator workspace (Build #43 / #48).
+// Connect Pro Fleet — Connect Pro AI Operator workspace (V1 simplification).
 //
 // Connect Pro AI Operator is the SINGLE AI operations manager for the
 // software. It replaces the customer-facing multi-agent "AI Workforce"
-// experience with one assistant that has Chat, Voice, Automations, Approvals,
-// Activity, and Usage.
+// experience with one assistant that has Chat, Automations, Approvals, and
+// Activity. Detailed AI usage/billing lives in Settings/Billing, not here.
 //
 // The underlying agent registry / run engine / action execution / approvals /
 // usage are UNCHANGED — they are the permissioned tools behind the Operator.
 // The user never needs to know which internal capability handled a request.
 //
-// Tabs: Overview · Chat · Automations · Approvals · Activity · Usage
+// Tabs: Overview · Chat · Automations · Approvals · Activity
 // Branding: Connect Pro Fleet OS BLUE (never green).
 
 import { useState } from "react";
@@ -29,7 +29,7 @@ import { CopilotPanel } from "@/components/copilot/CopilotPanel";
 import type { AgentId } from "@/lib/agentTypes";
 
 type Tab =
-  "overview" | "chat" | "automations" | "approvals" | "activity" | "usage";
+  | "overview" | "chat" | "automations" | "approvals" | "activity" | "usage";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "overview", label: "Overview" },
@@ -37,7 +37,6 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "automations", label: "Automations" },
   { id: "approvals", label: "Approvals" },
   { id: "activity", label: "Activity" },
-  { id: "usage", label: "Usage" },
 ];
 
 export default function FleetCopilot() {
@@ -133,6 +132,7 @@ export default function FleetCopilot() {
           }}
           onOpenSettings={(id) => setSettingsAgent(id)}
           onOpenSetup={() => setShowSetup(true)}
+          onViewUsage={() => setTab("usage")}
         />
       )}
 

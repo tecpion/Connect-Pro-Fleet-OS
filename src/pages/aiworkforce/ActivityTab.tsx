@@ -1,11 +1,9 @@
-// Connect Pro Fleet — Fleet Copilot Activity tab (Build #43 / #47 UX polish).
+// Connect Pro Fleet — Connect Pro AI Operator Activity tab (V1 simplification).
 //
-// One Fleet Copilot activity history. Action-level activity rows (not just
-// runs) with status filters: Reviewed / Suggested / Prepared / Awaiting
-// Approval / Executed / Rejected / Failed. Each row shows the automation,
-// action, entity, time, status, human approver (if applicable), and result.
-// Click opens the related record. A run-history section is shown below. No
-// opaque AI score.
+// One AI Operator activity history. Action-level activity rows (not just runs)
+// with status filters. Each row shows the automation, action, entity, time,
+// status, human approver (if applicable), and result. A run-history section is
+// shown below. No opaque AI score.
 
 import { useMemo, useState } from "react";
 import { useAgentStore } from "@/lib/agentStoreProvider";
@@ -49,7 +47,7 @@ export function ActivityTab({
   if (agentStore.runs.length === 0 && rows.length === 0) {
     return (
       <EmptyState
-        title="No Copilot activity yet"
+        title="No AI Operator activity yet"
         hint="Enable an automation and run it manually to see activity here."
         icon={<Activity size={22} />}
       />
@@ -86,7 +84,7 @@ export function ActivityTab({
       </div>
 
       {rows.length > 0 && (
-        <SectionCard title="Copilot actions" icon={<Activity size={16} />}>
+        <SectionCard title="AI Operator actions" icon={<Activity size={16} />}>
           <div className="divide-y divide-border">
             {rows.map((row) => {
               const a = row.action;

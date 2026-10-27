@@ -1,14 +1,12 @@
-// Connect Pro Fleet — Fleet Copilot Overview tab (Build #43 / #47 UX polish).
+// Connect Pro Fleet — Connect Pro AI Operator Overview tab (V1 simplification).
 //
-// Fleet Copilot is the single AI brain. This overview shows Copilot status,
-// pending approvals, actions prepared today, automations enabled, AI usage
-// this billing period, and recent Copilot activity. The underlying agent
-// registry powers the "Automations" — here we present a premium status board
-// for the ONE assistant, not seven separate bots.
+// One AI Operations Manager — not seven separate bots. This overview presents
+// the WATCH → DRAFT → ACT model with three management areas: Operations,
+// Payments & Finance, and Partners & Investors. Detailed usage/billing lives
+// in Settings; only a compact usage line remains here.
 
 import { useState } from "react";
 import { useAgentStore } from "@/lib/agentStoreProvider";
-import { AGENT_LIST, getAgentDefinition } from "@/lib/agentRegistry";
 import {
   allAgentCardVms,
   isSetupComplete,
@@ -28,8 +26,12 @@ import {
   Sparkles,
   CheckCircle2,
   Clock,
-  HelpCircle,
+  Eye,
+  FileEdit,
   Zap,
+  Wrench,
+  CreditCard,
+  Users,
 } from "lucide-react";
 import type { AgentId } from "@/lib/agentTypes";
 import {
@@ -41,6 +43,329 @@ import {
   InfoBanner,
 } from "./WorkspacePrimitives";
 
+// ---------------------------------------------------------------------------
+// Management areas — the three responsibilities of the AI Operator
+// ---------------------------------------------------------------------------
+
+interface ManagementArea {
+  id: string;
+  label: string;
+  description: string;
+  icon: typeof Wrench;
+  categories: string[];
+  monitoredItems: string[];
+}
+
+const OPERATIONS_AREA: ManagementArea = {
+  id: "operations",
+  label: "Operations",
+  description:
+    "Monitors rentals, fleet readiness, maintenance, compliance, and day-to-day operational issues.",
+  icon: Wrench,
+  categories: ["Rentals", "Fleet", "Maintenance", "Compliance"],
+  monitoredItems: [
+    "Pickups due today",
+    "Returns due today",
+    "Upcoming pickups and returns",
+    "Vehicles not ready for rental",
+    "Compliance blocks",
+    "Expiring registration",
+    "Expiring insurance",
+    "Open maintenance issues",
+    "Overdue work orders",
+    "Missing inspections",
+    "Missing agreements",
+    "Customer verification issues",
+    "Rental lifecycle exceptions",
+  ],
+};
+
+const PAYMENTS_AREA: ManagementArea = {
+  id: "payments",
+  label: "Payments & Finance",
+  description:
+    "Monitors payments, balances, deposits, collections, and financial exceptions.",
+  icon: CreditCard,
+  categories: ["Payments", "Deposits", "Collections", "Reconciliation"],
+  monitoredItems: [
+    "Payments due today",
+    "Overdue balances",
+    "Failed or missing payments",
+    "Deposit requirements",
+    "Deposit refunds",
+    "Payment arrangements",
+    "Unmatched bank transactions",
+    "Missing receipts",
+    "Reconciliation issues",
+    "Duplicate or questionable transactions",
+  ],
+};
+
+const PARTNERS_AREA: ManagementArea = {
+  id: "partners",
+  label: "Partners & Investors",
+  description:
+    "Prepares partner and investor reporting, settlement reviews, and payout recommendations.",
+  icon: Users,
+  categories: ["JV Revenue", "Expenses", "Settlements", "Payouts"],
+  monitoredItems: [
+    "Partner/JV revenue",
+    "Expenses",
+    "Revenue split calculations",
+    "Settlement periods",
+    "Missing documentation",
+    "Payouts ready for review",
+  ],
+};
+
+// ---------------------------------------------------------------------------
+// Autonomy mode selector (UI representation only)
+// ---------------------------------------------------------------------------
+
+type AutonomyMode = "off" | "monitor" | "prepare" | "auto";
+
+const MODE_LABELS: Record<AutonomyMode, string> = {
+  off: "Off",
+  monitor: "Monitor",
+  prepare: "Prepare",
+  auto: "Auto",
+};
+
+const MODE_DESCRIPTIONS: Record<AutonomyMode, string> = {
+  off: "AI does nothing for this area.",
+  monitor: "AI watches activity and identifies issues.",
+  prepare: "AI watches and prepares recommended actions for your approval.",
+  auto: "AI may perform specifically authorized low-risk actions.",
+};
+
+function AutonomyModeSelector({
+  mode,
+  onChange,
+  disabled,
+}: {
+  mode: AutonomyMode;
+  onChange: (m: AutonomyMode) => void;
+  disabled?: boolean;
+}) {
+  const modes: AutonomyMode[] = ["off", "monitor", "prepare", "auto"];
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex flex-wrap gap-1.5">
+        {modes.map((m) => (
+          <button
+            key={m}
+            onClick={() => !disabled && onChange(m)}
+            disabled={disabled}
+            className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              mode === m
+                ? "bg-primary text-primary-foreground"
+                : "bg-surface-2 text-muted-foreground hover:bg-surface-2/80"
+            } ${disabled ? "cursor-not-allowed opacity-50" : ""}`}
+          >
+            {MODE_LABELS[m]}
+          </button>
+        ))}
+      </div>
+      <p className="text-xs text-muted-foreground">{MODE_DESCRIPTIONS[mode]}</p>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Management area card
+// ---------------------------------------------------------------------------
+
+function ManagementAreaCard({
+  area,
+  mode,
+  onModeChange,
+  optional,
+  disabled,
+}: {
+  area: ManagementArea;
+  mode: AutonomyMode;
+  onModeChange: (m: AutonomyMode) => void;
+  optional?: boolean;
+  disabled?: boolean;
+}) {
+  const Icon = area.icon;
+  return (
+    <SectionCard
+      title={area.label}
+      icon={<Icon size={16} className="text-primary" />}
+      right={optional ? <span className="text-xs text-muted-foreground">Optional</span> : undefined}
+    >
+      <div className="space-y-4">
+        <p className="text-sm text-muted-foreground">{area.description}</p>
+
+        <div className="flex flex-wrap gap-1.5">
+          {area.categories.map((cat) => (
+            <span
+              key={cat}
+              className="rounded-full bg-surface-2 px-2.5 py-0.5 text-xs font-medium text-muted-foreground"
+            >
+              {cat}
+            </span>
+          ))}
+        </div>
+
+        <div className="rounded-lg border border-border/60 bg-surface-2/30 p-3">
+          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Monitors
+          </p>
+          <ul className="space-y-1">
+            {area.monitoredItems.slice(0, 6).map((item) => (
+              <li
+                key={item}
+                className="flex items-start gap-1.5 text-xs text-muted-foreground"
+              >
+                <span className="mt-0.5 h-1 w-1 flex-shrink-0 rounded-full bg-muted-foreground/40" />
+                {item}
+              </li>
+            ))}
+            {area.monitoredItems.length > 6 && (
+              <li className="text-xs text-muted-foreground/70">
+                +{area.monitoredItems.length - 6} more
+              </li>
+            )}
+          </ul>
+        </div>
+
+        <div className="border-t border-border/60 pt-3">
+          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Autonomy
+          </p>
+          <AutonomyModeSelector
+            mode={mode}
+            onChange={onModeChange}
+            disabled={disabled}
+          />
+        </div>
+      </div>
+    </SectionCard>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Today's AI Briefing
+// ---------------------------------------------------------------------------
+
+function TodaysBriefing({
+  hasData,
+  onReview,
+}: {
+  hasData: boolean;
+  onReview: () => void;
+}) {
+  if (!hasData) {
+    return (
+      <SectionCard
+        title="Today's AI Briefing"
+        icon={<Sparkles size={16} className="text-primary" />}
+      >
+        <div className="flex flex-col items-center justify-center py-8 text-center">
+          <p className="text-sm text-muted-foreground">
+            Your AI briefing will appear here once monitoring is enabled.
+          </p>
+        </div>
+      </SectionCard>
+    );
+  }
+
+  return (
+    <SectionCard
+      title="Today's AI Briefing"
+      icon={<Sparkles size={16} className="text-primary" />}
+      right={
+        <PrimaryButton onClick={onReview}>
+          <CheckCircle2 size={13} /> Review Prepared Actions
+        </PrimaryButton>
+      }
+    >
+      <div className="rounded-lg bg-surface-2/40 p-4">
+        <p className="text-sm text-muted-foreground">
+          Your AI operations manager is monitoring your rental business. When
+          items need attention, a morning summary will appear here with the
+          day's pickups, returns, overdue balances, and prepared actions
+          waiting for your approval.
+        </p>
+      </div>
+    </SectionCard>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Watch → Draft → Act explainer
+// ---------------------------------------------------------------------------
+
+function WatchDraftActExplainer() {
+  return (
+    <SectionCard
+      title="How Connect Pro AI Operator Works"
+      icon={<Zap size={16} className="text-primary" />}
+    >
+      <div className="grid gap-4 sm:grid-cols-3">
+        <div className="rounded-lg border border-border/60 bg-surface-2/30 p-4">
+          <div className="mb-2 flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Eye size={16} />
+            </div>
+            <h3 className="font-display text-sm font-semibold text-foreground">
+              Watch
+            </h3>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Monitors your rental operation and identifies what needs attention.
+          </p>
+        </div>
+
+        <div className="rounded-lg border border-border/60 bg-surface-2/30 p-4">
+          <div className="mb-2 flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <FileEdit size={16} />
+            </div>
+            <h3 className="font-display text-sm font-semibold text-foreground">
+              Draft
+            </h3>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Prepares the message, task, work order, reminder, or next step for
+            your review.
+          </p>
+        </div>
+
+        <div className="rounded-lg border border-border/60 bg-surface-2/30 p-4">
+          <div className="mb-2 flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Zap size={16} />
+            </div>
+            <h3 className="font-display text-sm font-semibold text-foreground">
+              Act
+            </h3>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Executes approved actions through Connect Pro workflows based on
+            your permissions.
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4">
+        <InfoBanner>
+          <ShieldAlert size={14} className="mr-1.5 inline" />
+          AI actions follow your staff permissions and approval rules. The AI
+          does not directly edit your database — every action goes through the
+          same validation as a human entering it manually.
+        </InfoBanner>
+      </div>
+    </SectionCard>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Main OverviewTab
+// ---------------------------------------------------------------------------
+
 export function OverviewTab({
   agentStore,
   canManage,
@@ -49,6 +374,7 @@ export function OverviewTab({
   onSelectAgent,
   onOpenSettings,
   onOpenSetup,
+  onOpenUsageBilling,
 }: {
   agentStore: ReturnType<typeof useAgentStore>;
   canManage: boolean;
@@ -57,16 +383,13 @@ export function OverviewTab({
   onSelectAgent: (id: AgentId) => void;
   onOpenSettings: (id: AgentId) => void;
   onOpenSetup: () => void;
+  onOpenUsageBilling?: () => void;
 }) {
   const [showHowItWorks, setShowHowItWorks] = useState(false);
-  const cards = allAgentCardVms(
-    agentStore.configs,
-    agentStore.entitlement,
-    agentStore.runs,
-    agentStore.actions,
-    agentStore.usageRecords,
-    canManage,
-  );
+  const [opsMode, setOpsMode] = useState<AutonomyMode>("monitor");
+  const [payMode, setPayMode] = useState<AutonomyMode>("monitor");
+  const [partnerMode, setPartnerMode] = useState<AutonomyMode>("off");
+
   const kpis = workforceSummaryKpis(
     agentStore.configs,
     agentStore.actions,
@@ -76,323 +399,152 @@ export function OverviewTab({
   const plan = planSummary(agentStore.entitlement, agentStore.usageRecords);
   const setupDone = isSetupComplete(agentStore.configs);
 
+  // Map the existing KPIs into the new V1 operational cards.
+  const needsAttention = kpis.approvalsWaiting;
+  const preparedForApproval = kpis.actionsPreparedToday;
+  const completedToday = kpis.successfulActionsToday;
+  const monitoring = kpis.activeAgents;
+
+  const hasBriefingData = setupDone && (needsAttention > 0 || preparedForApproval > 0);
+
   return (
     <div className="space-y-6">
-      {/* Summary KPIs */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      {/* Development mode indicator (subtle, not alarming) */}
+      {agentStore.entitlement.is_dev && (
+        <InfoBanner tone="blue">
+          <ShieldAlert size={14} className="mr-1.5 inline" />
+          Development Mode — Live AI provider not connected. AI features run in
+          a safe local mode for testing.
+        </InfoBanner>
+      )}
+
+      {/* Primary operational metric cards */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <SummaryKpi
-          label="Automations Enabled"
-          value={String(kpis.activeAgents)}
-          icon={<Bot size={16} />}
+          label="Needs Attention"
+          value={String(needsAttention)}
+          icon={<ShieldAlert size={16} />}
+          tone={needsAttention > 0 ? "out" : "neutral"}
+        />
+        <SummaryKpi
+          label="Prepared for Approval"
+          value={String(preparedForApproval)}
+          icon={<FileEdit size={16} />}
+        />
+        <SummaryKpi
+          label="Completed Today"
+          value={String(completedToday)}
+          icon={<CheckCircle2 size={16} />}
           tone="primary"
         />
         <SummaryKpi
-          label="Approvals Waiting"
-          value={String(kpis.approvalsWaiting)}
-          icon={<ShieldAlert size={16} />}
-          tone={kpis.approvalsWaiting > 0 ? "out" : "neutral"}
+          label="Monitoring"
+          value={`${monitoring} ${monitoring === 1 ? "area" : "areas"}`}
+          icon={<Eye size={16} />}
         />
-        <SummaryKpi
-          label="Actions Prepared Today"
-          value={String(kpis.actionsPreparedToday)}
-          icon={<Activity size={16} />}
-        />
-        <SummaryKpi
-          label="Successful Actions Today"
-          value={String(kpis.successfulActionsToday)}
-          icon={<CheckCircle2 size={16} />}
-        />
-        {canViewUsage && (
-          <SummaryKpi
-            label="AI Usage This Period"
-            value={fmtMoney(kpis.aiUsageThisPeriod)}
-            icon={<Sparkles size={16} />}
-            hint={plan.planLabel}
-          />
-        )}
       </div>
 
-      {/* Plan / entitlement summary */}
+      {/* Compact usage line + link to detailed billing */}
       {canViewUsage && (
-        <SectionCard
-          title="Fleet Copilot Plan"
-          icon={<Sparkles size={16} />}
-          right={
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border/60 bg-surface-2/30 px-4 py-2.5">
+          <p className="text-sm text-muted-foreground">
+            AI usage this month:{" "}
+            <span className="font-medium text-foreground">
+              {fmtMoney(plan.usedThisPeriod)} of {fmtMoney(plan.includedAllowance)} included
+            </span>
+          </p>
+          {onOpenUsageBilling && (
             <button
-              onClick={() => setShowHowItWorks(true)}
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+              onClick={onOpenUsageBilling}
+              className="text-xs font-medium text-primary hover:underline"
             >
-              <HelpCircle size={13} /> How Fleet Copilot Works
+              View AI Usage & Billing →
             </button>
-          }
-        >
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <MiniMetric label="Plan" value={plan.planLabel} />
-            <MiniMetric
-              label="Included Allowance"
-              value={fmtMoney(plan.includedAllowance)}
-            />
-            <MiniMetric
-              label="Used This Period"
-              value={fmtMoney(plan.usedThisPeriod)}
-            />
-            <MiniMetric
-              label="Remaining"
-              value={fmtMoney(plan.remainingAllowance)}
-              tone="primary"
-            />
-            <MiniMetric
-              label="Overage"
-              value={plan.overageEnabled ? "Enabled" : "Disabled"}
-            />
-            <MiniMetric
-              label="Spending Cap"
-              value={plan.spendingCap > 0 ? fmtMoney(plan.spendingCap) : "None"}
-            />
-            <MiniMetric
-              label="Billing Period"
-              value={new Date().toISOString().slice(0, 7)}
-            />
-            <MiniMetric
-              label="Live SaaS Billing"
-              value={plan.saasBillingConnected ? "Connected" : "Not connected"}
-            />
-          </div>
-          {plan.isDev && (
-            <div className="mt-4">
-              <InfoBanner>
-                <ShieldAlert size={14} className="mr-1.5 inline" />
-                Development/demo entitlement — usage values are configuration
-                only, not live billing. Production AI provider is not connected.
-              </InfoBanner>
-            </div>
           )}
-        </SectionCard>
+        </div>
       )}
+
+      {/* Today's AI Briefing */}
+      <TodaysBriefing
+        hasData={hasBriefingData}
+        onReview={() => onSelectAgent("collections")}
+      />
 
       {/* First-time setup prompt */}
       {canManage && !setupDone && (
         <InfoBanner tone="blue">
           <Sparkles size={14} className="mr-1.5 inline" />
-          Fleet Copilot is ready to set up. Enable your first automations to
-          start monitoring operations.{" "}
+          Connect Pro AI Operator is ready to set up. Enable monitoring to start
+          watching your rental operation.{" "}
           <button
             onClick={onOpenSetup}
             className="ml-1 font-semibold underline"
           >
-            Set up Fleet Copilot
+            Set up AI Operator
           </button>
         </InfoBanner>
       )}
 
-      {/* Automations — capabilities of Fleet Copilot */}
+      {/* Management areas — the three responsibilities */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {cards.map((card) => (
-          <AgentCard
-            key={card.id}
-            card={card}
-            canRun={canRun}
-            canManage={canManage}
-            onRun={() =>
-              agentStore.runAgent({
-                agentId: card.id,
-                trigger: "manual",
-                staffId: null,
-              })
-            }
-            onViewActivity={() => onSelectAgent(card.id)}
-            onTogglePause={() =>
-              agentStore.setAgentEnableState(
-                card.id,
-                card.status === "Active" ? "paused" : "enabled",
-              )
-            }
-            onOpenSettings={() => onOpenSettings(card.id)}
-          />
-        ))}
+        <ManagementAreaCard
+          area={OPERATIONS_AREA}
+          mode={opsMode}
+          onModeChange={setOpsMode}
+        />
+        <ManagementAreaCard
+          area={PAYMENTS_AREA}
+          mode={payMode}
+          onModeChange={setPayMode}
+        />
+        <ManagementAreaCard
+          area={PARTNERS_AREA}
+          mode={partnerMode}
+          onModeChange={setPartnerMode}
+          optional
+          disabled={!canManage}
+        />
+      </div>
+
+      {/* Watch → Draft → Act explainer */}
+      <WatchDraftActExplainer />
+
+      {/* How it works drawer toggle (kept for accessibility) */}
+      <div className="flex justify-center">
+        <GhostButton onClick={() => setShowHowItWorks(!showHowItWorks)}>
+          <Sparkles size={13} /> {showHowItWorks ? "Hide" : "Show"} details
+        </GhostButton>
       </div>
 
       {showHowItWorks && (
-        <HowAgentsWorkDrawer onClose={() => setShowHowItWorks(false)} />
-      )}
-    </div>
-  );
-}
-
-function AgentCard({
-  card,
-  canRun,
-  canManage,
-  onRun,
-  onViewActivity,
-  onTogglePause,
-  onOpenSettings,
-}: {
-  card: AgentCardVm;
-  canRun: boolean;
-  canManage: boolean;
-  onRun: () => void;
-  onViewActivity: () => void;
-  onTogglePause: () => void;
-  onOpenSettings: () => void;
-}) {
-  const def = getAgentDefinition(card.id);
-  const upgradeRequired = card.status === "Upgrade Required";
-  return (
-    <div className="card-surface card-surface-hover flex flex-col p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <Sparkles size={18} />
-          </div>
-          <div>
-            <h3 className="font-display text-sm font-semibold text-foreground">
-              {card.name}
-            </h3>
-            <p className="text-xs text-muted-foreground">
-              {def.default_trigger}
+        <SectionCard title="AI Operator Details" icon={<Bot size={16} className="text-primary" />}>
+          <div className="space-y-3 text-sm text-muted-foreground">
+            <p>
+              <strong className="text-foreground">Connect Pro AI Operator</strong>{" "}
+              is your single AI operations manager. It watches your rental
+              business, prepares work, and takes approved actions — all through
+              your existing Connect Pro workflows and permissions.
             </p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <MiniMetric label="Active areas" value={String(monitoring)} />
+              <MiniMetric label="Plan" value={plan.planLabel} />
+              <MiniMetric
+                label="Remaining allowance"
+                value={fmtMoney(plan.remainingAllowance)}
+              />
+              <MiniMetric
+                label="Spending cap"
+                value={plan.spendingCap > 0 ? fmtMoney(plan.spendingCap) : "None"}
+              />
+            </div>
           </div>
-        </div>
-        <CustomerStatusBadge status={card.status} />
-      </div>
-
-      <p className="mt-3 text-sm text-muted-foreground">
-        {card.valueStatement}
-      </p>
-
-      <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
-        <MiniMetric label="Mode" value={card.modeLabel} />
-        <MiniMetric label="Last run" value={card.lastRunLabel} />
-        <MiniMetric label="Items reviewed" value={String(card.itemsReviewed)} />
-        <MiniMetric
-          label="Actions prepared"
-          value={String(card.actionsPrepared)}
-        />
-        <MiniMetric
-          label="Approvals waiting"
-          value={String(card.approvalsWaiting)}
-          tone={card.approvalsWaiting > 0 ? "out" : "neutral"}
-        />
-        <MiniMetric label="Next run" value={card.nextRunLabel} />
-      </div>
-
-      {upgradeRequired ? (
-        <div className="mt-4 rounded-md bg-violet-50 px-3 py-2.5 text-xs text-violet-700">
-          <Sparkles size={13} className="mr-1 inline" />
-          Available with Fleet Copilot.{" "}
-          {canManage && (
-            <button
-              onClick={onOpenSettings}
-              className="font-semibold underline"
-            >
-              Upgrade to enable
-            </button>
-          )}
-        </div>
-      ) : (
-        <div className="mt-4 flex flex-wrap gap-2">
-          {canRun && card.canRunNow && (
-            <PrimaryButton onClick={onRun}>
-              <Play size={13} /> Run now
-            </PrimaryButton>
-          )}
-          <GhostButton onClick={onViewActivity}>
-            <Activity size={13} /> View activity
-          </GhostButton>
-          {canManage && card.isWorking && (
-            <GhostButton onClick={onTogglePause}>
-              {card.status === "Active" ? (
-                <>
-                  <Pause size={13} /> Pause
-                </>
-              ) : (
-                <>
-                  <Play size={13} /> Enable
-                </>
-              )}
-            </GhostButton>
-          )}
-          {canManage && (
-            <GhostButton onClick={onOpenSettings}>
-              <SettingsIcon size={13} /> Settings
-            </GhostButton>
-          )}
-        </div>
+        </SectionCard>
       )}
     </div>
   );
 }
 
-function HowAgentsWorkDrawer({ onClose }: { onClose: () => void }) {
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/40 p-0 sm:items-center sm:p-4"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-lg rounded-t-xl bg-surface shadow-xl sm:rounded-xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <header className="flex items-center justify-between border-b border-border px-6 py-4">
-          <div className="flex items-center gap-2">
-            <Zap size={16} className="text-primary" />
-            <h2 className="font-display text-base font-semibold text-foreground">
-              How Fleet Copilot Works
-            </h2>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            ✕
-          </button>
-        </header>
-        <div className="space-y-4 px-6 py-5 text-sm text-muted-foreground">
-          <p>
-            <strong className="text-foreground">Fleet Copilot</strong> is your
-            single AI operations manager. It answers questions, prepares work,
-            and performs permitted actions through existing authoritative
-            domains. Automations are capabilities of the same assistant — not
-            separate bots.
-          </p>
-          <div className="space-y-3">
-            <ModeRow
-              label="Ask"
-              desc="Answer questions and explain what is happening across your fleet."
-            />
-            <ModeRow
-              label="Prepare"
-              desc="Prepares low-risk internal work (draft tasks, message drafts, classification suggestions). Nothing externally consequential occurs automatically."
-            />
-            <ModeRow
-              label="Execute With Approval"
-              desc="Prepares an actual system action, but a human must approve before execution."
-            />
-          </div>
-          <InfoBanner>
-            <ShieldAlert size={14} className="mr-1.5 inline" />
-            High-risk actions (charges, refunds, waivers, deposit applications,
-            partner payouts, settlement approval, compliance overrides) always
-            require approval. No unrestricted autonomous execution — Copilot
-            operates through an allowlist of approved internal actions.
-          </InfoBanner>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ModeRow({ label, desc }: { label: string; desc: string }) {
-  return (
-    <div className="rounded-md bg-surface-2 px-3 py-2.5">
-      <p className="font-semibold text-foreground">{label}</p>
-      <p className="mt-0.5 text-xs">{desc}</p>
-    </div>
-  );
-}
-
-// Re-export Metric for backward compat with WorkspaceTabs import.
+// Re-export for backward compat with WorkspaceTabs import.
 export function Metric({
   label,
   value,
@@ -434,5 +586,4 @@ export function EnableBadge({ state }: { state: string }) {
   );
 }
 
-// Keep AGENT_LIST import used (re-exported helper for tabs).
-export { AGENT_LIST, Clock };
+export { Clock };

@@ -1,12 +1,10 @@
-// Connect Pro Fleet — Fleet Copilot Approvals inbox (Build #43 / #47 UX polish).
+// Connect Pro Fleet — Connect Pro AI Operator Approvals inbox (V1 simplification).
 //
-// One centralized approval inbox for Fleet Copilot. Each card shows what
-// Copilot wants to do, the affected record, why (source-backed reasons),
-// impact, source records, and requested time. Actions: Approve & Execute,
-// Edit (message drafts only), Reject. Batch approval is offered ONLY for
-// low-risk actions — high-risk actions (charges, refunds, waivers, deposit
-// applications, partner payouts, settlement approvals, compliance overrides)
-// are never batch-approved.
+// One centralized approval inbox for Connect Pro AI Operator. Each card shows
+// what the Operator wants to do, the affected record, why (source-backed
+// reasons), impact, source records, and requested time. Actions: Approve &
+// Execute, Edit (message drafts only), Reject. Batch approval is offered ONLY
+// for low-risk actions — high-risk actions always require individual approval.
 
 import { useState } from "react";
 import { actionRequiresApproval } from "@/lib/agentTypes";
@@ -46,7 +44,7 @@ export function ApprovalsTab({
     return (
       <EmptyState
         title="No approvals waiting"
-        hint="Copilot actions requiring human approval will appear here."
+        hint="AI Operator actions requiring human approval will appear here."
         icon={<CheckCircle2 size={22} />}
         tone="teal"
       />
@@ -106,7 +104,7 @@ export function ApprovalsTab({
                     />
                   )}
                   <span className="font-display text-sm font-semibold text-foreground">
-                    Fleet Copilot
+                    Connect Pro AI Operator
                   </span>
                   <span className="text-xs text-muted-foreground">
                     {def.name}
