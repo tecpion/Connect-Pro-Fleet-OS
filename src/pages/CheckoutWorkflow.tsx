@@ -597,7 +597,7 @@ export default function CheckoutWorkflow() {
             />
             <p className="text-sm text-muted-foreground">
               Starting the rental marks the vehicle as rented, the customer as
-              an active renter, and updates the fleet planner.
+              an active renter, and updates the calendar.
             </p>
           </div>
         )}

@@ -89,7 +89,7 @@ export const navGroups: NavGroup[] = [
         label: "Rental Management",
         icon: CalendarRange,
       },
-      { to: "/planner", label: "Planner", icon: CalendarDays },
+      { to: "/planner", label: "Calendar", icon: CalendarDays },
     ],
   },
   {

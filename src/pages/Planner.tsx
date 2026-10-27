@@ -164,7 +164,7 @@ export default function Planner() {
   return (
     <div className="space-y-4">
       <PageHeader
-        title="Fleet planner"
+        title="Calendar"
         subtitle={`${filteredVehicles.length} vehicles · ${view === "day" ? "Day" : view === "week" ? "Week" : view === "2week" ? "2 Week" : "Month"} view`}
         actions={
           <div className="flex items-center gap-2">
