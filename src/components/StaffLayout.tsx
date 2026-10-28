@@ -39,6 +39,7 @@ import {
   Zap,
   Bot,
   Satellite,
+  Upload,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -204,6 +205,12 @@ export const navGroups: NavGroup[] = [
         label: "Integrations",
         icon: Plug,
         perm: "integrations.view",
+      },
+      {
+        to: "/migration",
+        label: "Data Import / Migration",
+        icon: Upload,
+        perm: "migration.view",
       },
       { to: "/settings", label: "Settings", icon: Settings },
     ],
