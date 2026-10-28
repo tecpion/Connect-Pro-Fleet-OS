@@ -52,12 +52,7 @@ import {
   type ScanOptionId,
   type ScanStage,
 } from "./scanTypes";
-import {
-  maskVin,
-  matchByPlate,
-  matchByVin,
-  searchVehicles,
-} from "./scanMatch";
+import { maskVin, matchByPlate, matchByVin, searchVehicles } from "./scanMatch";
 import { actionsForVehicle, type VehicleAction } from "./scanActions";
 
 // Icon map for action menu items.
@@ -124,14 +119,11 @@ export function ScanLauncher({
     }
   }, [open, initialOption]);
 
-  const handleFile = useCallback(
-    (file: File | undefined) => {
-      if (!file) return;
-      setPreviewUrl(URL.createObjectURL(file));
-      setStage("enter_id");
-    },
-    [],
-  );
+  const handleFile = useCallback((file: File | undefined) => {
+    if (!file) return;
+    setPreviewUrl(URL.createObjectURL(file));
+    setStage("enter_id");
+  }, []);
 
   const doMatch = useCallback(() => {
     const val = idValue.trim();
@@ -233,7 +225,9 @@ export function ScanLauncher({
                         <Icon size={20} />
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="font-medium text-foreground">{opt.label}</p>
+                        <p className="font-medium text-foreground">
+                          {opt.label}
+                        </p>
                         <p className="truncate text-xs text-muted-foreground">
                           {opt.hint}
                         </p>
@@ -258,7 +252,9 @@ export function ScanLauncher({
                   className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 py-10 text-center transition-colors hover:border-primary/50 hover:bg-surface-2"
                 >
                   <Camera size={32} className="text-primary" />
-                  <span className="font-medium text-foreground">Take Photo</span>
+                  <span className="font-medium text-foreground">
+                    Take Photo
+                  </span>
                   <span className="text-xs text-muted-foreground">
                     Use your phone camera
                   </span>
@@ -482,7 +478,7 @@ function MatchResult({
   );
   const recent = maintenance
     .filter((m) => m.vehicle_id === vehicle.id)
-    .sort((a, b) => (a.service_date < b.service_date ? 1 : -1))
+    .sort((a, b) => (a.scheduled_date < b.scheduled_date ? 1 : -1))
     .slice(0, 3);
   const actions = actionsForVehicle(vehicle);
 
@@ -520,13 +516,15 @@ function MatchResult({
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Open work orders</span>
-            <span className="font-medium text-foreground">{openWOs.length}</span>
+            <span className="font-medium text-foreground">
+              {openWOs.length}
+            </span>
           </div>
           {recent.length > 0 ? (
             <div className="flex justify-between">
               <span className="text-muted-foreground">Last service</span>
               <span className="font-mono tabular text-foreground">
-                {fmtDate(recent[0].service_date)}
+                {fmtDate(recent[0].scheduled_date)}
               </span>
             </div>
           ) : (

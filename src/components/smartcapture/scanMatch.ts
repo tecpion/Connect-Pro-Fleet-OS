@@ -8,7 +8,10 @@
 import type { Vehicle } from "@/lib/types";
 
 export function normalizePlate(plate: string): string {
-  return plate.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+  return plate
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "");
 }
 
 export function normalizeVin(vin: string): string {

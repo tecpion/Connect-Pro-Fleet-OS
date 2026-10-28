@@ -18,18 +18,58 @@ export interface ScanOption {
   label: string;
   hint: string;
   /** lucide icon component reference */
-  icon: unknown;
+  icon: string;
 }
 
 export const SCAN_OPTIONS: ScanOption[] = [
-  { id: "plate", label: "Scan License Plate", hint: "Identify a vehicle from its plate.", icon: "scan" },
-  { id: "vin", label: "Scan VIN", hint: "Identify a vehicle from its VIN.", icon: "scan" },
-  { id: "vehicle_photo", label: "Take Vehicle Photo", hint: "Find a vehicle or attach a photo.", icon: "camera" },
-  { id: "registration", label: "Scan Registration", hint: "Identify a vehicle and review registration.", icon: "file" },
-  { id: "receipt", label: "Scan Receipt", hint: "Prepare an expense from a receipt.", icon: "wallet" },
-  { id: "service_receipt", label: "Scan Service Receipt", hint: "Prepare maintenance info from a service invoice.", icon: "wrench" },
-  { id: "id", label: "Scan ID / License", hint: "Prepare customer information for review.", icon: "shield" },
-  { id: "upload", label: "Upload Photo", hint: "Choose an existing image from your device.", icon: "upload" },
+  {
+    id: "plate",
+    label: "Scan License Plate",
+    hint: "Identify a vehicle from its plate.",
+    icon: "scan",
+  },
+  {
+    id: "vin",
+    label: "Scan VIN",
+    hint: "Identify a vehicle from its VIN.",
+    icon: "scan",
+  },
+  {
+    id: "vehicle_photo",
+    label: "Take Vehicle Photo",
+    hint: "Find a vehicle or attach a photo.",
+    icon: "camera",
+  },
+  {
+    id: "registration",
+    label: "Scan Registration",
+    hint: "Identify a vehicle and review registration.",
+    icon: "file",
+  },
+  {
+    id: "receipt",
+    label: "Scan Receipt",
+    hint: "Prepare an expense from a receipt.",
+    icon: "wallet",
+  },
+  {
+    id: "service_receipt",
+    label: "Scan Service Receipt",
+    hint: "Prepare maintenance info from a service invoice.",
+    icon: "wrench",
+  },
+  {
+    id: "id",
+    label: "Scan ID / License",
+    hint: "Prepare customer information for review.",
+    icon: "shield",
+  },
+  {
+    id: "upload",
+    label: "Upload Photo",
+    hint: "Choose an existing image from your device.",
+    icon: "upload",
+  },
 ];
 
 export type ScanStage =

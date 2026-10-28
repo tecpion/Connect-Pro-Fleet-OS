@@ -336,121 +336,121 @@ export default function Planner() {
       {view !== "agenda" && (
         <div className="overflow-x-auto rounded-lg border border-border bg-surface">
           <div className="min-w-[900px]">
-          {/* Header row */}
-          <div
-            className="grid border-b border-border bg-surface-2"
-            style={{
-              gridTemplateColumns: `200px repeat(${days.length}, minmax(0, 1fr))`,
-            }}
-          >
-            <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Vehicle
+            {/* Header row */}
+            <div
+              className="grid border-b border-border bg-surface-2"
+              style={{
+                gridTemplateColumns: `200px repeat(${days.length}, minmax(0, 1fr))`,
+              }}
+            >
+              <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Vehicle
+              </div>
+              {days.map((d) => {
+                const isToday = d === todayISO;
+                const isWeekend =
+                  new Date(d + "T00:00:00").getDay() === 0 ||
+                  new Date(d + "T00:00:00").getDay() === 6;
+                return (
+                  <div
+                    key={d}
+                    className={cn(
+                      "border-l border-border px-2 py-2 text-center",
+                      isWeekend && "bg-surface-2",
+                    )}
+                  >
+                    <p
+                      className={cn(
+                        "font-mono text-xs tabular",
+                        isToday
+                          ? "font-semibold text-primary"
+                          : "text-muted-foreground",
+                      )}
+                    >
+                      {new Date(d + "T00:00:00").toLocaleDateString("en-US", {
+                        weekday: "short",
+                      })}
+                    </p>
+                    <p
+                      className={cn(
+                        "font-mono text-xs tabular",
+                        isToday ? "text-primary" : "text-foreground",
+                      )}
+                    >
+                      {new Date(d + "T00:00:00").getDate()}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
-            {days.map((d) => {
-              const isToday = d === todayISO;
-              const isWeekend =
-                new Date(d + "T00:00:00").getDay() === 0 ||
-                new Date(d + "T00:00:00").getDay() === 6;
+
+            {/* Vehicle rows */}
+            {filteredVehicles.map((v) => {
+              const vBlocks = blocks.filter((b) => b.vehicleId === v.id);
               return (
                 <div
-                  key={d}
-                  className={cn(
-                    "border-l border-border px-2 py-2 text-center",
-                    isWeekend && "bg-surface-2",
-                  )}
+                  key={v.id}
+                  className="grid border-b border-border last:border-b-0"
+                  style={{
+                    gridTemplateColumns: `200px repeat(${days.length}, minmax(0, 1fr))`,
+                  }}
                 >
-                  <p
-                    className={cn(
-                      "font-mono text-xs tabular",
-                      isToday
-                        ? "font-semibold text-primary"
-                        : "text-muted-foreground",
-                    )}
-                  >
-                    {new Date(d + "T00:00:00").toLocaleDateString("en-US", {
-                      weekday: "short",
-                    })}
-                  </p>
-                  <p
-                    className={cn(
-                      "font-mono text-xs tabular",
-                      isToday ? "text-primary" : "text-foreground",
-                    )}
-                  >
-                    {new Date(d + "T00:00:00").getDate()}
-                  </p>
+                  <div className="px-3 py-2">
+                    <Link
+                      to={`/vehicles/${v.id}`}
+                      className="text-sm font-medium text-foreground hover:text-primary"
+                    >
+                      {v.make} {v.model}
+                    </Link>
+                    <p className="font-mono text-xs tabular text-muted-foreground">
+                      {v.license_plate}
+                    </p>
+                  </div>
+                  {days.map((d) => {
+                    const dayBlocks = vBlocks.filter((b) =>
+                      overlaps(b.startDate, b.endDate, d, d),
+                    );
+                    return (
+                      <div
+                        key={d}
+                        className="group relative min-h-[44px] border-l border-border p-0.5"
+                        onClick={() => {
+                          if (dayBlocks.length > 0) return;
+                          const available = isAvailable(v.id, d, d);
+                          if (!available) {
+                            toast.error(
+                              "That slot is already booked — pick another date.",
+                            );
+                            return;
+                          }
+                          navigate(`/vehicles/${v.id}`);
+                        }}
+                      >
+                        {dayBlocks.map((b, i) => (
+                          <Link
+                            key={`${b.rentalId ?? b.reservationId ?? b.maintenanceId}-${i}`}
+                            to={b.to}
+                            className={cn(
+                              "mb-0.5 block truncate rounded px-1.5 py-1 text-[11px] font-medium transition-colors hover:opacity-80",
+                              statusToneClasses[b.tone].bg,
+                              statusToneClasses[b.tone].text,
+                            )}
+                            title={`${b.label} · ${fmtDateShort(b.startDate)} → ${fmtDateShort(b.endDate)}`}
+                          >
+                            {b.label}
+                          </Link>
+                        ))}
+                        {dayBlocks.length === 0 && (
+                          <div className="flex h-full min-h-[44px] items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
+                            <Plus size={12} className="text-muted-foreground" />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               );
             })}
-          </div>
-
-          {/* Vehicle rows */}
-          {filteredVehicles.map((v) => {
-            const vBlocks = blocks.filter((b) => b.vehicleId === v.id);
-            return (
-              <div
-                key={v.id}
-                className="grid border-b border-border last:border-b-0"
-                style={{
-                  gridTemplateColumns: `200px repeat(${days.length}, minmax(0, 1fr))`,
-                }}
-              >
-                <div className="px-3 py-2">
-                  <Link
-                    to={`/vehicles/${v.id}`}
-                    className="text-sm font-medium text-foreground hover:text-primary"
-                  >
-                    {v.make} {v.model}
-                  </Link>
-                  <p className="font-mono text-xs tabular text-muted-foreground">
-                    {v.license_plate}
-                  </p>
-                </div>
-                {days.map((d) => {
-                  const dayBlocks = vBlocks.filter((b) =>
-                    overlaps(b.startDate, b.endDate, d, d),
-                  );
-                  return (
-                    <div
-                      key={d}
-                      className="group relative min-h-[44px] border-l border-border p-0.5"
-                      onClick={() => {
-                        if (dayBlocks.length > 0) return;
-                        const available = isAvailable(v.id, d, d);
-                        if (!available) {
-                          toast.error(
-                            "That slot is already booked — pick another date.",
-                          );
-                          return;
-                        }
-                        navigate(`/vehicles/${v.id}`);
-                      }}
-                    >
-                      {dayBlocks.map((b, i) => (
-                        <Link
-                          key={`${b.rentalId ?? b.reservationId ?? b.maintenanceId}-${i}`}
-                          to={b.to}
-                          className={cn(
-                            "mb-0.5 block truncate rounded px-1.5 py-1 text-[11px] font-medium transition-colors hover:opacity-80",
-                            statusToneClasses[b.tone].bg,
-                            statusToneClasses[b.tone].text,
-                          )}
-                          title={`${b.label} · ${fmtDateShort(b.startDate)} → ${fmtDateShort(b.endDate)}`}
-                        >
-                          {b.label}
-                        </Link>
-                      ))}
-                      {dayBlocks.length === 0 && (
-                        <div className="flex h-full min-h-[44px] items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
-                          <Plus size={12} className="text-muted-foreground" />
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })}
           </div>
         </div>
       )}
