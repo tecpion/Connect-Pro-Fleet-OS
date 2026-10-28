@@ -94,7 +94,7 @@ export default function FleetCopilot() {
         }
       />
 
-      <div className="flex flex-wrap gap-1 border-b border-border">
+      <div className="-mx-4 flex gap-1 overflow-x-auto px-4 pb-px sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 border-b border-border">
         {TABS.map((t) => {
           const active = tab === t.id;
           const badge =

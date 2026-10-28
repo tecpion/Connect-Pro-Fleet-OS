@@ -8,13 +8,14 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { toast } from "sonner";
 
-type ViewMode = "day" | "week" | "2week" | "month";
+type ViewMode = "day" | "week" | "2week" | "month" | "agenda";
 
 const VIEW_DAYS: Record<ViewMode, number> = {
   day: 1,
   week: 7,
   "2week": 14,
   month: 30,
+  agenda: 7,
 };
 
 interface Block {
@@ -46,7 +47,7 @@ export default function Planner() {
   const { vehicles, rentals, reservations, maintenance, customers } =
     useStore();
   const navigate = useNavigate();
-  const [view, setView] = useState<ViewMode>("week");
+  const [view, setView] = useState<ViewMode>("agenda");
   const [anchor, setAnchor] = useState(() => toISO(new Date()));
   const [locationFilter, setLocationFilter] = useState<string | "all">("all");
 
@@ -213,32 +214,128 @@ export default function Planner() {
           </Button>
         </div>
         <div className="flex flex-wrap gap-1.5">
-          {(["day", "week", "2week", "month"] as ViewMode[]).map((v) => (
-            <button
-              key={v}
-              onClick={() => setView(v)}
-              className={cn(
-                "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-                view === v
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-surface text-muted-foreground hover:border-primary/40 hover:text-foreground",
-              )}
-            >
-              {v === "day"
-                ? "Day"
-                : v === "week"
-                  ? "Week"
-                  : v === "2week"
-                    ? "2 Week"
-                    : "Month"}
-            </button>
-          ))}
+          {(["agenda", "day", "week", "2week", "month"] as ViewMode[]).map(
+            (v) => (
+              <button
+                key={v}
+                onClick={() => setView(v)}
+                className={cn(
+                  "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                  view === v
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-surface text-muted-foreground hover:border-primary/40 hover:text-foreground",
+                )}
+              >
+                {v === "agenda"
+                  ? "Agenda"
+                  : v === "day"
+                    ? "Day"
+                    : v === "week"
+                      ? "Week"
+                      : v === "2week"
+                        ? "2 Week"
+                        : "Month"}
+              </button>
+            ),
+          )}
         </div>
       </div>
 
-      {/* Calendar grid */}
-      <div className="overflow-x-auto rounded-lg border border-border bg-surface">
-        <div className="min-w-[900px]">
+      {/* Agenda view (mobile-first) — grouped by day, no horizontal scroll */}
+      {view === "agenda" && (
+        <div className="space-y-3">
+          {days.map((d) => {
+            const dayBlocks = blocks.filter((b) =>
+              overlaps(b.startDate, b.endDate, d, d),
+            );
+            const isToday = d === todayISO;
+            const dDate = new Date(d + "T00:00:00");
+            return (
+              <div
+                key={d}
+                className="rounded-lg border border-border bg-surface"
+              >
+                <div
+                  className={cn(
+                    "flex items-center justify-between border-b border-border px-3 py-2",
+                    isToday && "bg-primary/5",
+                  )}
+                >
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={cn(
+                        "font-mono text-sm font-semibold tabular",
+                        isToday ? "text-primary" : "text-foreground",
+                      )}
+                    >
+                      {dDate.toLocaleDateString("en-US", {
+                        weekday: "short",
+                      })}
+                    </span>
+                    <span
+                      className={cn(
+                        "font-mono text-xs tabular",
+                        isToday ? "text-primary" : "text-muted-foreground",
+                      )}
+                    >
+                      {fmtDateShort(d)}
+                    </span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {dayBlocks.length === 0
+                      ? "No activity"
+                      : `${dayBlocks.length} ${
+                          dayBlocks.length === 1 ? "item" : "items"
+                        }`}
+                  </span>
+                </div>
+                {dayBlocks.length === 0 ? (
+                  <div className="px-3 py-4 text-center text-xs text-muted-foreground">
+                    Nothing scheduled
+                  </div>
+                ) : (
+                  <div className="divide-y divide-border">
+                    {dayBlocks.map((b, i) => {
+                      const vehicle = vehicles.find(
+                        (v) => v.id === b.vehicleId,
+                      );
+                      return (
+                        <Link
+                          key={`${b.rentalId ?? b.reservationId ?? b.maintenanceId}-${i}`}
+                          to={b.to}
+                          className="flex items-start gap-3 px-3 py-2.5 transition-colors hover:bg-muted/40"
+                        >
+                          <span
+                            className={cn(
+                              "mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full",
+                              statusToneClasses[b.tone].dot,
+                            )}
+                          />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium text-foreground">
+                              {b.label}
+                            </p>
+                            <p className="truncate text-xs text-muted-foreground">
+                              {vehicle
+                                ? `${vehicle.make} ${vehicle.model} · ${vehicle.license_plate}`
+                                : b.sub}
+                            </p>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Calendar grid (desktop) */}
+      {view !== "agenda" && (
+        <div className="overflow-x-auto rounded-lg border border-border bg-surface">
+          <div className="min-w-[900px]">
           {/* Header row */}
           <div
             className="grid border-b border-border bg-surface-2"
@@ -354,8 +451,9 @@ export default function Planner() {
               </div>
             );
           })}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Legend */}
       <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
