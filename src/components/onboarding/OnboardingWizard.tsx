@@ -98,13 +98,21 @@ export function OnboardingWizard({ onClose }: { onClose: () => void }) {
             />
           )}
           {current === "howYouRent" && (
-            <HowYouRentStep answers={answers} setAnswers={setAnswers} onNext={goNext} />
+            <HowYouRentStep
+              answers={answers}
+              setAnswers={setAnswers}
+              onNext={goNext}
+            />
           )}
           {current === "pricing" && (
             <PricingStep navigate={navigate} onNext={goNext} />
           )}
           {current === "fleet" && (
-            <FleetStep vehicles={vehicles} navigate={navigate} onNext={goNext} />
+            <FleetStep
+              vehicles={vehicles}
+              navigate={navigate}
+              onNext={goNext}
+            />
           )}
           {current === "agreements" && (
             <AgreementsStep navigate={navigate} onNext={goNext} />
@@ -116,12 +124,13 @@ export function OnboardingWizard({ onClose }: { onClose: () => void }) {
             <TeamStep
               staff={staff}
               answers={answers}
-              setAnswers={setAnswers}
               navigate={navigate}
               onNext={goNext}
             />
           )}
-          {current === "tools" && <ToolsStep navigate={navigate} onNext={goNext} />}
+          {current === "tools" && (
+            <ToolsStep navigate={navigate} onNext={goNext} />
+          )}
           {current === "aiOperator" && (
             <AiOperatorStep navigate={navigate} onNext={goNext} />
           )}
@@ -172,7 +181,10 @@ export function SetupChecklistCard({ onContinue }: { onContinue: () => void }) {
       done: companyPolicies.rental_model.enabled_cadences.length > 0,
     },
     { label: "At Least One Vehicle", done: vehicles.length > 0 },
-    { label: "Deposit Policy", done: companyPolicies.deposit.default_amount > 0 },
+    {
+      label: "Deposit Policy",
+      done: companyPolicies.deposit.default_amount > 0,
+    },
     { label: "Team", done: staff.length > 0 },
     { label: "Payment Methods", done: false },
     { label: "Rental Agreement", done: false },

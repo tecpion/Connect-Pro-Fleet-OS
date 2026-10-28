@@ -47,22 +47,37 @@ export function FleetStep({
         subtitle="You'll need at least one vehicle before you can run a real rental."
       />
       <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
-        <ChoiceCard label="Add Manually" description="Enter vehicle information yourself." selected={false} onClick={() => navigate("/vehicles")} />
-        <ChoiceCard label="Smart Capture" description="Take a photo or upload a document." selected={false} onClick={() => navigate("/vehicles")} />
-        <ChoiceCard label="Import Vehicles" description="Import multiple vehicles from a file." selected={false} onClick={() => navigate("/migration")} />
+        <ChoiceCard
+          label="Add Manually"
+          description="Enter vehicle information yourself."
+          selected={false}
+          onClick={() => navigate("/vehicles")}
+        />
+        <ChoiceCard
+          label="Smart Capture"
+          description="Take a photo or upload a document."
+          selected={false}
+          onClick={() => navigate("/vehicles")}
+        />
+        <ChoiceCard
+          label="Import Vehicles"
+          description="Import multiple vehicles from a file."
+          selected={false}
+          onClick={() => navigate("/migration")}
+        />
       </div>
       <div className="mt-3 rounded-lg border border-border bg-surface-2 p-3 text-xs text-muted-foreground">
         <p>
-          <span className="font-medium text-foreground">Smart Capture</span> scanning will be
-          enabled once document extraction is connected.
+          <span className="font-medium text-foreground">Smart Capture</span>{" "}
+          scanning will be enabled once document extraction is connected.
         </p>
       </div>
       {hasVehicle ? (
         <QuickWin message="Your first vehicle is ready." />
       ) : (
         <p className="mt-4 text-sm text-muted-foreground">
-          No vehicles added yet. You can skip for now, but you'll need at least one before running
-          a rental.
+          No vehicles added yet. You can skip for now, but you'll need at least
+          one before running a rental.
         </p>
       )}
       <HelpFooter />
@@ -71,7 +86,13 @@ export function FleetStep({
   );
 }
 
-export function AgreementsStep({ navigate, onNext }: { navigate: Navigate; onNext: () => void }) {
+export function AgreementsStep({
+  navigate,
+  onNext,
+}: {
+  navigate: Navigate;
+  onNext: () => void;
+}) {
   return (
     <div>
       <StepTitle
@@ -103,7 +124,13 @@ export function AgreementsStep({ navigate, onNext }: { navigate: Navigate; onNex
   );
 }
 
-export function PaymentsStep({ navigate, onNext }: { navigate: Navigate; onNext: () => void }) {
+export function PaymentsStep({
+  navigate,
+  onNext,
+}: {
+  navigate: Navigate;
+  onNext: () => void;
+}) {
   return (
     <div>
       <StepTitle
@@ -112,11 +139,16 @@ export function PaymentsStep({ navigate, onNext }: { navigate: Navigate; onNext:
         subtitle="Choose your payment methods and configure deposit/payment rules."
       />
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        {["Stripe", "Cash", "Zelle", "Cash App", "Apple Pay", "Other"].map((m) => (
-          <div key={m} className="rounded-lg border border-border px-3 py-2.5 text-center text-sm text-foreground">
-            {m}
-          </div>
-        ))}
+        {["Stripe", "Cash", "Zelle", "Cash App", "Apple Pay", "Other"].map(
+          (m) => (
+            <div
+              key={m}
+              className="rounded-lg border border-border px-3 py-2.5 text-center text-sm text-foreground"
+            >
+              {m}
+            </div>
+          ),
+        )}
       </div>
       <div className="mt-4 space-y-2.5">
         <SetupRow
@@ -134,10 +166,15 @@ export function PaymentsStep({ navigate, onNext }: { navigate: Navigate; onNext:
       </div>
       <div className="mt-4 rounded-lg border border-border bg-surface-2 p-3 text-xs text-muted-foreground">
         <p>
-          <span className="font-medium text-foreground">Payment Policy Configured</span> vs{" "}
-          <span className="font-medium text-foreground">Payment Processor Connected</span> —
-          setting up policies here doesn't connect a live processor. You can connect Stripe or
-          other processors in Integrations.
+          <span className="font-medium text-foreground">
+            Payment Policy Configured
+          </span>{" "}
+          vs{" "}
+          <span className="font-medium text-foreground">
+            Payment Processor Connected
+          </span>{" "}
+          — setting up policies here doesn't connect a live processor. You can
+          connect Stripe or other processors in Integrations.
         </p>
       </div>
       <HelpFooter />
@@ -184,12 +221,34 @@ export function TeamStep({
   );
 }
 
-export function ToolsStep({ navigate, onNext }: { navigate: Navigate; onNext: () => void }) {
+export function ToolsStep({
+  navigate,
+  onNext,
+}: {
+  navigate: Navigate;
+  onNext: () => void;
+}) {
   const integrations = [
-    { name: "Connect Pro CRM", status: "Setup Required", desc: "Connect your CRM so qualified booking activity and rental updates move between systems." },
-    { name: "GPS / Telematics", status: "Coming Soon", desc: "Live vehicle tracking and geofence alerts." },
-    { name: "Accounting", status: "Coming Soon", desc: "Sync expenses and revenue with your accounting software." },
-    { name: "Payment Processor", status: "Setup Required", desc: "Connect Stripe or another processor to accept card payments." },
+    {
+      name: "Connect Pro CRM",
+      status: "Setup Required",
+      desc: "Connect your CRM so qualified booking activity and rental updates move between systems.",
+    },
+    {
+      name: "GPS / Telematics",
+      status: "Coming Soon",
+      desc: "Live vehicle tracking and geofence alerts.",
+    },
+    {
+      name: "Accounting",
+      status: "Coming Soon",
+      desc: "Sync expenses and revenue with your accounting software.",
+    },
+    {
+      name: "Payment Processor",
+      status: "Setup Required",
+      desc: "Connect Stripe or another processor to accept card payments.",
+    },
   ];
   return (
     <div>
@@ -200,7 +259,10 @@ export function ToolsStep({ navigate, onNext }: { navigate: Navigate; onNext: ()
       />
       <div className="space-y-2.5">
         {integrations.map((i) => (
-          <div key={i.name} className="flex items-center justify-between rounded-lg border border-border p-3">
+          <div
+            key={i.name}
+            className="flex items-center justify-between rounded-lg border border-border p-3"
+          >
             <div className="min-w-0">
               <p className="text-sm font-medium text-foreground">{i.name}</p>
               <p className="mt-0.5 text-xs text-muted-foreground">{i.desc}</p>
@@ -220,7 +282,12 @@ export function ToolsStep({ navigate, onNext }: { navigate: Navigate; onNext: ()
           </div>
         ))}
       </div>
-      <Button variant="outline" size="sm" className="mt-4" onClick={() => navigate("/integrations")}>
+      <Button
+        variant="outline"
+        size="sm"
+        className="mt-4"
+        onClick={() => navigate("/integrations")}
+      >
         Open Integrations
       </Button>
       <HelpFooter />
@@ -229,10 +296,22 @@ export function ToolsStep({ navigate, onNext }: { navigate: Navigate; onNext: ()
   );
 }
 
-export function AiOperatorStep({ navigate, onNext }: { navigate: Navigate; onNext: () => void }) {
+export function AiOperatorStep({
+  navigate,
+  onNext,
+}: {
+  navigate: Navigate;
+  onNext: () => void;
+}) {
   const areas = [
-    { name: "Operations", items: ["Rentals", "Fleet readiness", "Maintenance", "Compliance"] },
-    { name: "Payments & Finance", items: ["Payments", "Deposits", "Collections", "Financial exceptions"] },
+    {
+      name: "Operations",
+      items: ["Rentals", "Fleet readiness", "Maintenance", "Compliance"],
+    },
+    {
+      name: "Payments & Finance",
+      items: ["Payments", "Deposits", "Collections", "Financial exceptions"],
+    },
   ];
   return (
     <div>
@@ -247,7 +326,10 @@ export function AiOperatorStep({ navigate, onNext }: { navigate: Navigate; onNex
             <p className="text-sm font-semibold text-foreground">{a.name}</p>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {a.items.map((i) => (
-                <span key={i} className="rounded-full bg-surface-2 px-2.5 py-0.5 text-xs text-muted-foreground">
+                <span
+                  key={i}
+                  className="rounded-full bg-surface-2 px-2.5 py-0.5 text-xs text-muted-foreground"
+                >
                   {i}
                 </span>
               ))}
@@ -258,7 +340,9 @@ export function AiOperatorStep({ navigate, onNext }: { navigate: Navigate; onNex
                   key={m}
                   className={cn(
                     "rounded-md px-2.5 py-1 text-xs font-medium",
-                    idx === 1 ? "bg-primary/10 text-primary" : "border border-border text-muted-foreground",
+                    idx === 1
+                      ? "bg-primary/10 text-primary"
+                      : "border border-border text-muted-foreground",
                   )}
                 >
                   {m}
@@ -274,17 +358,23 @@ export function AiOperatorStep({ navigate, onNext }: { navigate: Navigate; onNex
           <div>
             <Clock size={16} className="mx-auto text-primary" />
             <p className="mt-1 text-xs font-medium text-foreground">Watch</p>
-            <p className="text-xs text-muted-foreground">Identifies what needs attention.</p>
+            <p className="text-xs text-muted-foreground">
+              Identifies what needs attention.
+            </p>
           </div>
           <div>
             <PenLine size={16} className="mx-auto text-primary" />
             <p className="mt-1 text-xs font-medium text-foreground">Draft</p>
-            <p className="text-xs text-muted-foreground">Prepares the next step.</p>
+            <p className="text-xs text-muted-foreground">
+              Prepares the next step.
+            </p>
           </div>
           <div>
             <Send size={16} className="mx-auto text-primary" />
             <p className="mt-1 text-xs font-medium text-foreground">Act</p>
-            <p className="text-xs text-muted-foreground">Executes approved actions.</p>
+            <p className="text-xs text-muted-foreground">
+              Executes approved actions.
+            </p>
           </div>
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
@@ -292,10 +382,16 @@ export function AiOperatorStep({ navigate, onNext }: { navigate: Navigate; onNex
         </p>
       </div>
       <p className="mt-3 text-xs text-muted-foreground">
-        New tenants default to <span className="font-medium text-foreground">Monitor</span> mode.
-        Auto mode is available after AI automation is enabled.
+        New tenants default to{" "}
+        <span className="font-medium text-foreground">Monitor</span> mode. Auto
+        mode is available after AI automation is enabled.
       </p>
-      <Button variant="outline" size="sm" className="mt-4" onClick={() => navigate("/ai-workforce")}>
+      <Button
+        variant="outline"
+        size="sm"
+        className="mt-4"
+        onClick={() => navigate("/ai-workforce")}
+      >
         Open AI Operator
       </Button>
       <ContinueButton onClick={onNext} />
@@ -323,7 +419,11 @@ export function ReadinessStep({
   const hasTeam = staff.length > 0;
   const checks = [
     { label: "Business Profile", done: hasProfile, optional: false },
-    { label: "Rental Model", done: answers.rentalCadences.length > 0, optional: false },
+    {
+      label: "Rental Model",
+      done: answers.rentalCadences.length > 0,
+      optional: false,
+    },
     { label: "Pricing", done: false, optional: false },
     { label: "At Least One Vehicle", done: hasVehicle, optional: false },
     { label: "Deposit Policy", done: false, optional: false },
@@ -337,10 +437,17 @@ export function ReadinessStep({
 
   return (
     <div>
-      <StepTitle icon={CheckCircle2} title="You're almost ready" subtitle="Here's your setup checklist." />
+      <StepTitle
+        icon={CheckCircle2}
+        title="You're almost ready"
+        subtitle="Here's your setup checklist."
+      />
       <div className="space-y-2">
         {checks.map((c) => (
-          <div key={c.label} className="flex items-center justify-between rounded-lg border border-border px-3 py-2.5">
+          <div
+            key={c.label}
+            className="flex items-center justify-between rounded-lg border border-border px-3 py-2.5"
+          >
             <div className="flex items-center gap-2.5">
               {c.done ? (
                 <CheckCircle2 size={16} className="text-primary" />
@@ -352,22 +459,34 @@ export function ReadinessStep({
             <span
               className={cn(
                 "text-xs font-medium",
-                c.done ? "text-primary" : c.optional ? "text-muted-foreground" : "text-amber-600 dark:text-amber-400",
+                c.done
+                  ? "text-primary"
+                  : c.optional
+                    ? "text-muted-foreground"
+                    : "text-amber-600 dark:text-amber-400",
               )}
             >
-              {c.done ? "Completed" : c.optional ? "Optional" : "Needs Attention"}
+              {c.done
+                ? "Completed"
+                : c.optional
+                  ? "Optional"
+                  : "Needs Attention"}
             </span>
           </div>
         ))}
       </div>
       <p className="mt-4 text-xs text-muted-foreground">
-        {doneCount} of {checks.length} items complete. You can finish the rest anytime from Settings.
+        {doneCount} of {checks.length} items complete. You can finish the rest
+        anytime from Settings.
       </p>
       <div className="mt-6 flex flex-col gap-2.5 sm:flex-row sm:justify-between">
         <Button variant="outline" onClick={() => navigate("/settings")}>
           Review Setup
         </Button>
-        <Button onClick={onFinish} className="bg-primary text-primary-foreground">
+        <Button
+          onClick={onFinish}
+          className="bg-primary text-primary-foreground"
+        >
           Go to Dashboard
         </Button>
       </div>

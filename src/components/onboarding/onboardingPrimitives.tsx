@@ -18,7 +18,12 @@ export type StepId =
 
 export interface OnboardingAnswers {
   multiLocation: boolean | null;
-  businessType: "owner_operated" | "multi_staff" | "multi_location" | "manage_for_others" | null;
+  businessType:
+    | "owner_operated"
+    | "multi_staff"
+    | "multi_location"
+    | "manage_for_others"
+    | null;
   hasStaff: boolean | null;
   managesForOthers: boolean | null;
   rentalCadences: string[];
@@ -64,7 +69,9 @@ export function StepTitle({
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
           <Icon size={18} className="text-primary" />
         </div>
-        <h2 className="font-display text-lg font-semibold text-foreground">{title}</h2>
+        <h2 className="font-display text-lg font-semibold text-foreground">
+          {title}
+        </h2>
       </div>
       {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
     </div>
@@ -93,7 +100,9 @@ export function ChoiceCard({
       )}
     >
       <p className="text-sm font-medium text-foreground">{label}</p>
-      {description && <p className="mt-1 text-xs text-muted-foreground">{description}</p>}
+      {description && (
+        <p className="mt-1 text-xs text-muted-foreground">{description}</p>
+      )}
     </button>
   );
 }
@@ -113,7 +122,9 @@ export function HelpFooter() {
       <span className="font-medium">Need help?</span>
       <button className="underline hover:text-foreground">View Help</button>
       <span>·</span>
-      <button className="underline hover:text-foreground">Contact Support</button>
+      <button className="underline hover:text-foreground">
+        Contact Support
+      </button>
     </div>
   );
 }
@@ -152,7 +163,10 @@ export function SetupRow({
         <p className="text-sm font-medium text-foreground">{label}</p>
         <p className="text-xs text-muted-foreground">{hint}</p>
       </div>
-      <ChevronRight size={16} className="ml-auto shrink-0 text-muted-foreground" />
+      <ChevronRight
+        size={16}
+        className="ml-auto shrink-0 text-muted-foreground"
+      />
     </button>
   );
 }

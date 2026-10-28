@@ -103,16 +103,19 @@ export function useOnboarding(): OnboardingState {
   }, []);
 
   const skip = useCallback(() => {
-    setPersist((p) => ({
-      ...(p ?? {
-        completed: false,
-        skipped: false,
-        stepIndex: 0,
-        answers: DEFAULT_ANSWERS,
-      }),
-      skipped: true,
-      active: false,
-    } as OnboardingPersist));
+    setPersist(
+      (p) =>
+        ({
+          ...(p ?? {
+            completed: false,
+            skipped: false,
+            stepIndex: 0,
+            answers: DEFAULT_ANSWERS,
+          }),
+          skipped: true,
+          active: false,
+        }) as OnboardingPersist,
+    );
     // Mark skipped so the wizard closes but the dashboard checklist remains.
     setPersist((p) => ({
       ...(p ?? {
@@ -250,8 +253,7 @@ export function useSetupChecklist(): SetupChecklistItem[] {
     {
       id: "rental-model",
       label: "Rental model",
-      done:
-        (companyPolicies.rental_model?.enabled_cadences?.length ?? 0) > 0,
+      done: (companyPolicies.rental_model?.enabled_cadences?.length ?? 0) > 0,
       optional: false,
       route: "/settings",
     },
