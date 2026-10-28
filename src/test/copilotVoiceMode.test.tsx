@@ -28,7 +28,6 @@ import { StaffAssignmentProvider } from "@/lib/staffAssignmentStore";
 import { CustomerNotesProvider } from "@/lib/customerNoteStore";
 import { IncidentsProvider } from "@/lib/incidentsStore";
 import { DefenseProvider } from "@/lib/store/defenseStore";
-import { FULL_PERMS } from "./copilotTestHarness";
 
 function Providers({ children }: { children: ReactNode }) {
   return (
@@ -72,55 +71,39 @@ function uiWrapper(node: ReactNode) {
 
 describe("V1 — Voice Mode hidden from AI Operator UI", () => {
   it("no 'Start Voice Conversation' button in V1", () => {
-    const { queryByRole } = uiWrapper(
-      <CopilotPanel embedded perms={FULL_PERMS} />,
-    );
+    const { queryByRole } = uiWrapper(<CopilotPanel embedded />);
     expect(
       queryByRole("button", { name: "Start Voice Conversation" }),
     ).not.toBeInTheDocument();
   });
 
   it("no 'Fleet Copilot Voice' text in V1", () => {
-    const { queryByText } = uiWrapper(
-      <CopilotPanel embedded perms={FULL_PERMS} />,
-    );
+    const { queryByText } = uiWrapper(<CopilotPanel embedded />);
     expect(queryByText(/Fleet Copilot Voice/i)).not.toBeInTheDocument();
   });
 
   it("no 'Voice Mode' label in V1", () => {
-    const { queryByText } = uiWrapper(
-      <CopilotPanel embedded perms={FULL_PERMS} />,
-    );
+    const { queryByText } = uiWrapper(<CopilotPanel embedded />);
     expect(queryByText(/Voice Mode/i)).not.toBeInTheDocument();
   });
 
   it("no 'Listening…' indicator in V1 (no voice)", () => {
-    const { queryByText } = uiWrapper(
-      <CopilotPanel embedded perms={FULL_PERMS} />,
-    );
+    const { queryByText } = uiWrapper(<CopilotPanel embedded />);
     expect(queryByText(/Listening/i)).not.toBeInTheDocument();
   });
 
   it("no 'Copilot is speaking' indicator in V1", () => {
-    const { queryByText } = uiWrapper(
-      <CopilotPanel embedded perms={FULL_PERMS} />,
-    );
+    const { queryByText } = uiWrapper(<CopilotPanel embedded />);
     expect(queryByText(/Copilot is speaking/i)).not.toBeInTheDocument();
   });
 
   it("text composer IS present in V1", () => {
-    const { getByPlaceholderText } = uiWrapper(
-      <CopilotPanel embedded perms={FULL_PERMS} />,
-    );
-    expect(
-      getByPlaceholderText(/Ask about your fleet/i),
-    ).toBeInTheDocument();
+    const { getByPlaceholderText } = uiWrapper(<CopilotPanel embedded />);
+    expect(getByPlaceholderText(/Ask about your fleet/i)).toBeInTheDocument();
   });
 
   it("AI Operator header IS present in V1", () => {
-    const { getByText } = uiWrapper(
-      <CopilotPanel embedded perms={FULL_PERMS} />,
-    );
+    const { getByText } = uiWrapper(<CopilotPanel embedded />);
     expect(getByText("Connect Pro AI Operator")).toBeInTheDocument();
   });
 });

@@ -26,7 +26,6 @@ import { StaffAssignmentProvider } from "@/lib/staffAssignmentStore";
 import { CustomerNotesProvider } from "@/lib/customerNoteStore";
 import { IncidentsProvider } from "@/lib/incidentsStore";
 import { DefenseProvider } from "@/lib/store/defenseStore";
-import { FULL_PERMS } from "./copilotTestHarness";
 
 function Providers({ children }: { children: ReactNode }) {
   return (
@@ -70,36 +69,26 @@ function uiWrapper(node: ReactNode) {
 
 describe("V1 — Dual voice controls hidden from AI Operator UI", () => {
   it("no dictation mic button in V1", () => {
-    const { queryByRole } = uiWrapper(
-      <CopilotPanel embedded perms={FULL_PERMS} />,
-    );
+    const { queryByRole } = uiWrapper(<CopilotPanel embedded />);
     expect(
       queryByRole("button", { name: "Dictate message" }),
     ).not.toBeInTheDocument();
   });
 
   it("no Voice Conversation button in V1", () => {
-    const { queryByRole } = uiWrapper(
-      <CopilotPanel embedded perms={FULL_PERMS} />,
-    );
+    const { queryByRole } = uiWrapper(<CopilotPanel embedded />);
     expect(
       queryByRole("button", { name: "Start Voice Conversation" }),
     ).not.toBeInTheDocument();
   });
 
   it("no 'Fleet Copilot Voice' heading in V1", () => {
-    const { queryByText } = uiWrapper(
-      <CopilotPanel embedded perms={FULL_PERMS} />,
-    );
+    const { queryByText } = uiWrapper(<CopilotPanel embedded />);
     expect(queryByText(/Fleet Copilot Voice/i)).not.toBeInTheDocument();
   });
 
   it("text composer IS present in V1", () => {
-    const { getByPlaceholderText } = uiWrapper(
-      <CopilotPanel embedded perms={FULL_PERMS} />,
-    );
-    expect(
-      getByPlaceholderText(/Ask about your fleet/i),
-    ).toBeInTheDocument();
+    const { getByPlaceholderText } = uiWrapper(<CopilotPanel embedded />);
+    expect(getByPlaceholderText(/Ask about your fleet/i)).toBeInTheDocument();
   });
 });
