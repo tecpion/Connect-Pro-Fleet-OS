@@ -20,19 +20,7 @@
 // Voice Conversation replaces this body with VoiceModeScreen (see CopilotPanel).
 
 import type { RefObject, Dispatch, SetStateAction } from "react";
-import {
-  Sparkles,
-  Send,
-  X,
-  RotateCcw,
-  Eraser,
-  Mic,
-  MicOff,
-  Square,
-  Volume2,
-  StopCircle,
-  Headphones,
-} from "lucide-react";
+import { Sparkles, Send, X, RotateCcw, Eraser } from "lucide-react";
 import type {
   CopilotAnswer,
   CopilotConversation,
@@ -106,10 +94,12 @@ export function CopilotTextBody({
   setConversation,
   EmptyState,
 }: CopilotTextBodyProps) {
-  const dictationSupported =
-    dictation.state.supported && settings.voiceInputEnabled;
-  const voiceConvSupported =
-    voiceConv.state.supported && settings.voiceConversationsEnabled;
+  // V1 — text-only AI Operator. Voice (dictation, Voice Conversation, Read
+  // Aloud) is intentionally hidden from the customer-facing V1 experience.
+  // The underlying hooks/props are preserved for a possible future phase; the
+  // UI simply never renders the voice controls.
+  const dictationSupported = false;
+  const voiceConvSupported = false;
   return (
     <>
       {/* Header */}
@@ -118,10 +108,10 @@ export function CopilotTextBody({
           <Sparkles className="h-4 w-4 text-primary" />
           <div>
             <div className="text-sm font-semibold text-foreground">
-              Fleet Copilot
+              Connect Pro AI Operator
             </div>
             <div className="text-[11px] text-muted-foreground">
-              Your operational assistant
+              Your AI operations manager
             </div>
           </div>
         </div>
@@ -239,20 +229,7 @@ export function CopilotTextBody({
                   >
                     👎 Not helpful
                   </button>
-                  {/* Read aloud (Text Mode only, optional). */}
-                  {settings.readResponsesAloud &&
-                    synthesis?.supported &&
-                    !isSpeaking && (
-                      <button
-                        type="button"
-                        onClick={() => speakAnswer(m.answer!)}
-                        title="Read aloud"
-                        aria-label="Read answer aloud"
-                        className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-                      >
-                        <Volume2 className="h-3.5 w-3.5" /> Read aloud
-                      </button>
-                    )}
+                  {/* Read aloud hidden in V1 (text-only AI Operator). */}
                 </div>
               )}
             </div>
@@ -267,53 +244,8 @@ export function CopilotTextBody({
 
       {/* Composer */}
       <div className="border-t border-border p-3">
-        {/* Voice conversation error (e.g. unsupported browser). */}
-        {voiceConv.state.error && (
-          <p className="mb-2 text-xs text-muted-foreground" role="alert">
-            {voiceConv.state.error}
-          </p>
-        )}
-        {isSpeaking && (
-          <div className="mb-2 flex items-center justify-between rounded-md border border-border bg-muted/30 px-2.5 py-1.5">
-            <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Volume2 className="h-3.5 w-3.5 text-primary" /> Reading answer…
-            </span>
-            <button
-              type="button"
-              onClick={stopSpeaking}
-              className="inline-flex items-center gap-1 text-xs font-medium text-foreground hover:text-primary"
-            >
-              <StopCircle className="h-3.5 w-3.5" /> Stop
-            </button>
-          </div>
-        )}
-        {/* Dictation listening indicator (inside the composer, not Voice Mode). */}
-        {dictation.state.isListening && (
-          <div className="mb-2 flex items-center justify-between rounded-md border border-primary/40 bg-primary/8 px-2.5 py-1.5">
-            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-primary">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" />
-                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
-              </span>
-              Dictating
-              {dictation.state.interimTranscript
-                ? ` — ${dictation.state.interimTranscript}`
-                : "…"}
-            </span>
-            <button
-              type="button"
-              onClick={dictation.stop}
-              className="inline-flex items-center gap-1 text-xs font-medium text-foreground hover:text-primary"
-            >
-              <Square className="h-3 w-3" /> Stop
-            </button>
-          </div>
-        )}
-        {dictation.state.error && !dictation.state.isListening && (
-          <p className="mb-2 text-xs text-muted-foreground" role="alert">
-            {dictation.state.error}
-          </p>
-        )}
+        {/* V1 — text-only AI Operator. Voice indicators (speaking, dictation,
+            voice-conversation errors) are intentionally hidden. */}
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -331,44 +263,11 @@ export function CopilotTextBody({
               }
             }}
             rows={1}
-            placeholder={
-              dictationSupported || voiceConvSupported
-                ? "Ask Fleet Copilot…"
-                : "Ask about your operation…"
-            }
-            aria-label="Ask Fleet Copilot"
+            placeholder="Ask about your fleet, rentals, payments, maintenance, or operations…"
+            aria-label="Ask Connect Pro AI Operator"
             className="max-h-32 min-h-[40px] flex-1 resize-none rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
           />
-          {/* DICTATION mic — voice-to-text into the composer (NOT Voice Mode).
-           *  Tooltip/aria: "Dictate message". Speech → editable text → Send. */}
-          {dictationSupported && (
-            <button
-              type="button"
-              onClick={dictation.toggle}
-              title={
-                dictation.state.isListening
-                  ? "Stop dictation"
-                  : "Dictate message"
-              }
-              aria-label={
-                dictation.state.isListening
-                  ? "Stop dictation"
-                  : "Dictate message"
-              }
-              className={cn(
-                "rounded-md p-2 transition-colors",
-                dictation.state.isListening
-                  ? "bg-primary text-primary-foreground"
-                  : "border border-border text-muted-foreground hover:bg-muted/40",
-              )}
-            >
-              {dictation.state.isListening ? (
-                <Square className="h-4 w-4" />
-              ) : (
-                <Mic className="h-4 w-4" />
-              )}
-            </button>
-          )}
+          {/* V1 — dictation mic hidden (text-only AI Operator). */}
           <button
             type="submit"
             disabled={!input.trim() || loading}
@@ -376,28 +275,7 @@ export function CopilotTextBody({
           >
             <Send className="h-4 w-4" />
           </button>
-          {/* START VOICE CONVERSATION — a distinct, clearly labelled action that
-           *  enters true conversational Voice Mode (NOT dictation). */}
-          {voiceConvSupported && (
-            <button
-              type="button"
-              onClick={voiceConv.startVoice}
-              title="Start Voice Conversation"
-              aria-label="Start Voice Conversation"
-              className="inline-flex items-center gap-1.5 rounded-md border border-primary/40 bg-primary/8 px-2.5 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/15"
-            >
-              <Headphones className="h-4 w-4" />
-              <span className="hidden sm:inline">Voice</span>
-            </button>
-          )}
         </form>
-        {/* Unsupported-voice hint when neither dictation nor Voice Conversation is available. */}
-        {!dictationSupported && !voiceConvSupported && (
-          <p className="mt-1.5 flex items-center gap-1 text-[11px] text-muted-foreground">
-            <MicOff className="h-3 w-3" /> Voice isn't available in this browser
-            yet.
-          </p>
-        )}
       </div>
     </>
   );

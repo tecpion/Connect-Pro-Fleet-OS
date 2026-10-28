@@ -36,7 +36,6 @@ import {
   SlidersHorizontal,
   Rocket,
   ShieldCheck,
-  Mic,
   UserCheck,
   BookCheck,
   Plug,
@@ -146,7 +145,9 @@ const NAV: NavSection[] = [
     group: "Communication & Automation",
     items: [
       { key: "notifications", label: "Notifications", icon: Bell },
-      { key: "copilotVoice", label: "Copilot Voice", icon: Mic },
+      // V1 — Copilot Voice settings hidden from nav (text-only AI Operator).
+      // The "copilotVoice" section key + render path are retained for deep-link
+      // compatibility; the nav item is intentionally omitted.
       { key: "automations", label: "Operational Automations", icon: Rocket },
     ],
   },

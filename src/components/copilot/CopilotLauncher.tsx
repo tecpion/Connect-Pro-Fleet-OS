@@ -17,10 +17,10 @@ export function CopilotLauncher() {
         <button
           type="button"
           className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-gradient-to-r from-primary to-primary-glow px-3.5 text-xs font-semibold text-primary-foreground shadow-[0_4px_16px_-4px] shadow-primary/50 transition-all hover:scale-[1.02] hover:shadow-[0_6px_20px_-4px] shadow-primary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
-          title="Fleet Copilot"
+          title="Connect Pro AI Operator"
         >
           <Sparkles className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">Copilot AI</span>
+          <span className="hidden sm:inline">AI Operator</span>
         </button>
       </SheetTrigger>
       <SheetContent className="w-full p-0 sm:max-w-[440px]" side="right">

@@ -196,7 +196,7 @@ export const navGroups: NavGroup[] = [
     items: [
       {
         to: "/ai-workforce",
-        label: "Fleet Copilot",
+        label: "AI Operator",
         icon: Bot,
         perm: "ai_workforce.view",
       },

@@ -414,10 +414,10 @@ function EmptyState({
   return (
     <div className={cn("space-y-4", compact ? "py-2" : "py-4")}>
       <div className="space-y-1">
-        <p className="text-sm font-medium text-foreground">Ask Fleet Copilot</p>
+        <p className="text-sm font-medium text-foreground">Ask Connect Pro</p>
         <p className="text-xs text-muted-foreground">
-          Ask questions about your customers, rentals, payments, vehicles,
-          operations, and business performance.
+          Ask questions about your fleet, rentals, payments, maintenance, or
+          operations.
         </p>
       </div>
       {categories.map((cat) => (
