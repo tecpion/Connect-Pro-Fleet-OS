@@ -476,9 +476,9 @@ describe("Build #33 — AnswerCard renders launch features", () => {
 });
 
 describe("Build #33 — Copilot Home UI (categorized prompts)", () => {
-  it("23. empty state shows 'Ask Fleet Copilot' heading", () => {
+  it("23. empty state shows 'Connect Pro AI Operator' heading", () => {
     const { getByText } = uiWrapper(<CopilotPanel embedded />);
-    expect(getByText("Ask Fleet Copilot")).toBeTruthy();
+    expect(getByText("Connect Pro AI Operator")).toBeTruthy();
   });
 
   it("24. empty state shows category headings", () => {
@@ -490,7 +490,7 @@ describe("Build #33 — Copilot Home UI (categorized prompts)", () => {
 
   it("25. empty state shows supporting text", () => {
     const { getByText } = uiWrapper(<CopilotPanel embedded />);
-    expect(getByText(/Ask questions about your customers/i)).toBeTruthy();
+    expect(getByText(/Ask questions about your fleet/i)).toBeTruthy();
   });
 
   it("26. deterministic disclaimer present", () => {

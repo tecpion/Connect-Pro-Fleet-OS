@@ -282,7 +282,7 @@ describe("Quick Add — render & permission gating", () => {
     renderAt("/", <Dashboard />);
     // Copilot launcher lives in the shell top bar (rendered for both desktop
     // and mobile breakpoints), not in the Quick Add menu.
-    const copilots = screen.getAllByTitle("Fleet Copilot");
+    const copilots = screen.getAllByTitle("Connect Pro AI Operator");
     expect(copilots.length).toBeGreaterThanOrEqual(1);
   });
 

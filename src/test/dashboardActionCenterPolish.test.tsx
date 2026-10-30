@@ -441,10 +441,10 @@ describe("Action Center polish — Payments & Collections", () => {
 // ---------------------------------------------------------------------------
 
 describe("Action Center polish — Copilot + AI Workforce", () => {
-  it("renders the Ask Fleet Copilot composer", () => {
+  it("renders the Ask Connect Pro composer", () => {
     renderActionCenter();
     expect(
-      screen.getByRole("heading", { name: "Ask Fleet Copilot" }),
+      screen.getByRole("heading", { name: "Ask Connect Pro" }),
     ).toBeInTheDocument();
   });
 
@@ -462,13 +462,13 @@ describe("Action Center polish — Copilot + AI Workforce", () => {
     ).toBeInTheDocument();
   });
 
-  it("Fleet Copilot remains a standalone nav item (not inside Action Center)", () => {
+  it("AI Operator remains a standalone nav item (not inside Action Center)", () => {
     const allItems = [
       ...standaloneNavItems,
       ...navGroups.flatMap((g) => g.items),
     ];
-    // Build #43 — the AI Workforce nav item was rebranded to "Fleet Copilot".
-    const ai = allItems.find((i) => i.label === "Fleet Copilot");
+    // Build #43 — the AI Workforce nav item was rebranded to "AI Operator".
+    const ai = allItems.find((i) => i.label === "AI Operator");
     expect(ai).toBeDefined();
     expect(ai!.to).toBe("/ai-workforce");
   });

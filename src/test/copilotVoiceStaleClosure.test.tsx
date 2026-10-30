@@ -1,136 +1,98 @@
-// Connect Pro Fleet — Voice Copilot stale-closure regression (Build #40).
+// Connect Pro Fleet — V1 Voice-absence regression (stale-closure).
 //
-// Reproduces the REAL-BROWSER bug where the recognition subscription callback
-// closed over a STALE submitTranscript (which closes over `conversation`
-// state). The subscription effect only re-subscribes on [recognition], which
-// is stable for the panel's lifetime, so the callback captured the
-// conversation as it existed when the subscription was created (initially
-// EMPTY). In the real browser the final transcript arrives on a LATER
-// macrotask — AFTER React has re-rendered with the updated conversation from
-// prior turns — so a stale closure resolved against the OLD (empty)
-// conversation, producing wrong/empty answers for every turn after the first.
+// The Build #40 stale-closure regression exercised the voice state machine
+// through the customer-facing "Start Voice Conversation" button, which is
+// intentionally HIDDEN from the V1 Fleet OS AI Operator UI. The underlying
+// voice utilities remain covered by their dedicated unit tests.
 //
-// The existing mock tests deliver the final transcript synchronously inside
-// act(), so the subscription callback runs in the SAME render cycle and never
-// exposed the stale closure. These tests deliver turns on REAL macrotasks
-// (setTimeout) to match real-browser timing.
+// This file replaces the old Build #40 UI-integration suite with V1
+// regression coverage that protects the product decision: Voice controls
+// must NOT appear in the Fleet OS AI Operator UI, while text chat remains.
 
-import { describe, it, expect, beforeEach } from "vitest";
-import { act, fireEvent, screen, waitFor } from "@testing-library/react";
-import {
-  renderVoicePanel,
-  makeMockRecognition,
-  makeMockSynthesis,
-  flush,
-  type MockRecognitionProvider,
-  type MockSynthesisProvider,
-} from "./copilotVoiceTestHarness";
+import { describe, it, expect } from "vitest";
+import { render } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import type { ReactNode } from "react";
+import { CopilotPanel } from "@/components/copilot/CopilotPanel";
+import { StoreProvider } from "@/lib/store";
+import { CompanyPolicyProvider } from "@/lib/store/companyPolicyStore";
+import { BillingProvider } from "@/lib/billingStore";
+import { InvestorProvider } from "@/lib/investorStore";
+import { PartnershipProvider } from "@/lib/partnershipStore";
+import { DamageClaimProvider } from "@/lib/damageClaimStoreProvider";
+import { ViolationPolicyProvider } from "@/lib/violationPolicyStore";
+import { ViolationProvider } from "@/lib/violationStoreProvider";
+import { ComplianceProvider } from "@/lib/complianceStoreProvider";
+import { StaffAssignmentProvider } from "@/lib/staffAssignmentStore";
+import { CustomerNotesProvider } from "@/lib/customerNoteStore";
+import { IncidentsProvider } from "@/lib/incidentsStore";
+import { DefenseProvider } from "@/lib/store/defenseStore";
 
-async function startVoice() {
-  fireEvent.click(
-    screen.getByRole("button", { name: "Start Voice Conversation" }),
+function Providers({ children }: { children: ReactNode }) {
+  return (
+    <StoreProvider>
+      <CompanyPolicyProvider>
+        <BillingProvider>
+          <IncidentsProvider>
+            <DefenseProvider>
+              <InvestorProvider>
+                <PartnershipProvider>
+                  <DamageClaimProvider>
+                    <StaffAssignmentProvider>
+                      <ViolationPolicyProvider>
+                        <ViolationProvider>
+                          <ComplianceProvider>
+                            <CustomerNotesProvider>
+                              {children}
+                            </CustomerNotesProvider>
+                          </ComplianceProvider>
+                        </ViolationProvider>
+                      </ViolationPolicyProvider>
+                    </StaffAssignmentProvider>
+                  </DamageClaimProvider>
+                </PartnershipProvider>
+              </InvestorProvider>
+            </DefenseProvider>
+          </IncidentsProvider>
+        </BillingProvider>
+      </CompanyPolicyProvider>
+    </StoreProvider>
   );
-  await flush();
 }
 
-describe("Build #40 — Real-browser async stale-closure regression", () => {
-  let recognition: MockRecognitionProvider;
-  let synthesis: MockSynthesisProvider;
+function uiWrapper(node: ReactNode) {
+  return render(<MemoryRouter>{<Providers>{node}</Providers>}</MemoryRouter>);
+}
 
-  beforeEach(() => {
-    recognition = makeMockRecognition();
-    synthesis = makeMockSynthesis();
+describe("V1 — Voice stale-closure controls hidden from AI Operator UI", () => {
+  it("no 'Start Voice Conversation' button in V1", () => {
+    const { queryByRole } = uiWrapper(<CopilotPanel embedded />);
+    expect(
+      queryByRole("button", { name: "Start Voice Conversation" }),
+    ).not.toBeInTheDocument();
   });
 
-  it("1. second turn delivered on a later macrotask resolves against the updated conversation", async () => {
-    renderVoicePanel({ recognition, synthesis });
-    await startVoice();
-
-    // First turn — synchronous delivery (mirrors the existing tests).
-    act(() => recognition.deliverFinalAndEnd("Who owes me money today?"));
-    await waitFor(() => {
-      expect(synthesis.spokenTexts.length).toBe(1);
-    });
-    act(() => synthesis.finishSpeaking());
-    await flush();
-    await waitFor(() => {
-      expect(screen.getByText("Listening…")).toBeTruthy();
-    });
-
-    // CRITICAL: deliver the second turn on a REAL macrotask (not inside act).
-    // This forces React to have fully committed the first turn's conversation
-    // state (the user + assistant messages) before the recognition provider
-    // emits the second final transcript. The subscription callback now runs
-    // against a re-rendered component. With the stale-closure bug, the
-    // callback would call the OLD submitTranscript (captured when the
-    // subscription was created, with the EMPTY conversation) → the second
-    // turn would resolve against no conversation history. The fix routes
-    // through submitTranscriptRef so the LATEST submitTranscript (current
-    // conversation) is always used.
-    await act(async () => {
-      await new Promise<void>((resolve) => {
-        setTimeout(() => {
-          recognition.deliverFinalAndEnd("What should I focus on first?");
-          resolve();
-        }, 0);
-      });
-    });
-    await flush();
-
-    // The second turn MUST produce a second spoken response — proving the
-    // subscription callback fired submitTranscript against the CURRENT
-    // conversation (not a stale empty one that would no-op / fail to resolve).
-    await waitFor(() => {
-      expect(synthesis.spokenTexts.length).toBe(2);
-    });
-
-    // And exactly two user messages exist in the unified history (no stale
-    // no-op, no duplicate). End Voice to surface the text body.
-    fireEvent.click(screen.getByRole("button", { name: "End Voice" }));
-    await flush();
-    const userBubbles = screen.getAllByText(
-      /Who owes me money today\?|What should I focus on first\?/i,
-    );
-    expect(userBubbles.length).toBe(2);
+  it("no 'End Voice' control in V1", () => {
+    const { queryByRole } = uiWrapper(<CopilotPanel embedded />);
+    expect(
+      queryByRole("button", { name: "End Voice" }),
+    ).not.toBeInTheDocument();
   });
 
-  it("2. third turn across multiple macrotasks keeps conversation coherent", async () => {
-    renderVoicePanel({ recognition, synthesis });
-    await startVoice();
+  it("no 'Listening…' indicator in V1", () => {
+    const { queryByText } = uiWrapper(<CopilotPanel embedded />);
+    expect(queryByText(/Listening/i)).not.toBeInTheDocument();
+  });
 
-    // Turn 1 — synchronous.
-    act(() => recognition.deliverFinalAndEnd("Who owes me money today?"));
-    await waitFor(() => expect(synthesis.spokenTexts.length).toBe(1));
-    act(() => synthesis.finishSpeaking());
-    await flush();
-    await waitFor(() => expect(screen.getByText("Listening…")).toBeTruthy());
+  it("text composer IS present in V1", () => {
+    const { getByPlaceholderText } = uiWrapper(<CopilotPanel embedded />);
+    expect(
+      getByPlaceholderText(/Ask about your fleet/i),
+    ).toBeInTheDocument();
+  });
 
-    // Turn 2 — later macrotask.
-    await act(async () => {
-      await new Promise<void>((resolve) =>
-        setTimeout(() => {
-          recognition.deliverFinalAndEnd("What should I focus on first?");
-          resolve();
-        }, 0),
-      );
-    });
-    await waitFor(() => expect(synthesis.spokenTexts.length).toBe(2));
-    act(() => synthesis.finishSpeaking());
-    await flush();
-    await waitFor(() => expect(screen.getByText("Listening…")).toBeTruthy());
-
-    // Turn 3 — another later macrotask. Each turn's subscription callback
-    // must resolve against the conversation as it exists AT THAT MOMENT
-    // (with turns 1 + 2 already appended). A stale closure from the original
-    // subscription would resolve against the empty conversation for turn 3.
-    await act(async () => {
-      await new Promise<void>((resolve) =>
-        setTimeout(() => {
-          recognition.deliverFinalAndEnd("What's blocking the fleet?");
-          resolve();
-        }, 0),
-      );
-    });
-    await waitFor(() => expect(synthesis.spokenTexts.length).toBe(3));
+  it("AI Operator header IS present in V1", () => {
+    const { getByText } = uiWrapper(<CopilotPanel embedded />);
+    expect(getByText("Connect Pro AI Operator")).toBeInTheDocument();
   });
 });

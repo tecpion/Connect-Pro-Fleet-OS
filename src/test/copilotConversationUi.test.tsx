@@ -313,7 +313,7 @@ describe("Build #29 — Copilot UI", () => {
   }
   it("107. Copilot panel renders with header", () => {
     const { getByText } = uiWrapper(<CopilotPanel embedded />);
-    expect(getByText("Fleet Copilot")).toBeTruthy();
+    expect(getByText("Connect Pro AI Operator")).toBeTruthy();
   });
   it("108. suggested prompts shown in empty state", () => {
     const { getByText } = uiWrapper(<CopilotPanel embedded />);
@@ -324,7 +324,9 @@ describe("Build #29 — Copilot UI", () => {
   });
   it("109. send button present", () => {
     const { getByPlaceholderText } = uiWrapper(<CopilotPanel embedded />);
-    expect(getByPlaceholderText("Ask about your operation…")).toBeTruthy();
+    expect(
+      getByPlaceholderText(/Ask about your fleet/i),
+    ).toBeTruthy();
   });
   it("110. clear conversation button present", () => {
     const { getByTitle } = uiWrapper(<CopilotPanel embedded />);

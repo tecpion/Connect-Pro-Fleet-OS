@@ -209,7 +209,7 @@ describe("Settings Consolidation — sidebar IA", () => {
     );
   });
 
-  it("Copilot Voice under Communication & Automation", () => {
+  it("Copilot Voice hidden from V1 Settings sidebar", () => {
     const { container } = render(
       <MemoryRouter>
         <AppProviders>
@@ -217,7 +217,8 @@ describe("Settings Consolidation — sidebar IA", () => {
         </AppProviders>
       </MemoryRouter>,
     );
-    expect(container.querySelector("aside nav")?.textContent).toContain(
+    // V1 — Voice is hidden from the customer-facing Fleet OS AI experience.
+    expect(container.querySelector("aside nav")?.textContent).not.toContain(
       "Copilot Voice",
     );
   });

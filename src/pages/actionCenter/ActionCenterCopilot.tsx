@@ -9,7 +9,7 @@
 // This is distinct from dictation (which lives inside the panel composer).
 
 import { useState } from "react";
-import { Sparkles, Send, AudioLines } from "lucide-react";
+import { Sparkles, Send } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { CopilotPanel } from "@/components/copilot/CopilotPanel";
 import { cn } from "@/lib/utils";
@@ -29,7 +29,7 @@ export function ActionCenterCopilot({ prompts }: { prompts: string[] }) {
   return (
     <>
       <section
-        aria-label="Ask Fleet Copilot"
+        aria-label="Ask Connect Pro"
         className="card-surface overflow-hidden"
       >
         <div className="bg-gradient-to-br from-primary/8 via-primary/4 to-transparent px-4 py-4 sm:px-5">
@@ -39,7 +39,7 @@ export function ActionCenterCopilot({ prompts }: { prompts: string[] }) {
             </span>
             <div>
               <h2 className="font-display text-sm font-semibold text-foreground">
-                Ask Fleet Copilot
+                Ask Connect Pro
               </h2>
               <p className="text-[11px] text-muted-foreground">
                 Ask what needs attention, who owes money, what's blocked, what
@@ -59,8 +59,8 @@ export function ActionCenterCopilot({ prompts }: { prompts: string[] }) {
             <input
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              placeholder="Ask or speak to Fleet Copilot…"
-              aria-label="Ask Fleet Copilot"
+              placeholder="Ask Connect Pro…"
+              aria-label="Ask Connect Pro"
               className="h-10 flex-1 rounded-lg border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/30"
             />
             <button
@@ -71,20 +71,7 @@ export function ActionCenterCopilot({ prompts }: { prompts: string[] }) {
               <Send className="h-4 w-4" />
               <span className="hidden sm:inline">Ask</span>
             </button>
-            {/* Start Voice Conversation — enters true conversational Voice Mode. */}
-            <button
-              type="button"
-              onClick={() => {
-                setQuery(null);
-                setOpen(true);
-              }}
-              title="Start Voice Conversation"
-              aria-label="Start Voice Conversation"
-              className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/8 px-4 text-sm font-medium text-primary transition-colors hover:bg-primary/15"
-            >
-              <AudioLines className="h-4 w-4" />
-              <span className="hidden sm:inline">Start Voice</span>
-            </button>
+            {/* V1 — text-only AI Operator. Voice is hidden from the customer-facing UI. */}
           </form>
 
           <div className="mt-3 flex flex-wrap gap-2">
